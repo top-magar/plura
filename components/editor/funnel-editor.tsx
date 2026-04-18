@@ -439,7 +439,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
         {/* Canvas */}
         <div style={{ flex: 1, overflow: "auto", padding: preview ? 0 : 16 }} className="bg-muted/30" onClick={() => !preview && setSelected(null)}>
-          <div style={{ maxWidth: deviceWidth, margin: "0 auto", minHeight: "100%", transition: "max-width 0.3s" }} className="bg-background shadow-lg">
+          <div style={{ maxWidth: deviceWidth, margin: "0 auto", minHeight: "100%", transition: "max-width 0.3s" }} className="bg-background shadow-lg rounded-none">
             {body && <R el={body} />}
           </div>
         </div>
