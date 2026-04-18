@@ -163,11 +163,23 @@ export async function upsertAgency(agency: Agency, price?: Plan) {
   if (!agency.companyEmail) return null;
 
   try {
+    // Create Stripe customer if new agency
+    let customerId = agency.customerId;
+    if (!customerId) {
+      const customer = await (await import("./stripe")).stripe.customers.create({
+        email: agency.companyEmail,
+        name: agency.name,
+        metadata: { agencyId: agency.id },
+      });
+      customerId = customer.id;
+    }
+
     return await db.agency.upsert({
       where: { id: agency.id },
-      update: agency,
+      update: { ...agency, customerId },
       create: {
         ...agency,
+        customerId,
         users: { connect: { email: agency.companyEmail } },
         SidebarOption: {
           create: [
@@ -192,6 +204,12 @@ export async function updateAgencyDetails(agencyId: string, agencyDetails: Parti
     data: { ...agencyDetails },
   });
   return response;
+}
+
+export async function getAgencySubscription(agencyId: string) {
+  return db.subscription.findFirst({
+    where: { agencyId, active: true },
+  });
 }
 
 export async function deleteAgency(agencyId: string) {

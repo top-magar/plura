@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
+import SubscriptionForm from "@/components/global/subscription-form";
 
 type Subscription = {
   id: string;
@@ -45,18 +46,30 @@ type Props = {
 export default function BillingClient({ agencyId, subscription, charges, pricingCards }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   const handleSubscribe = async (priceId: string) => {
-    if (!priceId) return; // Free plan
+    if (!priceId) return;
     setLoading(priceId);
     try {
-      const res = await fetch("/api/stripe/create-checkout", {
+      const res = await fetch("/api/stripe/create-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ priceId, agencyId }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret);
+      } else if (data.error) {
+        // Fallback to checkout redirect
+        const checkoutRes = await fetch("/api/stripe/create-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ priceId, agencyId }),
+        });
+        const checkoutData = await checkoutRes.json();
+        if (checkoutData.url) window.location.href = checkoutData.url;
+      }
     } catch {
       setLoading(null);
     }
@@ -86,6 +99,11 @@ export default function BillingClient({ agencyId, subscription, charges, pricing
             </CardDescription>
           </CardHeader>
         </Card>
+      )}
+
+      {/* Custom Stripe Form */}
+      {clientSecret && (
+        <SubscriptionForm clientSecret={clientSecret} agencyId={agencyId} />
       )}
 
       {/* Plans */}
