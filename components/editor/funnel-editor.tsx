@@ -133,7 +133,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         </div>
       )}
 
-      <div className={`editor-body ${preview ? "preview-mode" : !selected ? "no-props" : ""}`}>
+      <div className="editor-body">
         {!preview && (
           <div className="editor-sidebar">
             <div className="editor-sidebar-tabs">
