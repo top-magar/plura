@@ -3,7 +3,7 @@
 import { useState, useCallback, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical } from "lucide-react";
 import { toast } from "sonner";
 import { v4 } from "uuid";
 import { Button } from "@/components/ui/button";
@@ -92,16 +92,22 @@ function makeEl(type: string): El | null {
 
 // ── Sidebar components list ──────────────────────────────────
 
-const components = [
-  { type: "text", label: "Text", icon: Type },
-  { type: "link", label: "Link", icon: Link2 },
-  { type: "image", label: "Image", icon: Image },
-  { type: "video", label: "Video", icon: Video },
-  { type: "container", label: "Container", icon: Layout },
-  { type: "2Col", label: "2 Columns", icon: Columns2 },
-  { type: "3Col", label: "3 Columns", icon: Columns3 },
-  { type: "contactForm", label: "Contact Form", icon: Contact },
-  { type: "paymentForm", label: "Payment", icon: CreditCard },
+const componentGroups = [
+  { label: "Layout", items: [
+    { type: "container", label: "Container", icon: Layout },
+    { type: "2Col", label: "2 Columns", icon: Columns2 },
+    { type: "3Col", label: "3 Columns", icon: Columns3 },
+  ]},
+  { label: "Elements", items: [
+    { type: "text", label: "Text", icon: Type },
+    { type: "link", label: "Link", icon: Link2 },
+    { type: "image", label: "Image", icon: Image },
+    { type: "video", label: "Video", icon: Video },
+  ]},
+  { label: "Forms", items: [
+    { type: "contactForm", label: "Contact", icon: Contact },
+    { type: "paymentForm", label: "Payment", icon: CreditCard },
+  ]},
 ];
 
 // ── CSS property groups ──────────────────────────────────────
@@ -140,6 +146,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
   const [dirty, setDirty] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const [clipboard, setClipboard] = useState<El | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<"components" | "layers">("components");
 
   // History
   const pushHistory = useCallback((prev: El[]) => {
@@ -413,26 +420,35 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         {/* Sidebar */}
         {!preview && (
           <div className="editor-sidebar">
-            <div className="editor-sidebar-header">Components</div>
-            <ScrollArea className="flex-1">
-              <div style={{ padding: "0 8px 8px", display: "flex", flexDirection: "column", gap: 4 }}>
-                {components.map(({ type, label, icon: Icon }) => (
-                  <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("componentType", type)} className="editor-component-item">
-                    <Icon size={14} /> {label}
+            <div className="editor-sidebar-tabs">
+              <button className={`editor-sidebar-tab ${sidebarTab === "components" ? "active" : ""}`} onClick={() => setSidebarTab("components")}>Components</button>
+              <button className={`editor-sidebar-tab ${sidebarTab === "layers" ? "active" : ""}`} onClick={() => setSidebarTab("layers")}>Layers</button>
+            </div>
+
+            {sidebarTab === "components" && (
+              <ScrollArea className="flex-1">
+                {componentGroups.map((group) => (
+                  <div key={group.label} className="editor-component-group">
+                    <div className="editor-component-group-label">{group.label}</div>
+                    <div className="editor-component-grid">
+                      {group.items.map(({ type, label, icon: Icon }) => (
+                        <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("componentType", type)} className="editor-component-card">
+                          <Icon size={16} /> {label}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
-              </div>
-            </ScrollArea>
+              </ScrollArea>
+            )}
 
-            {/* Layers */}
-            <div className="border-t">
-              <div className="editor-sidebar-header">Layers</div>
-              <ScrollArea style={{ maxHeight: 200 }}>
-                <div style={{ padding: "0 8px 8px" }}>
+            {sidebarTab === "layers" && (
+              <ScrollArea className="flex-1">
+                <div style={{ padding: "4px 8px" }}>
                   {body && <LayerTree el={body} depth={0} selected={selected} onSelect={setSelected} />}
                 </div>
               </ScrollArea>
-            </div>
+            )}
           </div>
         )}
 
@@ -447,17 +463,21 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         {!preview && selected && (
           <div className="editor-props">
             <div className="editor-props-header">
-              <div style={{ fontSize: 12, fontWeight: 500 }}>{selected.name}</div>
-              <div style={{ fontSize: 10 }} className="text-muted-foreground">{selected.type}</div>
+              <input
+                className="editor-props-name-input"
+                value={selected.name}
+                onChange={(e) => doUpdate({ ...selected, name: e.target.value })}
+              />
+              <div className="editor-props-type">{selected.type}</div>
             </div>
 
             {/* Content editor */}
             {!Array.isArray(selected.content) && (
               <div className="editor-props-section">
-                <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 6 }} className="text-muted-foreground">Content</div>
+                <div className="editor-component-group-label">Content</div>
                 {Object.entries(selected.content as Record<string, string>).map(([key, val]) => (
-                  <div key={key} style={{ marginBottom: 6 }}>
-                    <label className="editor-prop-label">{key}</label>
+                  <div key={key} className="editor-content-field">
+                    <label className="editor-content-label">{key}</label>
                     <Input value={val} onChange={(e) => doUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-7 text-[11px]" />
                   </div>
                 ))}
@@ -465,7 +485,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
             )}
 
             {/* Style editor */}
-            <div style={{ padding: "8px 12px" }}>
+            <div className="editor-props-section">
               {propGroups.map((g) => (
                 <PropGroup key={g.title} title={g.title} props={g.props} selected={selected} onUpdate={doUpdate} />
               ))}
@@ -515,14 +535,14 @@ function PropGroup({ title, props, selected, onUpdate }: { title: string; props:
         {open ? <ChevronDown size={10} /> : <ChevronRight size={10} />} {title}
       </button>
       {open && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, paddingBottom: 8 }}>
+        <div className="editor-style-grid">
           {props.map((p) => {
             const val = String((selected.styles as Record<string, unknown>)[p] ?? "");
             const isColor = colorProps.has(p);
             return (
               <div key={p}>
                 <label className="editor-prop-label">{p.replace(/([A-Z])/g, " $1")}</label>
-                <div style={{ display: "flex", gap: 2 }}>
+                <div className="editor-style-field">
                   {isColor && (
                     <input type="color" value={val || "#000000"} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} className="editor-color-picker" />
                   )}

@@ -502,3 +502,144 @@
 .editor-canvas::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* ── Sidebar Tabs ─────────────────────────────────────── */
+
+.editor-sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--ed-border-subtle);
+  flex-shrink: 0;
+}
+
+.editor-sidebar-tab {
+  flex: 1;
+  padding: var(--ed-spacing-03) 0;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+  border: 0;
+  background: transparent;
+  color: var(--ed-text-secondary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color var(--ed-duration) var(--ed-easing),
+              border-color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-sidebar-tab:hover {
+  color: var(--ed-text-primary);
+}
+
+.editor-sidebar-tab.active {
+  color: var(--ed-interactive);
+  border-bottom-color: var(--ed-interactive);
+}
+
+/* ── Component Groups ─────────────────────────────────── */
+
+.editor-component-group {
+  padding: var(--ed-spacing-02) var(--ed-spacing-03);
+}
+
+.editor-component-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.32px;
+  color: var(--ed-text-placeholder);
+  padding: var(--ed-spacing-03) var(--ed-spacing-02);
+}
+
+.editor-component-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ed-spacing-02);
+}
+
+.editor-component-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ed-spacing-02);
+  padding: var(--ed-spacing-04) var(--ed-spacing-03);
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: 11px;
+  cursor: grab;
+  color: var(--ed-text-secondary);
+  transition: background var(--ed-duration) var(--ed-easing),
+              border-color var(--ed-duration) var(--ed-easing),
+              color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-component-card:hover {
+  background: var(--ed-layer-02);
+  border-color: var(--ed-border-subtle);
+  color: var(--ed-text-primary);
+}
+
+.editor-component-card:active {
+  cursor: grabbing;
+}
+
+.editor-component-card svg {
+  opacity: 0.6;
+}
+
+/* ── Props: Element Name ──────────────────────────────── */
+
+.editor-props-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ed-text-primary);
+}
+
+.editor-props-type {
+  font-size: 11px;
+  color: var(--ed-text-secondary);
+  margin-top: var(--ed-spacing-01);
+}
+
+.editor-props-name-input {
+  font-size: 13px;
+  font-weight: 500;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  color: var(--ed-text-primary);
+  padding: 0 0 var(--ed-spacing-01) 0;
+  width: 100%;
+  outline: none;
+  transition: border-color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-props-name-input:focus {
+  border-bottom-color: var(--ed-interactive);
+}
+
+/* ── Props: Content Fields ────────────────────────────── */
+
+.editor-content-field {
+  margin-bottom: var(--ed-spacing-03);
+}
+
+.editor-content-label {
+  font-size: 10px;
+  color: var(--ed-text-secondary);
+  display: block;
+  margin-bottom: var(--ed-spacing-01);
+}
+
+/* ── Props: Style Grid ────────────────────────────────── */
+
+.editor-style-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ed-spacing-02);
+  padding-bottom: var(--ed-spacing-03);
+}
+
+.editor-style-field {
+  display: flex;
+  gap: var(--ed-spacing-01);
+}
