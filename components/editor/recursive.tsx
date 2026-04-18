@@ -255,7 +255,8 @@ function Recursive({ element }: { element: EditorElement }) {
         !previewMode && !isBody && "cursor-pointer",
         isSelected && !isBody && "ring-2 ring-primary ring-offset-1",
         isColumn && "flex gap-2",
-        !previewMode && children.length === 0 && "min-h-[60px] border-2 border-dashed border-muted-foreground/20",
+        !previewMode && children.length === 0 && !isBody && "min-h-[60px] border-2 border-dashed border-muted-foreground/20",
+        !previewMode && children.length === 0 && isBody && "min-h-[calc(100vh-48px)] border-2 border-dashed border-muted-foreground/20",
       )}
       onClick={handleClick}
       onDragOver={handleDragOver}
@@ -277,8 +278,8 @@ function Recursive({ element }: { element: EditorElement }) {
         </div>
       ))}
       {!previewMode && children.length === 0 && (
-        <div className="flex h-full items-center justify-center text-[11px] text-muted-foreground/50">
-          Drop here
+        <div className="flex h-full min-h-[60px] items-center justify-center text-[11px] text-muted-foreground/50">
+          {isBody ? "Drag a component here to start building" : "Drop here"}
         </div>
       )}
     </div>
@@ -289,7 +290,7 @@ function createElementFromType(type: string): EditorElement | null {
   const id = v4();
   switch (type) {
     case "text":
-      return { id, type: "text", name: "Text", styles: { color: "inherit", fontSize: "16px" }, content: { innerText: "Edit this text" } };
+      return { id, type: "text", name: "Text", styles: { color: "inherit", fontSize: "16px" }, content: { innerText: "" } };
     case "link":
       return { id, type: "link", name: "Link", styles: { color: "#3b82f6", textDecoration: "underline" }, content: { innerText: "Click here", href: "#" } };
     case "image":
