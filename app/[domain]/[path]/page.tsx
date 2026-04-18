@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
+import { updateFunnelPageVisits } from "@/lib/queries";
+import PageRenderer from "../renderer";
 
 export default async function DomainPathPage({
   params,
@@ -13,8 +15,11 @@ export default async function DomainPathPage({
     include: { FunnelPages: { where: { pathName: path } } },
   });
 
-  const page = funnel?.FunnelPages?.[0];
+  if (!funnel?.published) return notFound();
+  const page = funnel.FunnelPages[0];
   if (!page) return notFound();
 
-  return <div>{page.name}</div>;
+  await updateFunnelPageVisits(page.id);
+
+  return <PageRenderer content={page.content} />;
 }
