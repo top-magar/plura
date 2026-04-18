@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
 import clsx from "clsx";
 import { v4 } from "uuid";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(() => import("./rich-text"), { ssr: false });
 
 function Recursive({ element }: { element: EditorElement }) {
   const { state, dispatch } = useEditor();
@@ -59,44 +62,75 @@ function Recursive({ element }: { element: EditorElement }) {
   };
 
   // Render based on type
-  if (element.type === "text" || element.type === "link") {
-    const content = element.content as { innerText?: string; href?: string };
-    const Tag = element.type === "link" ? "a" : "span";
+  if (element.type === "text") {
+    const content = element.content as { innerText?: string };
     return (
       <div
         style={element.styles}
-        className={clsx("relative p-1", !previewMode && "cursor-pointer", isSelected && "ring-2 ring-primary ring-offset-1")}
+        className={clsx("relative", !previewMode && "cursor-pointer", isSelected && "ring-2 ring-primary ring-offset-1")}
         onClick={handleClick}
-        draggable={!previewMode && !isBody}
+        draggable={!previewMode && !isSelected}
         onDragStart={handleDragStart}
       >
         {isSelected && !previewMode && (
-          <div className="absolute -top-6 left-0 flex items-center gap-1">
+          <div className="absolute -top-6 left-0 flex items-center gap-1 z-10">
             <Badge className="text-[10px] h-5">{element.name}</Badge>
             <button onClick={handleDelete} className="flex h-5 w-5 items-center justify-center rounded bg-destructive text-white">
               <Trash2 className="h-3 w-3" />
             </button>
           </div>
         )}
-        <Tag
-          href={element.type === "link" ? (content.href || "#") : undefined}
+        {!previewMode && isSelected ? (
+          <RichTextEditor
+            initialContent={content.innerText}
+            onChange={(html) => {
+              dispatch({
+                type: "UPDATE_ELEMENT",
+                payload: {
+                  elementDetails: { ...element, content: { ...content, innerText: html } },
+                },
+              });
+            }}
+          />
+        ) : (
+          <div dangerouslySetInnerHTML={{ __html: content.innerText || "Text element" }} />
+        )}
+      </div>
+    );
+  }
+
+  if (element.type === "link") {
+    const content = element.content as { innerText?: string; href?: string };
+    return (
+      <div
+        style={element.styles}
+        className={clsx("relative", !previewMode && "cursor-pointer", isSelected && "ring-2 ring-primary ring-offset-1")}
+        onClick={handleClick}
+        draggable={!previewMode}
+        onDragStart={handleDragStart}
+      >
+        {isSelected && !previewMode && (
+          <div className="absolute -top-6 left-0 flex items-center gap-1 z-10">
+            <Badge className="text-[10px] h-5">{element.name}</Badge>
+            <button onClick={handleDelete} className="flex h-5 w-5 items-center justify-center rounded bg-destructive text-white">
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+        <a
+          href={content.href || "#"}
           contentEditable={!previewMode && isSelected}
           suppressContentEditableWarning
           onBlur={(e) => {
             dispatch({
               type: "UPDATE_ELEMENT",
-              payload: {
-                elementDetails: {
-                  ...element,
-                  content: { ...content, innerText: (e.target as HTMLElement).innerText },
-                },
-              },
+              payload: { elementDetails: { ...element, content: { ...content, innerText: (e.target as HTMLElement).innerText } } },
             });
           }}
           className="outline-none"
         >
-          {content.innerText || (element.type === "link" ? "Link" : "Text")}
-        </Tag>
+          {content.innerText || "Link"}
+        </a>
       </div>
     );
   }
