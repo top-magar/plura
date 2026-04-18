@@ -3,7 +3,7 @@
 import { useState, useCallback, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical, Heading1, Heading2, List, SeparatorHorizontal, Square, Code, Quote, Star, MapPin, Phone, Mail, Globe, Clock, CheckSquare, Minus } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical, Heading1, Heading2, List, SeparatorHorizontal, Square, Code, Quote, Star, MapPin, Phone, Mail, Globe, Clock, CheckSquare, Minus, ChevronUp, Timer, PanelTop, PanelBottom, Share2, CodeXml, ImageIcon, Navigation, Rows3 } from "lucide-react";
 import { toast } from "sonner";
 import { v4 } from "uuid";
 import { Button } from "@/components/ui/button";
@@ -129,6 +129,56 @@ function makeEl(type: string): El | null {
       { id: v4(), type: "text", name: "Period", styles: { fontSize: "14px", opacity: "0.5", marginBottom: "24px" }, content: { innerText: "per month" } },
       { id: v4(), type: "button", name: "CTA", styles: { padding: "12px 24px", backgroundColor: "#6366f1", color: "#ffffff", fontSize: "14px", fontWeight: "600", width: "100%" }, content: { innerText: "Choose Plan", href: "#" } },
     ] as El[] }),
+    // ── Interactive ──
+    icon: () => ({ id, type: "icon", name: "Icon", styles: { fontSize: "32px", textAlign: "center" }, content: { innerText: "★" } }),
+    accordion: () => ({ id, type: "accordion", name: "Accordion", styles: {}, content: { items: JSON.stringify([
+      { title: "What is this product?", body: "A brief description of your product or service." },
+      { title: "How does pricing work?", body: "Explain your pricing model here." },
+      { title: "Do you offer support?", body: "Yes, we offer 24/7 support via email and chat." },
+    ])} }),
+    countdown: () => ({ id, type: "countdown", name: "Countdown", styles: { display: "flex", justifyContent: "center", gap: "16px", padding: "24px", fontSize: "32px", fontWeight: "700", textAlign: "center" }, content: { targetDate: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 16) } }),
+    tabs: () => ({ id, type: "tabs", name: "Tabs", styles: {}, content: { items: JSON.stringify([
+      { title: "Tab 1", body: "Content for the first tab." },
+      { title: "Tab 2", body: "Content for the second tab." },
+      { title: "Tab 3", body: "Content for the third tab." },
+    ])} }),
+    // ── Navigation ──
+    navbar: () => ({ id, type: "navbar", name: "Navbar", styles: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px" }, content: { brand: "Brand", links: "Home,About,Services,Contact" } }),
+    footer: () => ({ id, type: "footer", name: "Footer", styles: { padding: "32px 24px", textAlign: "center", fontSize: "13px", opacity: "0.5" }, content: { innerText: "© 2026 Your Company. All rights reserved." } }),
+    // ── Embed & Social ──
+    embed: () => ({ id, type: "embed", name: "Embed", styles: { padding: "16px", minHeight: "60px" }, content: { code: "<p style='color:#888;text-align:center'>Paste HTML here</p>" } }),
+    socialIcons: () => ({ id, type: "socialIcons", name: "Social Icons", styles: { display: "flex", gap: "12px", justifyContent: "center", padding: "16px", fontSize: "20px" }, content: { platforms: "X,Facebook,Instagram,LinkedIn,YouTube" } }),
+    map: () => ({ id, type: "map", name: "Map", styles: { width: "100%", height: "300px" }, content: { address: "New York, NY", zoom: "13" } }),
+    gallery: () => ({ id, type: "gallery", name: "Gallery", styles: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", padding: "8px" }, content: { images: "https://placehold.co/400x300/111/333?text=1,https://placehold.co/400x300/111/333?text=2,https://placehold.co/400x300/111/333?text=3,https://placehold.co/400x300/111/333?text=4,https://placehold.co/400x300/111/333?text=5,https://placehold.co/400x300/111/333?text=6" } }),
+    // ── More Blocks ──
+    features: () => ({ id, type: "3Col", name: "Features Grid", styles: { display: "flex", gap: "24px", padding: "48px 24px" }, content: [
+      { id: v4(), type: "container", name: "Feature 1", styles: { flex: "1", padding: "24px" }, content: [
+        { id: v4(), type: "text", name: "Title", styles: { fontSize: "18px", fontWeight: "600", marginBottom: "8px" }, content: { innerText: "Fast Performance" } },
+        { id: v4(), type: "text", name: "Desc", styles: { fontSize: "14px", opacity: "0.6" }, content: { innerText: "Lightning fast load times." } },
+      ] as El[] },
+      { id: v4(), type: "container", name: "Feature 2", styles: { flex: "1", padding: "24px" }, content: [
+        { id: v4(), type: "text", name: "Title", styles: { fontSize: "18px", fontWeight: "600", marginBottom: "8px" }, content: { innerText: "Secure by Default" } },
+        { id: v4(), type: "text", name: "Desc", styles: { fontSize: "14px", opacity: "0.6" }, content: { innerText: "Enterprise-grade security." } },
+      ] as El[] },
+      { id: v4(), type: "container", name: "Feature 3", styles: { flex: "1", padding: "24px" }, content: [
+        { id: v4(), type: "text", name: "Title", styles: { fontSize: "18px", fontWeight: "600", marginBottom: "8px" }, content: { innerText: "24/7 Support" } },
+        { id: v4(), type: "text", name: "Desc", styles: { fontSize: "14px", opacity: "0.6" }, content: { innerText: "Always here to help." } },
+      ] as El[] },
+    ] as El[] }),
+    stats: () => ({ id, type: "container", name: "Stats", styles: { display: "flex", justifyContent: "center", gap: "48px", padding: "48px 24px", textAlign: "center" }, content: [
+      { id: v4(), type: "container", name: "Stat", styles: {}, content: [
+        { id: v4(), type: "text", name: "Num", styles: { fontSize: "36px", fontWeight: "800" }, content: { innerText: "10K+" } },
+        { id: v4(), type: "text", name: "Label", styles: { fontSize: "14px", opacity: "0.5" }, content: { innerText: "Customers" } },
+      ] as El[] },
+      { id: v4(), type: "container", name: "Stat", styles: {}, content: [
+        { id: v4(), type: "text", name: "Num", styles: { fontSize: "36px", fontWeight: "800" }, content: { innerText: "99.9%" } },
+        { id: v4(), type: "text", name: "Label", styles: { fontSize: "14px", opacity: "0.5" }, content: { innerText: "Uptime" } },
+      ] as El[] },
+      { id: v4(), type: "container", name: "Stat", styles: {}, content: [
+        { id: v4(), type: "text", name: "Num", styles: { fontSize: "36px", fontWeight: "800" }, content: { innerText: "24/7" } },
+        { id: v4(), type: "text", name: "Label", styles: { fontSize: "14px", opacity: "0.5" }, content: { innerText: "Support" } },
+      ] as El[] },
+    ] as El[] }),
   };
   return m[type]?.() ?? null;
 }
@@ -153,12 +203,26 @@ const componentGroups = [
     { type: "quote", label: "Quote", icon: Quote },
     { type: "badge", label: "Badge", icon: Star },
     { type: "code", label: "Code", icon: Code },
+    { type: "icon", label: "Icon", icon: Star },
   ]},
-  { label: "Media", items: [
+  { label: "Media & Links", items: [
     { type: "image", label: "Image", icon: Image },
     { type: "video", label: "Video", icon: Video },
+    { type: "gallery", label: "Gallery", icon: ImageIcon },
     { type: "link", label: "Link", icon: Link2 },
     { type: "button", label: "Button", icon: CheckSquare },
+    { type: "map", label: "Map", icon: MapPin },
+    { type: "embed", label: "Embed", icon: CodeXml },
+    { type: "socialIcons", label: "Social Icons", icon: Share2 },
+  ]},
+  { label: "Interactive", items: [
+    { type: "accordion", label: "Accordion", icon: ChevronDown },
+    { type: "tabs", label: "Tabs", icon: Rows3 },
+    { type: "countdown", label: "Countdown", icon: Timer },
+  ]},
+  { label: "Navigation", items: [
+    { type: "navbar", label: "Navbar", icon: Navigation },
+    { type: "footer", label: "Footer", icon: PanelBottom },
   ]},
   { label: "Forms", items: [
     { type: "contactForm", label: "Contact", icon: Contact },
@@ -169,6 +233,8 @@ const componentGroups = [
     { type: "cta", label: "CTA", icon: Phone },
     { type: "testimonial", label: "Testimonial", icon: Quote },
     { type: "pricing", label: "Pricing", icon: CreditCard },
+    { type: "features", label: "Features", icon: Columns3 },
+    { type: "stats", label: "Stats", icon: Heading1 },
   ]},
 ];
 
@@ -486,6 +552,116 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
       );
     }
 
+    if (el.type === "icon") {
+      const c = el.content as Record<string, string>;
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <span>{c.innerText || "★"}</span>
+        </div>
+      );
+    }
+
+    if (el.type === "accordion") {
+      const c = el.content as Record<string, string>;
+      const items: { title: string; body: string }[] = (() => { try { return JSON.parse(c.items || "[]"); } catch { return []; } })();
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          {items.map((item, i) => (
+            <details key={i} style={{ borderBottom: "1px solid var(--ed-border-subtle)", padding: "12px 0" }}>
+              <summary style={{ cursor: "pointer", fontWeight: 500, fontSize: 14 }}>{item.title}</summary>
+              <p style={{ marginTop: 8, fontSize: 13, opacity: 0.7 }}>{item.body}</p>
+            </details>
+          ))}
+        </div>
+      );
+    }
+
+    if (el.type === "countdown") {
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <CountdownDisplay content={el.content as Record<string, string>} />
+        </div>
+      );
+    }
+
+    if (el.type === "tabs") {
+      const c = el.content as Record<string, string>;
+      const items: { title: string; body: string }[] = (() => { try { return JSON.parse(c.items || "[]"); } catch { return []; } })();
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <TabsDisplay items={items} />
+        </div>
+      );
+    }
+
+    if (el.type === "navbar") {
+      const c = el.content as Record<string, string>;
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <span style={{ fontWeight: 700, fontSize: 16 }}>{c.brand || "Brand"}</span>
+          <div style={{ display: "flex", gap: 16, fontSize: 14 }}>
+            {(c.links || "").split(",").map((l, i) => <a key={i} href="#" style={{ opacity: 0.7 }}>{l.trim()}</a>)}
+          </div>
+        </div>
+      );
+    }
+
+    if (el.type === "embed") {
+      const c = el.content as Record<string, string>;
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <div dangerouslySetInnerHTML={{ __html: c.code || "" }} />
+        </div>
+      );
+    }
+
+    if (el.type === "socialIcons") {
+      const c = el.content as Record<string, string>;
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          {(c.platforms || "").split(",").map((p, i) => <span key={i} style={{ opacity: 0.6 }}>{p.trim()}</span>)}
+        </div>
+      );
+    }
+
+    if (el.type === "map") {
+      const c = el.content as Record<string, string>;
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <iframe src={`https://maps.google.com/maps?q=${encodeURIComponent(c.address || "New York")}&z=${c.zoom || "13"}&output=embed`} style={{ width: "100%", height: "100%", border: 0 }} />
+        </div>
+      );
+    }
+
+    if (el.type === "gallery") {
+      const c = el.content as Record<string, string>;
+      const imgs = (c.images || "").split(",").filter(Boolean);
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {imgs.map((src, i) => <img key={i} src={src.trim()} alt={`Gallery ${i + 1}`} style={{ width: "100%", display: "block" }} />)}
+        </div>
+      );
+    }
+
     if (el.type === "contactForm") {
       return (
         <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
@@ -747,6 +923,45 @@ function LayerTree({ el, depth, selected, onSelect }: { el: El; depth: number; s
         {el.name}
       </button>
       {children.map((c) => <LayerTree key={c.id} el={c} depth={depth + 1} selected={selected} onSelect={onSelect} />)}
+    </div>
+  );
+}
+
+function CountdownDisplay({ content }: { content: Record<string, string> }) {
+  const [now, setNow] = useState(Date.now());
+  const target = new Date(content.targetDate || Date.now()).getTime();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useState(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); });
+  const diff = Math.max(0, target - now);
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const units = [["Days", d], ["Hours", h], ["Min", m], ["Sec", s]] as const;
+  return (
+    <div style={{ display: "flex", justifyContent: "center", gap: 16 }}>
+      {units.map(([label, val]) => (
+        <div key={label} style={{ textAlign: "center" }}>
+          <div style={{ fontSize: "inherit", fontWeight: "inherit" }}>{String(val).padStart(2, "0")}</div>
+          <div style={{ fontSize: 10, opacity: 0.5, marginTop: 4 }}>{label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TabsDisplay({ items }: { items: { title: string; body: string }[] }) {
+  const [active, setActive] = useState(0);
+  return (
+    <div>
+      <div style={{ display: "flex", borderBottom: "1px solid var(--ed-border-subtle)" }}>
+        {items.map((item, i) => (
+          <button key={i} onClick={(e) => { e.stopPropagation(); setActive(i); }} style={{ padding: "8px 16px", border: 0, borderBottom: active === i ? "2px solid var(--ed-interactive)" : "2px solid transparent", background: "transparent", color: active === i ? "var(--ed-interactive)" : "inherit", cursor: "pointer", fontSize: 13, fontWeight: 500 }}>
+            {item.title}
+          </button>
+        ))}
+      </div>
+      <div style={{ padding: 16, fontSize: 14 }}>{items[active]?.body}</div>
     </div>
   );
 }
