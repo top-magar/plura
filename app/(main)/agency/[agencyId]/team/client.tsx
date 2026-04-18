@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Trash2, Mail } from "lucide-react";
+import { Plus, Search, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useModal } from "@/providers/modal-provider";
 import CustomModal from "@/components/global/custom-modal";
 import InviteForm from "./invite-form";
+import EditMemberPermissions from "./edit-permissions";
 import { deleteUser, saveActivityLogsNotification } from "@/lib/queries";
 
 type Member = {
@@ -25,9 +26,9 @@ type Member = {
   Permissions: { id: string; access: boolean; SubAccount: { id: string; name: string } }[];
 };
 
-type Props = { teamMembers: Member[]; agencyId: string };
+type Props = { teamMembers: Member[]; agencyId: string; subAccounts: { id: string; name: string }[] };
 
-export default function TeamClient({ teamMembers, agencyId }: Props) {
+export default function TeamClient({ teamMembers, agencyId, subAccounts }: Props) {
   const router = useRouter();
   const { setOpen } = useModal();
   const [search, setSearch] = useState("");
@@ -123,11 +124,33 @@ export default function TeamClient({ teamMembers, agencyId }: Props) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {m.role !== "AGENCY_OWNER" && (
-                      <Button variant="ghost" size="icon-xs" onClick={() => setDeleteId(m.id)}>
-                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={() =>
+                          setOpen(
+                            <CustomModal title={`Edit ${m.name}`} subheading="Change role and sub account access">
+                              <EditMemberPermissions
+                                userId={m.id}
+                                userName={m.name}
+                                userEmail={m.email}
+                                userRole={m.role}
+                                agencyId={agencyId}
+                                subAccounts={subAccounts}
+                              />
+                            </CustomModal>
+                          )
+                        }
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                       </Button>
-                    )}
+                      {m.role !== "AGENCY_OWNER" && (
+                        <Button variant="ghost" size="icon-xs" onClick={() => setDeleteId(m.id)}>
+                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

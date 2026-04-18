@@ -37,7 +37,7 @@ export async function initUser(newUser: Partial<User>) {
       id: user.id,
       avatarUrl: user.imageUrl,
       email: user.emailAddresses[0].emailAddress,
-      name: `${user.firstName} ${user.lastName}`,
+      name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "User",
       role: newUser.role || "SUBACCOUNT_USER",
     },
   });
@@ -74,7 +74,7 @@ export async function verifyAndAcceptInvitation() {
       agencyId: invitation.agencyId,
       avatarUrl: user.imageUrl,
       id: user.id,
-      name: `${user.firstName} ${user.lastName}`,
+      name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "User",
       role: invitation.role,
       createdAt: new Date(),
       updatedAt: new Date(),

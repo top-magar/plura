@@ -12,10 +12,16 @@ export default async function TeamPage({
   const teamMembers = await getTeamMembers(agencyId);
   const agency = await db.agency.findUnique({
     where: { id: agencyId },
-    include: { SubAccount: true },
+    include: { SubAccount: { select: { id: true, name: true } } },
   });
 
   if (!agency) return null;
 
-  return <TeamClient teamMembers={teamMembers} agencyId={agencyId} />;
+  return (
+    <TeamClient
+      teamMembers={teamMembers}
+      agencyId={agencyId}
+      subAccounts={agency.SubAccount}
+    />
+  );
 }

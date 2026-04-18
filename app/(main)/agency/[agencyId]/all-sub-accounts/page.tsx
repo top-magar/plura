@@ -21,7 +21,7 @@ export default async function AllSubAccountsPage({
     <AllSubAccountsClient
       subAccounts={agency.SubAccount}
       agencyId={agencyId}
-      user={{ id: user.id, name: `${user.firstName} ${user.lastName}` }}
+      user={{ id: user.id, name: `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Unknown" }}
     />
   );
 }
