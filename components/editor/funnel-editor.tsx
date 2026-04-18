@@ -9,7 +9,6 @@ import { v4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { upsertFunnelPage, savePageTemplate, getPageTemplates, deletePageTemplate } from "@/lib/queries";
 import "./editor.css";
@@ -833,7 +832,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
             </div>
 
             {sidebarTab === "components" && (
-              <ScrollArea className="flex-1">
+              <div className="editor-scroll-panel">
                 {componentGroups.map((group) => (
                   <div key={group.label} className="editor-component-group">
                     <div className="editor-component-group-label">{group.label}</div>
@@ -846,19 +845,19 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
                     </div>
                   </div>
                 ))}
-              </ScrollArea>
+              </div>
             )}
 
             {sidebarTab === "layers" && (
-              <ScrollArea className="flex-1">
+              <div className="editor-scroll-panel">
                 <div style={{ padding: "4px 8px" }}>
                   {body && <LayerTree el={body} depth={0} selected={selected} onSelect={setSelected} />}
                 </div>
-              </ScrollArea>
+              </div>
             )}
 
             {sidebarTab === "templates" && (
-              <ScrollArea className="flex-1">
+              <div className="editor-scroll-panel">
                 <div style={{ padding: 8 }}>
                   <button onClick={handleSaveTemplate} className="editor-component-item" style={{ width: "100%", marginBottom: 8, justifyContent: "center", cursor: "pointer" }}>
                     <Bookmark size={14} /> Save Current Page
@@ -876,7 +875,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
+              </div>
             )}
           </div>
         )}
@@ -929,7 +928,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
               <button className={`editor-sidebar-tab ${propsTab === "content" ? "active" : ""}`} onClick={() => setPropsTab("content")}>Content</button>
             </div>
 
-            <ScrollArea className="flex-1">
+            <div className="editor-scroll-panel">
               {propsTab === "content" && (
                 <div className="editor-props-section">
                   {!Array.isArray(selected.content) ? (
@@ -956,7 +955,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
                   ))}
                 </div>
               )}
-            </ScrollArea>
+            </div>
           </div>
         )}
       </div>

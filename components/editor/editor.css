@@ -89,6 +89,7 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* ── Sidebar ──────────────────────────────────────────── */
@@ -768,4 +769,12 @@
   height: 12px;
   background: var(--ed-interactive);
   cursor: pointer;
+}
+
+/* ── Scroll Panel (replaces ScrollArea for reliable flex scrolling) */
+
+.editor-scroll-panel {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
