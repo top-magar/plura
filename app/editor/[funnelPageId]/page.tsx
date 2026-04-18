@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import EditorStep2 from "@/components/editor/editor-step2";
+import FunnelEditor from "@/components/editor/funnel-editor";
 
 export default async function EditorPage({
   params,
@@ -16,7 +16,7 @@ export default async function EditorPage({
   if (!page) return notFound();
 
   return (
-    <EditorStep2
+    <FunnelEditor
       pageId={funnelPageId}
       pageName={page.name}
       funnelId={page.Funnel.id}
