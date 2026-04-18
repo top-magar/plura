@@ -138,22 +138,20 @@ export default function FunnelsClient({ funnels, subAccountId }: Props) {
                         </span>
                       )}
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                        <DropdownMenuTrigger asChild onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                           <Button variant="ghost" size="icon-xs" className="opacity-0 group-hover:opacity-100">
                             <MoreHorizontal />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                           <DropdownMenuItem asChild>
                             <Link href={`/sub-account/${subAccountId}/funnels/${funnel.id}`}>
                               <Pencil /> Edit
                             </Link>
                           </DropdownMenuItem>
                           {funnel.subDomainName && (
-                            <DropdownMenuItem asChild>
-                              <a href={`http://${funnel.subDomainName}.${process.env.NEXT_PUBLIC_DOMAIN}`} target="_blank" rel="noopener">
-                                <ExternalLink /> Visit site
-                              </a>
+                            <DropdownMenuItem onClick={() => window.open(`/${funnel.subDomainName}`, "_blank")}>
+                              <ExternalLink /> Preview
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
