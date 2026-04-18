@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { upsertFunnelPage } from "@/lib/queries";
+import "./editor.css";
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -248,12 +249,10 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
     const isHov = !preview && hovered === el.id && !isSel;
 
+    const elClass = `editor-el${isBody ? " is-body" : ""}${isSel && !preview ? " is-selected" : ""}${!preview && dropTarget === el.id && isContainer ? " is-drop-target" : ""}${isHov ? " is-hovered" : ""}`;
+
     const wrapStyle: CSSProperties = {
       ...el.styles,
-      position: "relative" as const,
-      outline: !preview && isSel ? "2px solid hsl(var(--primary))" : !preview && dropTarget === el.id && isContainer ? "2px dashed hsl(var(--primary))" : isHov ? "1px dashed hsl(var(--border))" : undefined,
-      outlineOffset: !preview && (isSel || dropTarget === el.id) ? 2 : isHov ? 1 : undefined,
-      cursor: !preview && !isBody ? "pointer" : undefined,
     };
 
     const handleClick = (e: React.MouseEvent) => { e.stopPropagation(); if (!preview) setSelected(el); };
@@ -281,7 +280,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     if (el.type === "text") {
       const c = el.content as Record<string, string>;
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
           {isHov && <HoverBadge name={el.name} />}
           {isSel && !preview ? (
@@ -298,7 +297,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     if (el.type === "link") {
       const c = el.content as Record<string, string>;
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
           {isHov && <HoverBadge name={el.name} />}
           <a href={preview ? c.href : undefined} style={{ color: "inherit" }}>{c.innerText || "Link"}</a>
@@ -309,7 +308,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     if (el.type === "image") {
       const c = el.content as Record<string, string>;
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
           {isHov && <HoverBadge name={el.name} />}
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -321,7 +320,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     if (el.type === "video") {
       const c = el.content as Record<string, string>;
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
           {isHov && <HoverBadge name={el.name} />}
           <iframe src={c.src} style={{ width: "100%", aspectRatio: "16/9", border: 0 }} allowFullScreen />
@@ -331,13 +330,13 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
     if (el.type === "contactForm") {
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name="Contact Form" onDelete={() => doDelete(el.id)} />}
           {isHov && <HoverBadge name="Contact Form" />}
           <form onSubmit={(e) => e.preventDefault()} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <input placeholder="Name" style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #333", background: "#111", color: "#fff" }} />
-            <input placeholder="Email" style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #333", background: "#111", color: "#fff" }} />
-            <button style={{ padding: "10px", borderRadius: 6, background: "#6366f1", color: "#fff", border: 0, cursor: "pointer" }}>Submit</button>
+            <input placeholder="Name" className="editor-form-input" />
+            <input placeholder="Email" className="editor-form-input" />
+            <button className="editor-form-submit">Submit</button>
           </form>
         </div>
       );
@@ -345,13 +344,13 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
     if (el.type === "paymentForm") {
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name="Payment" onDelete={() => doDelete(el.id)} />}
           {isHov && <HoverBadge name="Payment" />}
-          <div style={{ padding: 16, border: "1px solid #333", borderRadius: 8, textAlign: "center", color: "#666", fontSize: 13 }}>
-            <div style={{ height: 40, background: "#1a1a1a", borderRadius: 6, marginBottom: 8 }} />
-            <button style={{ width: "100%", padding: 10, borderRadius: 6, background: "#6366f1", color: "#fff", border: 0 }}>Pay Now</button>
-            <p style={{ marginTop: 8, fontSize: 10, color: "#555" }}>Powered by Stripe</p>
+          <div style={{ padding: 16, border: "1px solid var(--border)", borderRadius: 8, textAlign: "center", fontSize: 13 }} className="text-muted-foreground">
+            <div style={{ height: 40, borderRadius: 6, marginBottom: 8 }} className="bg-muted" />
+            <button className="editor-form-submit">Pay Now</button>
+            <p style={{ marginTop: 8, fontSize: 10 }} className="text-muted-foreground/60">Powered by Stripe</p>
           </div>
         </div>
       );
@@ -362,12 +361,12 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     const isEmpty = children.length === 0;
 
     return (
-      <div style={wrapStyle} onClick={handleClick} onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} draggable={!isBody && !preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <div className={elClass} style={wrapStyle} onClick={handleClick} onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} draggable={!isBody && !preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
         {isSel && !isBody && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
         {isHov && !isBody && <HoverBadge name={el.name} />}
         {children.map((child) => <R key={child.id} el={child} />)}
         {isEmpty && !preview && (
-          <div onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} className={`flex items-center justify-center rounded-lg border-2 border-dashed text-xs transition-colors ${dropTarget === el.id ? "border-primary text-primary" : "border-border text-muted-foreground"}`} style={{ minHeight: isBody ? "calc(100vh - 48px)" : 60, margin: isBody ? 0 : undefined }}>
+          <div onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} className={`editor-dropzone ${isBody ? "body" : "child"} ${dropTarget === el.id ? "active" : ""}`}>
             {isBody ? "Drag a component here to start building" : "Drop here"}
           </div>
         )}
@@ -381,17 +380,17 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
   const deviceWidth = device === "Desktop" ? "100%" : device === "Tablet" ? 768 : 420;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }} className="bg-background text-foreground" onKeyDown={handleKeyDown} tabIndex={0}>
+    <div className="editor-root" onKeyDown={handleKeyDown} tabIndex={0}>
       {/* Toolbar */}
       {!preview && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px", flexShrink: 0 }} className="border-b bg-card">
+        <div className="editor-toolbar">
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Button asChild variant="ghost" size="icon-xs"><Link href={`/sub-account/${subAccountId}/funnels/${funnelId}`}><ArrowLeft /></Link></Button>
             <span style={{ fontSize: 13, fontWeight: 500 }}>{pageName}</span>
           </div>
-          <div className="flex gap-0.5 border rounded-lg p-0.5">
+          <div className="editor-device-toggle">
             {([["Desktop", Laptop], ["Tablet", Tablet], ["Mobile", Smartphone]] as const).map(([d, Icon]) => (
-              <button key={d} onClick={() => setDevice(d as Device)} className={`p-1 px-2 rounded-md flex items-center cursor-pointer ${device === d ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
+              <button key={d} onClick={() => setDevice(d as Device)} className={`editor-device-btn ${device === d ? "active" : ""}`}>
                 <Icon size={14} />
               </button>
             ))}
@@ -404,22 +403,22 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
             <Separator orientation="vertical" className="h-5" />
             <Button size="sm" onClick={handleSave} className="gap-1 text-[12px] relative">
               <Save className="h-3.5 w-3.5" /> Save
-              {dirty && <span style={{ position: "absolute", top: -2, right: -2, width: 8, height: 8, borderRadius: "50%", background: "#f59e0b" }} />}
+              {dirty && <span className="editor-dirty-dot" />}
             </Button>
           </div>
         </div>
       )}
 
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+      <div className="editor-body">
         {/* Sidebar */}
         {!preview && (
-          <div style={{ width: 220, flexShrink: 0, display: "flex", flexDirection: "column" }} className="border-r bg-card">
-            <div style={{ padding: "8px 12px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }} className="text-muted-foreground">Components</div>
+          <div className="editor-sidebar">
+            <div className="editor-sidebar-header">Components</div>
             <ScrollArea className="flex-1">
               <div style={{ padding: "0 8px 8px", display: "flex", flexDirection: "column", gap: 4 }}>
                 {components.map(({ type, label, icon: Icon }) => (
-                  <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("componentType", type)} className="flex items-center gap-2 p-2 px-2.5 rounded-md border text-xs cursor-grab text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors">
-                    <Icon size={14} className="text-muted-foreground/60" /> {label}
+                  <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("componentType", type)} className="editor-component-item">
+                    <Icon size={14} /> {label}
                   </div>
                 ))}
               </div>
@@ -427,7 +426,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
             {/* Layers */}
             <div className="border-t">
-              <div style={{ padding: "8px 12px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }} className="text-muted-foreground">Layers</div>
+              <div className="editor-sidebar-header">Layers</div>
               <ScrollArea style={{ maxHeight: 200 }}>
                 <div style={{ padding: "0 8px 8px" }}>
                   {body && <LayerTree el={body} depth={0} selected={selected} onSelect={setSelected} />}
@@ -438,27 +437,27 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         )}
 
         {/* Canvas */}
-        <div style={{ flex: 1, overflow: "auto", padding: preview ? 0 : 16 }} className="bg-muted/30" onClick={() => !preview && setSelected(null)}>
-          <div style={{ maxWidth: deviceWidth, margin: "0 auto", minHeight: "100%", transition: "max-width 0.3s" }} className="bg-background shadow-lg rounded-none">
+        <div className={`editor-canvas ${preview ? "preview" : ""}`} onClick={() => !preview && setSelected(null)}>
+          <div className="editor-canvas-inner" style={{ maxWidth: deviceWidth }}>
             {body && <R el={body} />}
           </div>
         </div>
 
         {/* Properties */}
         {!preview && selected && (
-          <div style={{ width: 260, flexShrink: 0, overflow: "auto" }} className="border-l bg-card">
-            <div style={{ padding: "8px 12px" }} className="border-b">
+          <div className="editor-props">
+            <div className="editor-props-header">
               <div style={{ fontSize: 12, fontWeight: 500 }}>{selected.name}</div>
               <div style={{ fontSize: 10 }} className="text-muted-foreground">{selected.type}</div>
             </div>
 
             {/* Content editor */}
             {!Array.isArray(selected.content) && (
-              <div style={{ padding: "8px 12px" }} className="border-b">
+              <div className="editor-props-section">
                 <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 6 }} className="text-muted-foreground">Content</div>
                 {Object.entries(selected.content as Record<string, string>).map(([key, val]) => (
                   <div key={key} style={{ marginBottom: 6 }}>
-                    <label style={{ fontSize: 10, display: "block", marginBottom: 2 }} className="text-muted-foreground">{key}</label>
+                    <label className="editor-prop-label">{key}</label>
                     <Input value={val} onChange={(e) => doUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-7 text-[11px]" />
                   </div>
                 ))}
@@ -477,7 +476,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
       {/* Preview exit */}
       {preview && (
-        <button onClick={() => setPreview(false)} className="fixed top-4 left-4 z-[100] px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs flex items-center gap-1 cursor-pointer border-0">
+        <button onClick={() => setPreview(false)} className="editor-preview-exit">
           <EyeOff size={14} /> Exit Preview
         </button>
       )}
@@ -489,9 +488,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
 function SelectBadge({ name, onDelete }: { name: string; onDelete: () => void }) {
   return (
-    <div style={{ position: "absolute", top: -24, left: 0, display: "flex", gap: 4, zIndex: 10 }}>
-      <span className="bg-primary text-primary-foreground" style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, whiteSpace: "nowrap" }}>{name}</span>
-      <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="bg-destructive text-destructive-foreground" style={{ width: 20, height: 20, borderRadius: 4, border: 0, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div className="editor-badge-select">
+      <span className="editor-badge-select-name">{name}</span>
+      <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="editor-badge-select-delete">
         <Trash2 size={10} />
       </button>
     </div>
@@ -500,8 +499,8 @@ function SelectBadge({ name, onDelete }: { name: string; onDelete: () => void })
 
 function HoverBadge({ name }: { name: string }) {
   return (
-    <div style={{ position: "absolute", top: -18, left: 0, zIndex: 9, pointerEvents: "none" }}>
-      <span className="bg-muted text-muted-foreground" style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, whiteSpace: "nowrap" }}>{name}</span>
+    <div className="editor-badge-hover">
+      <span className="editor-badge-hover-name">{name}</span>
     </div>
   );
 }
@@ -512,7 +511,7 @@ function PropGroup({ title, props, selected, onUpdate }: { title: string; props:
   const [open, setOpen] = useState(true);
   return (
     <div style={{ marginBottom: 4 }}>
-      <button onClick={() => setOpen(!open)} className="flex items-center gap-1 w-full py-1 border-0 bg-transparent text-muted-foreground text-[10px] font-semibold uppercase cursor-pointer tracking-wide">
+      <button onClick={() => setOpen(!open)} className="editor-prop-group-toggle">
         {open ? <ChevronDown size={10} /> : <ChevronRight size={10} />} {title}
       </button>
       {open && (
@@ -522,10 +521,10 @@ function PropGroup({ title, props, selected, onUpdate }: { title: string; props:
             const isColor = colorProps.has(p);
             return (
               <div key={p}>
-                <label style={{ fontSize: 9, display: "block" }} className="text-muted-foreground/70">{p.replace(/([A-Z])/g, " $1")}</label>
+                <label className="editor-prop-label">{p.replace(/([A-Z])/g, " $1")}</label>
                 <div style={{ display: "flex", gap: 2 }}>
                   {isColor && (
-                    <input type="color" value={val || "#000000"} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} className="border rounded cursor-pointer" style={{ width: 24, height: 24, padding: 0, background: "transparent" }} />
+                    <input type="color" value={val || "#000000"} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} className="editor-color-picker" />
                   )}
                   <Input value={val} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} className="h-6 text-[10px] flex-1" />
                 </div>
@@ -543,7 +542,7 @@ function LayerTree({ el, depth, selected, onSelect }: { el: El; depth: number; s
   const isSel = selected?.id === el.id;
   return (
     <div>
-      <button onClick={() => onSelect(el)} className={`flex items-center gap-1 w-full rounded text-[11px] cursor-pointer text-left ${isSel ? "bg-primary/10 text-primary" : "text-muted-foreground"}`} style={{ padding: "3px 6px", paddingLeft: depth * 12 + 6, border: 0, background: isSel ? undefined : "transparent" }}>
+      <button onClick={() => onSelect(el)} className={`editor-layer-btn ${isSel ? "active" : ""}`} style={{ paddingLeft: depth * 12 + 6 }}>
         {children.length > 0 && <ChevronRight size={10} />}
         {el.name}
       </button>
