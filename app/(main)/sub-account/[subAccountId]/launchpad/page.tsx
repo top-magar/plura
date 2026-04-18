@@ -4,6 +4,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import ConnectSubStripeButton from "./connect-stripe";
 
 export default async function SubAccountLaunchpadPage({
   params,
@@ -35,13 +36,13 @@ export default async function SubAccountLaunchpadPage({
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
             <div className="flex items-center gap-4">
-              <Image src="/stripelogo.png" alt="Stripe" height={48} width={48} className="rounded-md object-contain" />
+              <Image src="/stripelogo.svg" alt="Stripe" height={48} width={48} className="rounded-md object-contain" />
               <p className="text-[13px]">Connect your Stripe account to accept payments</p>
             </div>
             {subAccount.connectAccountId ? (
               <CheckCircle className="h-8 w-8 shrink-0 text-primary" />
             ) : (
-              <Button variant="secondary" size="sm">Start</Button>
+              <ConnectSubStripeButton subAccountId={subAccountId} />
             )}
           </div>
 

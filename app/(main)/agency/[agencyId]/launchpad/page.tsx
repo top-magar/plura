@@ -36,7 +36,7 @@ export default async function LaunchpadPage({
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
             <div className="flex items-center gap-4">
-              <Image src="/appstore.png" alt="App" height={48} width={48} className="rounded-md object-contain" />
+              <Image src="/appstore.svg" alt="App" height={48} width={48} className="rounded-md object-contain" />
               <p className="text-[13px]">Save the website as a shortcut on your mobile device</p>
             </div>
             <Button variant="secondary" size="sm">Start</Button>
@@ -44,7 +44,7 @@ export default async function LaunchpadPage({
 
           <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
             <div className="flex items-center gap-4">
-              <Image src="/stripelogo.png" alt="Stripe" height={48} width={48} className="rounded-md object-contain" />
+              <Image src="/stripelogo.svg" alt="Stripe" height={48} width={48} className="rounded-md object-contain" />
               <p className="text-[13px]">Connect your Stripe account to accept payments</p>
             </div>
             {agency.connectAccountId ? (
