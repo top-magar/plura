@@ -51,8 +51,8 @@
   --ed-height-md: 40px;
 
   /* Radii */
-  --ed-radius-sm: 4px;
-  --ed-radius-md: 6px;
+  --ed-radius-sm: 0;
+  --ed-radius-md: 0;
 
   /* Transitions */
   --ed-duration: 110ms;
@@ -220,7 +220,7 @@
   align-items: center;
   justify-content: center;
   border: 1px dashed var(--ed-border-subtle);
-  border-radius: var(--ed-radius-sm);
+  border-radius: 0;
   color: var(--ed-text-placeholder);
   font-size: 12px;
   transition: border-color var(--ed-duration) var(--ed-easing),
