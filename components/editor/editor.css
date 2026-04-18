@@ -86,16 +86,24 @@
 }
 
 .editor-body {
-  display: flex;
+  display: grid;
+  grid-template-columns: 3fr 8fr 3fr;
   flex: 1;
   overflow: hidden;
   min-height: 0;
 }
 
+.editor-body.preview-mode {
+  grid-template-columns: 1fr;
+}
+
+.editor-body.no-props {
+  grid-template-columns: 3fr 11fr;
+}
+
 /* ── Sidebar ──────────────────────────────────────────── */
 
 .editor-sidebar {
-  width: 240px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -150,10 +158,10 @@
 /* ── Canvas ───────────────────────────────────────────── */
 
 .editor-canvas {
-  flex: 1;
   overflow: auto;
   padding: var(--ed-spacing-05);
   background: var(--ed-layer-02);
+  min-height: 0;
 }
 
 .editor-canvas.preview {
@@ -173,13 +181,11 @@
 /* ── Properties Panel ─────────────────────────────────── */
 
 .editor-props {
-  width: 260px;
-  flex-shrink: 0;
-  overflow: hidden;
-  background: var(--ed-layer-01);
-  border-left: 1px solid var(--ed-border-subtle);
   display: flex;
   flex-direction: column;
+  background: var(--ed-layer-01);
+  border-left: 1px solid var(--ed-border-subtle);
+  overflow: hidden;
   min-height: 0;
 }
 
