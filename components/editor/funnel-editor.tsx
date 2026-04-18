@@ -286,7 +286,7 @@ const selectOptions: Record<string, string[]> = {
 
 const propGroups = [
   { title: "Typography", icon: Type, props: ["fontSize", "fontWeight", "fontStyle", "color", "textAlign", "textDecoration", "textTransform", "lineHeight", "letterSpacing"] },
-  { title: "Spacing", icon: Box, props: ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft"] },
+  { title: "Spacing", icon: Box, props: ["_spacing_box"] },
   { title: "Size", icon: Maximize, props: ["width", "height", "maxWidth", "maxHeight", "minWidth", "minHeight", "overflow", "objectFit"] },
   { title: "Background", icon: Palette, props: ["backgroundColor", "backgroundImage", "backgroundSize", "backgroundPosition", "backgroundRepeat"] },
   { title: "Border", icon: Frame, props: ["borderWidth", "borderColor", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight"] },
@@ -1094,6 +1094,9 @@ function PropGroup({ title, icon: Icon, props, selected, onUpdate }: { title: st
         {title}
       </CollapsibleTrigger>
       <CollapsibleContent>
+        {props[0] === "_spacing_box" ? (
+          <SpacingBox selected={selected} onUpdate={onUpdate} />
+        ) : (
         <div className="editor-style-grid">
           {props.map((p) => {
             const val = String((selected.styles as Record<string, unknown>)[p] ?? "");
@@ -1169,6 +1172,7 @@ function PropGroup({ title, icon: Icon, props, selected, onUpdate }: { title: st
             );
           })}
         </div>
+        )}
       </CollapsibleContent>
     </Collapsible>
   );
@@ -1223,6 +1227,37 @@ function TabsDisplay({ items }: { items: { title: string; body: string }[] }) {
         ))}
       </div>
       <div style={{ padding: 16, fontSize: 14 }}>{items[active]?.body}</div>
+    </div>
+  );
+}
+
+function SpacingBox({ selected, onUpdate }: { selected: El; onUpdate: (el: El) => void }) {
+  const s = selected.styles as Record<string, unknown>;
+  const get = (p: string) => String(s[p] ?? "");
+  const set = (p: string, v: string) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties });
+
+  return (
+    <div className="spacing-box-wrap">
+      {/* Margin layer */}
+      <div className="spacing-box-margin">
+        <span className="spacing-box-label">margin</span>
+        <input className="spacing-box-input top" value={get("marginTop")} onChange={(e) => set("marginTop", e.target.value)} placeholder="0" title="margin-top" />
+        <input className="spacing-box-input right" value={get("marginRight")} onChange={(e) => set("marginRight", e.target.value)} placeholder="0" title="margin-right" />
+        <input className="spacing-box-input bottom" value={get("marginBottom")} onChange={(e) => set("marginBottom", e.target.value)} placeholder="0" title="margin-bottom" />
+        <input className="spacing-box-input left" value={get("marginLeft")} onChange={(e) => set("marginLeft", e.target.value)} placeholder="0" title="margin-left" />
+
+        {/* Padding layer */}
+        <div className="spacing-box-padding">
+          <span className="spacing-box-label">padding</span>
+          <input className="spacing-box-input top" value={get("paddingTop")} onChange={(e) => set("paddingTop", e.target.value)} placeholder="0" title="padding-top" />
+          <input className="spacing-box-input right" value={get("paddingRight")} onChange={(e) => set("paddingRight", e.target.value)} placeholder="0" title="padding-right" />
+          <input className="spacing-box-input bottom" value={get("paddingBottom")} onChange={(e) => set("paddingBottom", e.target.value)} placeholder="0" title="padding-bottom" />
+          <input className="spacing-box-input left" value={get("paddingLeft")} onChange={(e) => set("paddingLeft", e.target.value)} placeholder="0" title="padding-left" />
+
+          {/* Element center */}
+          <div className="spacing-box-center" />
+        </div>
+      </div>
     </div>
   );
 }
