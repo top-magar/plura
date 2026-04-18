@@ -1,22 +1,88 @@
-/* ── Editor Layout ─────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════
+   Plura Editor — Carbon-inspired design tokens & styles
+   Based on IBM Carbon Design System principles:
+   - Token-driven spacing (2/4/8 rhythm)
+   - Role-based color tokens
+   - Layered backgrounds (background → layer-01 → layer-02)
+   - Consistent interactive element heights (32/40/48)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens ────────────────────────────────────── */
+
+.editor-root {
+  /* Spacing scale (Carbon-aligned: multiples of 2, 4, 8) */
+  --ed-spacing-01: 2px;
+  --ed-spacing-02: 4px;
+  --ed-spacing-03: 8px;
+  --ed-spacing-04: 12px;
+  --ed-spacing-05: 16px;
+  --ed-spacing-06: 24px;
+  --ed-spacing-07: 32px;
+  --ed-spacing-08: 40px;
+  --ed-spacing-09: 48px;
+
+  /* Layer backgrounds */
+  --ed-background: var(--background);
+  --ed-layer-01: var(--card);
+  --ed-layer-02: var(--muted);
+
+  /* Text */
+  --ed-text-primary: var(--foreground);
+  --ed-text-secondary: var(--muted-foreground);
+  --ed-text-placeholder: color-mix(in oklch, var(--muted-foreground) 60%, transparent);
+  --ed-text-on-color: hsl(var(--primary-foreground));
+
+  /* Interactive */
+  --ed-interactive: hsl(var(--primary));
+  --ed-interactive-hover: hsl(var(--primary) / 0.85);
+  --ed-danger: hsl(var(--destructive));
+  --ed-danger-text: hsl(var(--destructive-foreground));
+
+  /* Border */
+  --ed-border-subtle: var(--border);
+  --ed-border-strong: color-mix(in oklch, var(--border) 80%, var(--foreground));
+
+  /* Focus */
+  --ed-focus: hsl(var(--primary));
+  --ed-focus-inset: var(--background);
+
+  /* Interactive element heights */
+  --ed-height-sm: 32px;
+  --ed-height-md: 40px;
+
+  /* Radii */
+  --ed-radius-sm: 4px;
+  --ed-radius-md: 6px;
+
+  /* Transitions */
+  --ed-duration: 110ms;
+  --ed-easing: cubic-bezier(0.2, 0, 0.38, 0.9);
+}
+
+/* ── Layout ───────────────────────────────────────────── */
 
 .editor-root {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--ed-background);
+  color: var(--ed-text-primary);
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  font-size: 14px;
+  line-height: 1.4;
   outline: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 .editor-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
+  padding: var(--ed-spacing-03) var(--ed-spacing-04);
+  height: var(--ed-spacing-09);
   flex-shrink: 0;
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
+  background: var(--ed-layer-01);
+  border-bottom: 1px solid var(--ed-border-subtle);
 }
 
 .editor-body {
@@ -28,44 +94,54 @@
 /* ── Sidebar ──────────────────────────────────────────── */
 
 .editor-sidebar {
-  width: 220px;
+  width: 240px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: var(--card);
-  border-right: 1px solid var(--border);
+  background: var(--ed-layer-01);
+  border-right: 1px solid var(--ed-border-subtle);
 }
 
 .editor-sidebar-header {
-  padding: 8px 12px;
+  padding: var(--ed-spacing-04) var(--ed-spacing-05);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--muted-foreground);
+  letter-spacing: 0.32px;
+  color: var(--ed-text-secondary);
 }
 
 .editor-component-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
+  gap: var(--ed-spacing-03);
+  padding: var(--ed-spacing-03) var(--ed-spacing-04);
+  margin: 0 var(--ed-spacing-03);
+  border-radius: var(--ed-radius-sm);
+  border: 1px solid transparent;
   font-size: 12px;
+  line-height: 1;
   cursor: grab;
-  color: var(--muted-foreground);
-  transition: color 0.15s, border-color 0.15s;
+  color: var(--ed-text-secondary);
+  transition: color var(--ed-duration) var(--ed-easing),
+              background var(--ed-duration) var(--ed-easing),
+              border-color var(--ed-duration) var(--ed-easing);
 }
 
 .editor-component-item:hover {
-  color: var(--foreground);
-  border-color: hsl(var(--primary) / 0.3);
+  color: var(--ed-text-primary);
+  background: var(--ed-layer-02);
+  border-color: var(--ed-border-subtle);
+}
+
+.editor-component-item:active {
+  cursor: grabbing;
 }
 
 .editor-component-item svg {
-  color: var(--muted-foreground);
-  opacity: 0.6;
+  color: var(--ed-text-secondary);
+  opacity: 0.7;
+  flex-shrink: 0;
 }
 
 /* ── Canvas ───────────────────────────────────────────── */
@@ -73,21 +149,22 @@
 .editor-canvas {
   flex: 1;
   overflow: auto;
-  padding: 16px;
-  background: hsl(var(--muted) / 0.3);
+  padding: var(--ed-spacing-05);
+  background: var(--ed-layer-02);
 }
 
 .editor-canvas.preview {
   padding: 0;
+  background: var(--ed-background);
 }
 
 .editor-canvas-inner {
   margin: 0 auto;
   min-height: 100%;
-  background: var(--background);
-  box-shadow: 0 4px 24px hsl(0 0% 0% / 0.15);
+  background: var(--ed-background);
+  box-shadow: 0 1px 3px hsl(0 0% 0% / 0.08), 0 8px 24px hsl(0 0% 0% / 0.06);
   border-radius: 0;
-  transition: max-width 0.3s;
+  transition: max-width 200ms var(--ed-easing);
 }
 
 /* ── Properties Panel ─────────────────────────────────── */
@@ -95,25 +172,26 @@
 .editor-props {
   width: 260px;
   flex-shrink: 0;
-  overflow: auto;
-  background: var(--card);
-  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  background: var(--ed-layer-01);
+  border-left: 1px solid var(--ed-border-subtle);
 }
 
 .editor-props-header {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
+  padding: var(--ed-spacing-04) var(--ed-spacing-05);
+  border-bottom: 1px solid var(--ed-border-subtle);
 }
 
 .editor-props-section {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--border);
+  padding: var(--ed-spacing-04) var(--ed-spacing-05);
+  border-bottom: 1px solid var(--ed-border-subtle);
 }
 
 /* ── Element States ───────────────────────────────────── */
 
 .editor-el {
   position: relative;
+  transition: outline-color var(--ed-duration) var(--ed-easing);
 }
 
 .editor-el:not(.is-body) {
@@ -121,17 +199,17 @@
 }
 
 .editor-el.is-selected {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 2px;
+  outline: 2px solid var(--ed-interactive);
+  outline-offset: 1px;
 }
 
 .editor-el.is-drop-target {
-  outline: 2px dashed hsl(var(--primary));
-  outline-offset: 2px;
+  outline: 2px dashed var(--ed-interactive);
+  outline-offset: 1px;
 }
 
 .editor-el.is-hovered:not(.is-selected) {
-  outline: 1px dashed var(--border);
+  outline: 1px dashed var(--ed-border-strong);
   outline-offset: 1px;
 }
 
@@ -141,119 +219,142 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed var(--border);
-  border-radius: 8px;
-  color: var(--muted-foreground);
+  border: 1px dashed var(--ed-border-subtle);
+  border-radius: var(--ed-radius-sm);
+  color: var(--ed-text-placeholder);
   font-size: 12px;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color var(--ed-duration) var(--ed-easing),
+              color var(--ed-duration) var(--ed-easing);
 }
 
 .editor-dropzone.active {
-  border-color: hsl(var(--primary));
-  color: hsl(var(--primary));
+  border-color: var(--ed-interactive);
+  color: var(--ed-interactive);
+  background: hsl(var(--primary) / 0.04);
 }
 
 .editor-dropzone.body {
-  min-height: calc(100vh - 48px);
+  min-height: calc(100vh - var(--ed-spacing-09));
 }
 
 .editor-dropzone.child {
-  min-height: 60px;
+  min-height: var(--ed-spacing-09);
 }
 
 /* ── Badges ───────────────────────────────────────────── */
 
 .editor-badge-select {
   position: absolute;
-  top: -24px;
+  top: calc(-1 * var(--ed-spacing-06));
   left: 0;
   display: flex;
-  gap: 4px;
+  gap: var(--ed-spacing-02);
   z-index: 10;
 }
 
 .editor-badge-select-name {
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  font-size: 11px;
+  padding: var(--ed-spacing-01) var(--ed-spacing-03);
+  border-radius: var(--ed-radius-sm);
+  background: var(--ed-interactive);
+  color: var(--ed-text-on-color);
   white-space: nowrap;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .editor-badge-select-delete {
   width: 20px;
   height: 20px;
-  border-radius: 4px;
-  background: hsl(var(--destructive));
-  color: hsl(var(--destructive-foreground));
+  border-radius: var(--ed-radius-sm);
+  background: var(--ed-danger);
+  color: var(--ed-danger-text);
   border: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity var(--ed-duration) var(--ed-easing);
+}
+
+.editor-badge-select-delete:hover {
+  opacity: 0.85;
 }
 
 .editor-badge-hover {
   position: absolute;
-  top: -18px;
+  top: calc(-1 * var(--ed-spacing-05) - 2px);
   left: 0;
   z-index: 9;
   pointer-events: none;
 }
 
 .editor-badge-hover-name {
-  font-size: 9px;
-  padding: 1px 5px;
-  border-radius: 3px;
-  background: var(--muted);
-  color: var(--muted-foreground);
+  font-size: 10px;
+  padding: var(--ed-spacing-01) var(--ed-spacing-02);
+  border-radius: 2px;
+  background: var(--ed-layer-02);
+  color: var(--ed-text-secondary);
   white-space: nowrap;
+  line-height: 1.4;
 }
 
 /* ── Device Toggle ────────────────────────────────────── */
 
 .editor-device-toggle {
   display: flex;
-  gap: 2px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 2px;
+  gap: var(--ed-spacing-01);
+  border: 1px solid var(--ed-border-subtle);
+  border-radius: var(--ed-radius-md);
+  padding: var(--ed-spacing-01);
+  background: var(--ed-background);
 }
 
 .editor-device-btn {
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: var(--ed-spacing-02) var(--ed-spacing-03);
+  border-radius: var(--ed-radius-sm);
   border: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   background: transparent;
-  color: var(--muted-foreground);
+  color: var(--ed-text-secondary);
+  transition: background var(--ed-duration) var(--ed-easing),
+              color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-device-btn:hover:not(.active) {
+  background: var(--ed-layer-02);
 }
 
 .editor-device-btn.active {
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  background: var(--ed-interactive);
+  color: var(--ed-text-on-color);
 }
 
 /* ── Preview Exit ─────────────────────────────────────── */
 
 .editor-preview-exit {
   position: fixed;
-  top: 16px;
-  left: 16px;
+  top: var(--ed-spacing-05);
+  left: var(--ed-spacing-05);
   z-index: 100;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  padding: var(--ed-spacing-03) var(--ed-spacing-05);
+  border-radius: var(--ed-radius-md);
+  background: var(--ed-interactive);
+  color: var(--ed-text-on-color);
   border: 0;
   cursor: pointer;
   font-size: 12px;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--ed-spacing-03);
+  transition: opacity var(--ed-duration) var(--ed-easing);
+}
+
+.editor-preview-exit:hover {
+  opacity: 0.9;
 }
 
 /* ── Prop Group ───────────────────────────────────────── */
@@ -261,33 +362,41 @@
 .editor-prop-group-toggle {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--ed-spacing-02);
   width: 100%;
-  padding: 4px 0;
+  padding: var(--ed-spacing-03) 0;
   border: 0;
   background: transparent;
-  color: var(--muted-foreground);
-  font-size: 10px;
+  color: var(--ed-text-secondary);
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.32px;
   cursor: pointer;
-  letter-spacing: 0.5px;
+  transition: color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-prop-group-toggle:hover {
+  color: var(--ed-text-primary);
 }
 
 .editor-prop-label {
-  font-size: 9px;
-  color: hsl(var(--muted-foreground) / 0.7);
+  font-size: 10px;
+  color: var(--ed-text-placeholder);
   display: block;
+  margin-bottom: var(--ed-spacing-01);
+  text-transform: capitalize;
 }
 
 .editor-color-picker {
-  width: 24px;
-  height: 24px;
+  width: var(--ed-spacing-06);
+  height: var(--ed-spacing-06);
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  border: 1px solid var(--ed-border-subtle);
+  border-radius: var(--ed-radius-sm);
   cursor: pointer;
   background: transparent;
+  flex-shrink: 0;
 }
 
 /* ── Layer Tree ───────────────────────────────────────── */
@@ -295,21 +404,27 @@
 .editor-layer-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--ed-spacing-02);
   width: 100%;
-  border-radius: 4px;
+  border-radius: var(--ed-radius-sm);
   border: 0;
   background: transparent;
-  color: var(--muted-foreground);
+  color: var(--ed-text-secondary);
   font-size: 11px;
   cursor: pointer;
   text-align: left;
-  padding: 3px 6px;
+  padding: var(--ed-spacing-02) var(--ed-spacing-03);
+  transition: background var(--ed-duration) var(--ed-easing),
+              color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-layer-btn:hover {
+  background: var(--ed-layer-02);
 }
 
 .editor-layer-btn.active {
-  background: hsl(var(--primary) / 0.1);
-  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+  color: var(--ed-interactive);
 }
 
 /* ── Dirty Indicator ──────────────────────────────────── */
@@ -318,29 +433,72 @@
   position: absolute;
   top: -2px;
   right: -2px;
-  width: 8px;
-  height: 8px;
+  width: var(--ed-spacing-03);
+  height: var(--ed-spacing-03);
   border-radius: 50%;
   background: #f59e0b;
+  border: 2px solid var(--ed-layer-01);
 }
 
-/* ── Form Previews (contact/payment) ──────────────────── */
+/* ── Form Previews ────────────────────────────────────── */
 
 .editor-form-input {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--input);
-  color: var(--foreground);
+  padding: var(--ed-spacing-03) var(--ed-spacing-04);
+  height: var(--ed-height-sm);
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid var(--ed-border-strong);
+  background: var(--ed-layer-02);
+  color: var(--ed-text-primary);
+  font-size: 13px;
   width: 100%;
+  outline: none;
+  transition: border-color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-form-input::placeholder {
+  color: var(--ed-text-placeholder);
+}
+
+.editor-form-input:focus {
+  border-bottom-color: var(--ed-interactive);
 }
 
 .editor-form-submit {
-  padding: 10px;
-  border-radius: 6px;
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  padding: 0 var(--ed-spacing-05);
+  height: var(--ed-height-md);
+  border-radius: 0;
+  background: var(--ed-interactive);
+  color: var(--ed-text-on-color);
   border: 0;
   cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
   width: 100%;
+  transition: opacity var(--ed-duration) var(--ed-easing);
+}
+
+.editor-form-submit:hover {
+  opacity: 0.88;
+}
+
+/* ── Scrollbar ────────────────────────────────────────── */
+
+.editor-sidebar::-webkit-scrollbar,
+.editor-props::-webkit-scrollbar,
+.editor-canvas::-webkit-scrollbar {
+  width: 6px;
+}
+
+.editor-sidebar::-webkit-scrollbar-thumb,
+.editor-props::-webkit-scrollbar-thumb,
+.editor-canvas::-webkit-scrollbar-thumb {
+  background: var(--ed-border-subtle);
+  border-radius: 3px;
+}
+
+.editor-sidebar::-webkit-scrollbar-track,
+.editor-props::-webkit-scrollbar-track,
+.editor-canvas::-webkit-scrollbar-track {
+  background: transparent;
 }
