@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Check, Loader2, Plus, Zap } from "lucide-react";
+import { Check, Crown, Loader2, Sparkles, Zap } from "lucide-react";
 import clsx from "clsx";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import SubscriptionForm from "@/components/global/subscription-form";
 
 type Subscription = { id: string; active: boolean; priceId: string; currentPeriodEndDate: Date } | null;
@@ -31,21 +32,17 @@ type Props = {
 };
 
 export default function BillingClient({ agencyId, subscription, charges, pricingCards, addOns, initialPlan, success, cancelled }: Props) {
-  const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
 
-  // Show toast on success/cancel redirect
   useEffect(() => {
     if (success) toast.success("Subscription activated!");
     if (cancelled) toast.error("Payment cancelled");
   }, [success, cancelled]);
 
-  // Auto-open payment form if ?plan= is in URL
   useEffect(() => {
-    if (initialPlan && !subscription?.active) {
-      handleSubscribe(initialPlan);
-    }
+    if (initialPlan && !subscription?.active) handleSubscribe(initialPlan);
   }, [initialPlan]);
 
   const handleSubscribe = async (priceId: string) => {
@@ -60,15 +57,15 @@ export default function BillingClient({ agencyId, subscription, charges, pricing
       const data = await res.json();
       if (data.clientSecret) {
         setClientSecret(data.clientSecret);
+        setShowPayment(true);
       } else {
-        // Fallback to checkout
         const checkout = await fetch("/api/stripe/create-checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ priceId, agencyId }),
         });
-        const checkoutData = await checkout.json();
-        if (checkoutData.url) window.location.href = checkoutData.url;
+        const d = await checkout.json();
+        if (d.url) window.location.href = d.url;
       }
     } catch {
       toast.error("Something went wrong");
@@ -76,74 +73,107 @@ export default function BillingClient({ agencyId, subscription, charges, pricing
     setLoading(null);
   };
 
-  const currentPriceId = subscription?.priceId;
+  const currentPlan = pricingCards.find((c) => c.priceId === subscription?.priceId);
+  const daysLeft = subscription?.currentPeriodEndDate
+    ? Math.max(0, Math.ceil((new Date(subscription.currentPeriodEndDate).getTime() - Date.now()) / 86400000))
+    : 0;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
+    <div className="mx-auto max-w-4xl space-y-10">
+      {/* Header */}
       <div>
         <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Billing</h1>
-        <p className="mt-1 text-[13px] text-muted-foreground">Manage your subscription and view transaction history.</p>
+        <p className="mt-1 text-[13px] text-muted-foreground">Manage your plan and payment history.</p>
       </div>
 
-      {/* Custom Stripe Form */}
-      {clientSecret && (
-        <SubscriptionForm clientSecret={clientSecret} agencyId={agencyId} />
-      )}
-
-      {/* Current plan */}
-      {subscription?.active && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Active Subscription</CardTitle>
-              <Badge>Active</Badge>
+      {/* Current plan banner */}
+      <Card className={clsx("overflow-hidden", subscription?.active ? "border-primary/30 bg-primary/5" : "border-dashed")}>
+        <CardContent className="flex items-center justify-between gap-4 p-6">
+          <div className="flex items-center gap-4">
+            <div className={clsx("flex h-10 w-10 items-center justify-center rounded-lg", subscription?.active ? "bg-primary text-primary-foreground" : "bg-muted")}>
+              {subscription?.active ? <Crown className="h-5 w-5" /> : <Zap className="h-5 w-5 text-muted-foreground" />}
             </div>
-            <CardDescription>
-              Renews on {new Date(subscription.currentPeriodEndDate).toLocaleDateString()}
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
+            <div>
+              <p className="text-[15px] font-semibold">
+                {subscription?.active ? currentPlan?.title || "Pro Plan" : "Free Plan"}
+              </p>
+              {subscription?.active ? (
+                <div className="flex items-center gap-3 mt-1">
+                  <p className="text-[12px] text-muted-foreground">{daysLeft} days until renewal</p>
+                  <Progress value={Math.max(5, ((30 - daysLeft) / 30) * 100)} className="h-1.5 w-24" />
+                </div>
+              ) : (
+                <p className="text-[12px] text-muted-foreground">Upgrade to unlock premium features</p>
+              )}
+            </div>
+          </div>
+          {subscription?.active && <Badge>Active</Badge>}
+        </CardContent>
+      </Card>
 
       {/* Plans */}
-      <div>
-        <h2 className="mb-4 text-lg font-semibold">Plans</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <h2 className="text-[15px] font-semibold">Plans</h2>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-3">
           {pricingCards.map((card) => {
-            const isCurrent = card.priceId === currentPriceId;
+            const isCurrent = card.priceId === subscription?.priceId;
             const isPro = card.title === "Unlimited Saas";
             return (
-              <Card key={card.title} className={clsx("flex flex-col justify-between", isPro && "border-2 border-primary", isCurrent && "ring-2 ring-primary")}>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <CardTitle className={clsx("text-lg", !isPro && "text-muted-foreground")}>{card.title}</CardTitle>
-                    {isCurrent && <Badge variant="secondary">Current</Badge>}
-                    {isPro && !isCurrent && <Badge>Popular</Badge>}
+              <Card
+                key={card.title}
+                className={clsx(
+                  "relative flex flex-col transition-all",
+                  isPro && "border-primary shadow-md shadow-primary/5 scale-[1.02]",
+                  isCurrent && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                )}
+              >
+                {isPro && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="shadow-sm">Recommended</Badge>
                   </div>
-                  <CardDescription>{card.description}</CardDescription>
+                )}
+                <CardHeader className="pb-2 pt-6">
+                  <p className={clsx("text-[13px] font-medium", isPro ? "text-primary" : "text-muted-foreground")}>{card.title}</p>
+                  <div className="flex items-baseline gap-1 pt-2">
+                    <span className="text-3xl font-bold tracking-tight">{card.price}</span>
+                    {card.duration && <span className="text-[13px] text-muted-foreground">/{card.duration}</span>}
+                  </div>
+                  <p className="text-[12px] text-muted-foreground pt-1">{card.description}</p>
                 </CardHeader>
-                <CardContent>
-                  <span className="text-3xl font-bold">{card.price}</span>
-                  {card.duration && <span className="text-muted-foreground">/{card.duration}</span>}
-                </CardContent>
-                <CardFooter className="flex flex-col items-start gap-4">
-                  <Separator />
-                  <div className="space-y-2">
+                <CardContent className="flex-1 pb-2">
+                  <Separator className="mb-4" />
+                  <ul className="space-y-2.5">
                     {card.features.map((f) => (
-                      <div key={f} className="flex items-center gap-2">
-                        <Check className="h-4 w-4 shrink-0 text-primary" />
-                        <span className="text-[13px] text-muted-foreground">{f}</span>
-                      </div>
+                      <li key={f} className="flex items-start gap-2">
+                        <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span className="text-[12px] leading-snug text-muted-foreground">{f}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-2">
                   <Button
                     className="w-full"
-                    variant={isPro ? "default" : "secondary"}
+                    variant={isPro ? "default" : "outline"}
+                    size="lg"
                     disabled={isCurrent || !!loading || !card.priceId}
                     onClick={() => handleSubscribe(card.priceId)}
                   >
-                    {loading === card.priceId ? <><Loader2 className="animate-spin" /> Processing...</> : isCurrent ? "Current plan" : !card.priceId ? "Free" : "Subscribe"}
+                    {loading === card.priceId ? (
+                      <Loader2 className="animate-spin" />
+                    ) : isCurrent ? (
+                      "Current plan"
+                    ) : !card.priceId ? (
+                      "Free forever"
+                    ) : subscription?.active ? (
+                      "Switch plan"
+                    ) : (
+                      "Get started"
+                    )}
                   </Button>
                 </CardFooter>
               </Card>
@@ -154,34 +184,34 @@ export default function BillingClient({ agencyId, subscription, charges, pricing
 
       {/* Add-ons */}
       {addOns.length > 0 && (
-        <div>
-          <h2 className="mb-4 text-lg font-semibold">Add-ons</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-4">
+          <h2 className="text-[15px] font-semibold">Add-ons</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
             {addOns.map((addon) => (
-              <Card key={addon.id} className="flex items-center justify-between p-4">
-                <div>
+              <div key={addon.id} className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-muted/30">
+                <div className="space-y-0.5">
                   <p className="text-[13px] font-medium">{addon.name}</p>
-                  <p className="text-[12px] text-muted-foreground">${addon.price}/month</p>
+                  <p className="text-[12px] text-muted-foreground">${addon.price}/mo</p>
                 </div>
                 <Switch checked={addon.active} disabled />
-              </Card>
+              </div>
             ))}
           </div>
         </div>
       )}
 
       {/* Transactions */}
-      {charges.length > 0 && (
-        <div>
-          <h2 className="mb-4 text-lg font-semibold">Transaction History</h2>
+      <div className="space-y-4">
+        <h2 className="text-[15px] font-semibold">Payment History</h2>
+        {charges.length > 0 ? (
           <div className="rounded-lg border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-[12px]">Email</TableHead>
+                  <TableHead className="text-[12px]">Status</TableHead>
+                  <TableHead className="text-[12px]">Date</TableHead>
+                  <TableHead className="text-right text-[12px]">Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -189,7 +219,12 @@ export default function BillingClient({ agencyId, subscription, charges, pricing
                   <TableRow key={c.id}>
                     <TableCell className="text-[13px]">{c.email || "—"}</TableCell>
                     <TableCell>
-                      <Badge variant={c.status === "succeeded" ? "default" : "secondary"} className="text-[11px] capitalize">{c.status}</Badge>
+                      <div className={clsx("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+                        c.status === "succeeded" ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground"
+                      )}>
+                        <div className={clsx("h-1.5 w-1.5 rounded-full", c.status === "succeeded" ? "bg-emerald-500" : "bg-muted-foreground")} />
+                        {c.status}
+                      </div>
                     </TableCell>
                     <TableCell className="text-[13px] text-muted-foreground">{new Date(c.created * 1000).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right text-[13px] tabular-nums font-medium">${(c.amount / 100).toFixed(2)}</TableCell>
@@ -198,8 +233,23 @@ export default function BillingClient({ agencyId, subscription, charges, pricing
               </TableBody>
             </Table>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="rounded-lg border border-dashed py-12 text-center">
+            <p className="text-[13px] text-muted-foreground">No transactions yet</p>
+          </div>
+        )}
+      </div>
+
+      {/* Payment Dialog */}
+      <Dialog open={showPayment} onOpenChange={setShowPayment}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Complete your subscription</DialogTitle>
+            <DialogDescription>Enter your payment details below.</DialogDescription>
+          </DialogHeader>
+          {clientSecret && <SubscriptionForm clientSecret={clientSecret} agencyId={agencyId} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

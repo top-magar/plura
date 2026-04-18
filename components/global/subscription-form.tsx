@@ -1,21 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 function CheckoutForm({ agencyId }: { agencyId: string }) {
   const stripe = useStripe();
   const elements = useElements();
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,9 +27,7 @@ function CheckoutForm({ agencyId }: { agencyId: string }) {
       },
     });
 
-    if (error) {
-      toast.error(error.message || "Payment failed");
-    }
+    if (error) toast.error(error.message || "Payment failed");
     setLoading(false);
   };
 
@@ -46,23 +41,12 @@ function CheckoutForm({ agencyId }: { agencyId: string }) {
   );
 }
 
-type Props = {
-  clientSecret: string;
-  agencyId: string;
-};
+type Props = { clientSecret: string; agencyId: string };
 
 export default function SubscriptionForm({ clientSecret, agencyId }: Props) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Complete your subscription</CardTitle>
-        <CardDescription>Enter your payment details below</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "night" } }}>
-          <CheckoutForm agencyId={agencyId} />
-        </Elements>
-      </CardContent>
-    </Card>
+    <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: "night" } }}>
+      <CheckoutForm agencyId={agencyId} />
+    </Elements>
   );
 }
