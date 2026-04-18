@@ -251,7 +251,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     const wrapStyle: CSSProperties = {
       ...el.styles,
       position: "relative" as const,
-      outline: !preview && isSel ? "2px solid #6366f1" : !preview && dropTarget === el.id && isContainer ? "2px dashed #6366f1" : isHov ? "1px dashed #444" : undefined,
+      outline: !preview && isSel ? "2px solid hsl(var(--primary))" : !preview && dropTarget === el.id && isContainer ? "2px dashed hsl(var(--primary))" : isHov ? "1px dashed hsl(var(--border))" : undefined,
       outlineOffset: !preview && (isSel || dropTarget === el.id) ? 2 : isHov ? 1 : undefined,
       cursor: !preview && !isBody ? "pointer" : undefined,
     };
@@ -367,7 +367,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         {isHov && !isBody && <HoverBadge name={el.name} />}
         {children.map((child) => <R key={child.id} el={child} />)}
         {isEmpty && !preview && (
-          <div onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} style={{ minHeight: isBody ? "calc(100vh - 48px)" : 60, display: "flex", alignItems: "center", justifyContent: "center", border: dropTarget === el.id ? "2px dashed #6366f1" : "2px dashed #333", borderRadius: 8, color: dropTarget === el.id ? "#818cf8" : "#555", fontSize: 12, margin: isBody ? 0 : undefined, transition: "border-color 0.15s, color 0.15s" }}>
+          <div onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} className={`flex items-center justify-center rounded-lg border-2 border-dashed text-xs transition-colors ${dropTarget === el.id ? "border-primary text-primary" : "border-border text-muted-foreground"}`} style={{ minHeight: isBody ? "calc(100vh - 48px)" : 60, margin: isBody ? 0 : undefined }}>
             {isBody ? "Drag a component here to start building" : "Drop here"}
           </div>
         )}
@@ -381,17 +381,17 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
   const deviceWidth = device === "Desktop" ? "100%" : device === "Tablet" ? 768 : 420;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#0a0a0a", color: "#fff" }} onKeyDown={handleKeyDown} tabIndex={0}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }} className="bg-background text-foreground" onKeyDown={handleKeyDown} tabIndex={0}>
       {/* Toolbar */}
       {!preview && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px", borderBottom: "1px solid #1a1a1a", flexShrink: 0, background: "#0f0f0f" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px", flexShrink: 0 }} className="border-b bg-card">
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Button asChild variant="ghost" size="icon-xs"><Link href={`/sub-account/${subAccountId}/funnels/${funnelId}`}><ArrowLeft /></Link></Button>
             <span style={{ fontSize: 13, fontWeight: 500 }}>{pageName}</span>
           </div>
-          <div style={{ display: "flex", gap: 2, border: "1px solid #222", borderRadius: 8, padding: 2 }}>
+          <div className="flex gap-0.5 border rounded-lg p-0.5">
             {([["Desktop", Laptop], ["Tablet", Tablet], ["Mobile", Smartphone]] as const).map(([d, Icon]) => (
-              <button key={d} onClick={() => setDevice(d as Device)} style={{ padding: "4px 8px", borderRadius: 6, background: device === d ? "#6366f1" : "transparent", color: device === d ? "#fff" : "#888", border: 0, cursor: "pointer", display: "flex", alignItems: "center" }}>
+              <button key={d} onClick={() => setDevice(d as Device)} className={`p-1 px-2 rounded-md flex items-center cursor-pointer ${device === d ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
                 <Icon size={14} />
               </button>
             ))}
@@ -413,21 +413,21 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         {/* Sidebar */}
         {!preview && (
-          <div style={{ width: 220, borderRight: "1px solid #1a1a1a", flexShrink: 0, display: "flex", flexDirection: "column", background: "#0f0f0f" }}>
-            <div style={{ padding: "8px 12px", fontSize: 11, fontWeight: 600, color: "#666", textTransform: "uppercase", letterSpacing: 1 }}>Components</div>
+          <div style={{ width: 220, flexShrink: 0, display: "flex", flexDirection: "column" }} className="border-r bg-card">
+            <div style={{ padding: "8px 12px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }} className="text-muted-foreground">Components</div>
             <ScrollArea className="flex-1">
               <div style={{ padding: "0 8px 8px", display: "flex", flexDirection: "column", gap: 4 }}>
                 {components.map(({ type, label, icon: Icon }) => (
-                  <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("componentType", type)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 6, border: "1px solid #1a1a1a", fontSize: 12, cursor: "grab", color: "#ccc" }}>
-                    <Icon size={14} style={{ color: "#666" }} /> {label}
+                  <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("componentType", type)} className="flex items-center gap-2 p-2 px-2.5 rounded-md border text-xs cursor-grab text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors">
+                    <Icon size={14} className="text-muted-foreground/60" /> {label}
                   </div>
                 ))}
               </div>
             </ScrollArea>
 
             {/* Layers */}
-            <div style={{ borderTop: "1px solid #1a1a1a" }}>
-              <div style={{ padding: "8px 12px", fontSize: 11, fontWeight: 600, color: "#666", textTransform: "uppercase", letterSpacing: 1 }}>Layers</div>
+            <div className="border-t">
+              <div style={{ padding: "8px 12px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }} className="text-muted-foreground">Layers</div>
               <ScrollArea style={{ maxHeight: 200 }}>
                 <div style={{ padding: "0 8px 8px" }}>
                   {body && <LayerTree el={body} depth={0} selected={selected} onSelect={setSelected} />}
@@ -438,27 +438,27 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         )}
 
         {/* Canvas */}
-        <div style={{ flex: 1, overflow: "auto", padding: preview ? 0 : 16, background: "#111" }} onClick={() => !preview && setSelected(null)}>
-          <div style={{ maxWidth: deviceWidth, margin: "0 auto", background: "#0a0a0a", minHeight: "100%", transition: "max-width 0.3s" }}>
+        <div style={{ flex: 1, overflow: "auto", padding: preview ? 0 : 16 }} className="bg-muted/30" onClick={() => !preview && setSelected(null)}>
+          <div style={{ maxWidth: deviceWidth, margin: "0 auto", minHeight: "100%", transition: "max-width 0.3s" }} className="bg-background shadow-lg">
             {body && <R el={body} />}
           </div>
         </div>
 
         {/* Properties */}
         {!preview && selected && (
-          <div style={{ width: 260, borderLeft: "1px solid #1a1a1a", flexShrink: 0, overflow: "auto", background: "#0f0f0f" }}>
-            <div style={{ padding: "8px 12px", borderBottom: "1px solid #1a1a1a" }}>
+          <div style={{ width: 260, flexShrink: 0, overflow: "auto" }} className="border-l bg-card">
+            <div style={{ padding: "8px 12px" }} className="border-b">
               <div style={{ fontSize: 12, fontWeight: 500 }}>{selected.name}</div>
-              <div style={{ fontSize: 10, color: "#666" }}>{selected.type}</div>
+              <div style={{ fontSize: 10 }} className="text-muted-foreground">{selected.type}</div>
             </div>
 
             {/* Content editor */}
             {!Array.isArray(selected.content) && (
-              <div style={{ padding: "8px 12px", borderBottom: "1px solid #1a1a1a" }}>
-                <div style={{ fontSize: 10, fontWeight: 600, color: "#666", textTransform: "uppercase", marginBottom: 6 }}>Content</div>
+              <div style={{ padding: "8px 12px" }} className="border-b">
+                <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", marginBottom: 6 }} className="text-muted-foreground">Content</div>
                 {Object.entries(selected.content as Record<string, string>).map(([key, val]) => (
                   <div key={key} style={{ marginBottom: 6 }}>
-                    <label style={{ fontSize: 10, color: "#888", display: "block", marginBottom: 2 }}>{key}</label>
+                    <label style={{ fontSize: 10, display: "block", marginBottom: 2 }} className="text-muted-foreground">{key}</label>
                     <Input value={val} onChange={(e) => doUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-7 text-[11px]" />
                   </div>
                 ))}
@@ -477,7 +477,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
       {/* Preview exit */}
       {preview && (
-        <button onClick={() => setPreview(false)} style={{ position: "fixed", top: 16, left: 16, zIndex: 100, padding: "6px 12px", borderRadius: 8, background: "#6366f1", color: "#fff", border: 0, cursor: "pointer", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+        <button onClick={() => setPreview(false)} className="fixed top-4 left-4 z-[100] px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs flex items-center gap-1 cursor-pointer border-0">
           <EyeOff size={14} /> Exit Preview
         </button>
       )}
@@ -490,8 +490,8 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 function SelectBadge({ name, onDelete }: { name: string; onDelete: () => void }) {
   return (
     <div style={{ position: "absolute", top: -24, left: 0, display: "flex", gap: 4, zIndex: 10 }}>
-      <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "#6366f1", color: "#fff", whiteSpace: "nowrap" }}>{name}</span>
-      <button onClick={(e) => { e.stopPropagation(); onDelete(); }} style={{ width: 20, height: 20, borderRadius: 4, background: "#ef4444", color: "#fff", border: 0, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <span className="bg-primary text-primary-foreground" style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, whiteSpace: "nowrap" }}>{name}</span>
+      <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="bg-destructive text-destructive-foreground" style={{ width: 20, height: 20, borderRadius: 4, border: 0, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Trash2 size={10} />
       </button>
     </div>
@@ -501,7 +501,7 @@ function SelectBadge({ name, onDelete }: { name: string; onDelete: () => void })
 function HoverBadge({ name }: { name: string }) {
   return (
     <div style={{ position: "absolute", top: -18, left: 0, zIndex: 9, pointerEvents: "none" }}>
-      <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, background: "#333", color: "#aaa", whiteSpace: "nowrap" }}>{name}</span>
+      <span className="bg-muted text-muted-foreground" style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, whiteSpace: "nowrap" }}>{name}</span>
     </div>
   );
 }
@@ -512,7 +512,7 @@ function PropGroup({ title, props, selected, onUpdate }: { title: string; props:
   const [open, setOpen] = useState(true);
   return (
     <div style={{ marginBottom: 4 }}>
-      <button onClick={() => setOpen(!open)} style={{ display: "flex", alignItems: "center", gap: 4, width: "100%", padding: "4px 0", border: 0, background: "transparent", color: "#666", fontSize: 10, fontWeight: 600, textTransform: "uppercase", cursor: "pointer", letterSpacing: 0.5 }}>
+      <button onClick={() => setOpen(!open)} className="flex items-center gap-1 w-full py-1 border-0 bg-transparent text-muted-foreground text-[10px] font-semibold uppercase cursor-pointer tracking-wide">
         {open ? <ChevronDown size={10} /> : <ChevronRight size={10} />} {title}
       </button>
       {open && (
@@ -522,10 +522,10 @@ function PropGroup({ title, props, selected, onUpdate }: { title: string; props:
             const isColor = colorProps.has(p);
             return (
               <div key={p}>
-                <label style={{ fontSize: 9, color: "#555", display: "block" }}>{p.replace(/([A-Z])/g, " $1")}</label>
+                <label style={{ fontSize: 9, display: "block" }} className="text-muted-foreground/70">{p.replace(/([A-Z])/g, " $1")}</label>
                 <div style={{ display: "flex", gap: 2 }}>
                   {isColor && (
-                    <input type="color" value={val || "#000000"} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} style={{ width: 24, height: 24, padding: 0, border: "1px solid #333", borderRadius: 4, cursor: "pointer", background: "transparent" }} />
+                    <input type="color" value={val || "#000000"} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} className="border rounded cursor-pointer" style={{ width: 24, height: 24, padding: 0, background: "transparent" }} />
                   )}
                   <Input value={val} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} className="h-6 text-[10px] flex-1" />
                 </div>
@@ -543,7 +543,7 @@ function LayerTree({ el, depth, selected, onSelect }: { el: El; depth: number; s
   const isSel = selected?.id === el.id;
   return (
     <div>
-      <button onClick={() => onSelect(el)} style={{ display: "flex", alignItems: "center", gap: 4, width: "100%", padding: "3px 6px", paddingLeft: depth * 12 + 6, borderRadius: 4, border: 0, background: isSel ? "rgba(99,102,241,0.15)" : "transparent", color: isSel ? "#818cf8" : "#888", fontSize: 11, cursor: "pointer", textAlign: "left" }}>
+      <button onClick={() => onSelect(el)} className={`flex items-center gap-1 w-full rounded text-[11px] cursor-pointer text-left ${isSel ? "bg-primary/10 text-primary" : "text-muted-foreground"}`} style={{ padding: "3px 6px", paddingLeft: depth * 12 + 6, border: 0, background: isSel ? undefined : "transparent" }}>
         {children.length > 0 && <ChevronRight size={10} />}
         {el.name}
       </button>
