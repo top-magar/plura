@@ -15,6 +15,7 @@ const components = [
   { type: "2Col", label: "2 Columns", icon: Columns2 },
   { type: "3Col", label: "3 Columns", icon: Columns3 },
   { type: "contactForm", label: "Contact Form", icon: Contact },
+  { type: "paymentForm", label: "Payment Form", icon: CreditCard },
 ];
 
 function ComponentItem({ type, label, icon: Icon }: { type: string; label: string; icon: typeof Type }) {

@@ -32,18 +32,29 @@ function Recursive({ element }: { element: EditorElement }) {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const type = e.dataTransfer.getData("componentType");
-    if (!type) return;
 
-    const newElement = createElementFromType(type);
-    if (newElement) {
-      dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, elementDetails: newElement } });
+    // New component from sidebar
+    const type = e.dataTransfer.getData("componentType");
+    if (type) {
+      const newElement = createElementFromType(type);
+      if (newElement) {
+        dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, elementDetails: newElement } });
+      }
+      return;
+    }
+
+    // Reorder existing element
+    const draggedId = e.dataTransfer.getData("elementId");
+    if (draggedId && draggedId !== element.id) {
+      const children = Array.isArray(element.content) ? element.content : [];
+      dispatch({ type: "MOVE_ELEMENT", payload: { elementId: draggedId, newContainerId: element.id, index: children.length } });
     }
   };
 
   const handleDragStart = (e: React.DragEvent) => {
     if (previewMode || isBody) return;
     e.dataTransfer.setData("elementId", element.id);
+    e.dataTransfer.effectAllowed = "move";
     e.stopPropagation();
   };
 
@@ -163,6 +174,36 @@ function Recursive({ element }: { element: EditorElement }) {
     );
   }
 
+  if (element.type === "paymentForm") {
+    return (
+      <div
+        style={element.styles}
+        className={clsx("relative p-4", !previewMode && "cursor-pointer", isSelected && "ring-2 ring-primary ring-offset-1")}
+        onClick={handleClick}
+        draggable={!previewMode}
+        onDragStart={handleDragStart}
+      >
+        {isSelected && !previewMode && (
+          <div className="absolute -top-6 left-0 flex items-center gap-1 z-10">
+            <Badge className="text-[10px] h-5">Payment</Badge>
+            <button onClick={handleDelete} className="flex h-5 w-5 items-center justify-center rounded bg-destructive text-white">
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+        <div className="space-y-3 rounded-md border bg-muted/20 p-4">
+          <div className="h-10 rounded bg-muted animate-pulse" />
+          <div className="grid grid-cols-2 gap-2">
+            <div className="h-10 rounded bg-muted animate-pulse" />
+            <div className="h-10 rounded bg-muted animate-pulse" />
+          </div>
+          <button className="w-full rounded bg-primary px-3 py-2.5 text-sm font-medium text-white">Pay Now</button>
+          <p className="text-center text-[10px] text-muted-foreground">Powered by Stripe</p>
+        </div>
+      </div>
+    );
+  }
+
   // Container types (__body, container, 2Col, 3Col)
   const children = Array.isArray(element.content) ? element.content : [];
   const isColumn = element.type === "2Col" || element.type === "3Col";
@@ -232,6 +273,8 @@ function createElementFromType(type: string): EditorElement | null {
       ] };
     case "contactForm":
       return { id, type: "contactForm", name: "Contact Form", styles: { padding: "16px" }, content: [] };
+    case "paymentForm":
+      return { id, type: "paymentForm", name: "Payment Form", styles: { padding: "16px", width: "100%" }, content: [] };
     default:
       return null;
   }
