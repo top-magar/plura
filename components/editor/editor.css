@@ -130,7 +130,7 @@
 }
 
 .editor-component-card:active { cursor: grabbing; }
-.editor-component-card svg { opacity: 0.6; }
+.editor-component-card svg { flex-shrink: 0; }
 
 .editor-component-item {
   display: flex;

@@ -148,9 +148,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
                   <div key={group.label} className="editor-component-group">
                     <div className="editor-component-group-label">{group.label}</div>
                     <div className="editor-component-grid">
-                      {group.items.map(({ type, label, icon: Icon }) => (
+                      {group.items.map(({ type, label, icon: Icon, color }) => (
                         <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("componentType", type)} className="editor-component-card">
-                          <Icon size={16} /> {label}
+                          <span style={{ color }}><Icon size={16} /></span> {label}
                         </div>
                       ))}
                     </div>
