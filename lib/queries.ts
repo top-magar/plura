@@ -292,6 +292,73 @@ export async function upsertSubAccount(subAccount: SubAccount) {
   }
 }
 
+// ─── Team ────────────────────────────────────────────────────
+
+export async function getTeamMembers(agencyId: string) {
+  return db.user.findMany({
+    where: { agencyId },
+    include: {
+      Agency: { include: { SubAccount: true } },
+      Permissions: { include: { SubAccount: true } },
+    },
+  });
+}
+
+export async function sendInvitation(role: string, email: string, agencyId: string) {
+  const invitation = await db.invitation.create({
+    data: { email, agencyId, role: role as "AGENCY_ADMIN" | "SUBACCOUNT_USER" | "SUBACCOUNT_GUEST" },
+  });
+
+  try {
+    const clerk = await clerkClient();
+    await clerk.invitations.createInvitation({
+      emailAddress: email,
+      redirectUrl: process.env.NEXT_PUBLIC_URL!,
+      publicMetadata: { throughInvitation: true, role },
+    });
+  } catch (e) {
+    console.log("[ERROR] Clerk invitation failed:", e);
+  }
+
+  return invitation;
+}
+
+export async function deleteUser(userId: string) {
+  const clerk = await clerkClient();
+  await clerk.users.deleteUser(userId);
+  return db.user.delete({ where: { id: userId } });
+}
+
+export async function deleteSubAccount(subAccountId: string) {
+  return db.subAccount.delete({ where: { id: subAccountId } });
+}
+
+export async function getSubAccountDetails(subAccountId: string) {
+  return db.subAccount.findUnique({ where: { id: subAccountId } });
+}
+
+// ─── Contacts ────────────────────────────────────────────────
+
+export async function getContacts(subAccountId: string) {
+  return db.contact.findMany({
+    where: { subAccountId },
+    include: { Ticket: { select: { value: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function upsertContact(contact: { id?: string; name: string; email: string; subAccountId: string }) {
+  return db.contact.upsert({
+    where: { id: contact.id || "" },
+    update: { name: contact.name, email: contact.email },
+    create: { name: contact.name, email: contact.email, subAccountId: contact.subAccountId },
+  });
+}
+
+export async function deleteContact(contactId: string) {
+  return db.contact.delete({ where: { id: contactId } });
+}
+
 // ─── Pipelines ──────────────────────────────────────────────
 
 export async function getPipelines(subAccountId: string) {
