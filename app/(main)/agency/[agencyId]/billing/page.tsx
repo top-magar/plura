@@ -6,16 +6,18 @@ import BillingClient from "./client";
 
 async function syncSubscription(agencyId: string, customerId: string) {
   const subs = await stripe.subscriptions.list({ customer: customerId, status: "active", limit: 1 });
-  const sub = subs.data[0] as unknown as Record<string, unknown> | undefined;
-  if (sub) {
-    const items = sub.items as { data: { price: { id: string } }[] };
-    const periodEnd = sub.current_period_end as number;
-    await db.subscription.upsert({
-      where: { subscriptionId: sub.id as string },
-      update: { active: true, priceId: items.data[0].price.id, currentPeriodEndDate: new Date(periodEnd * 1000) },
-      create: { subscriptionId: sub.id as string, customerId, priceId: items.data[0].price.id, currentPeriodEndDate: new Date(periodEnd * 1000), active: true, agencyId },
-    });
-  }
+  const sub = subs.data[0];
+  if (!sub) return;
+
+  const priceId = sub.items.data[0].price.id;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const periodEnd = (sub as any).current_period_end as number;
+
+  await db.subscription.upsert({
+    where: { subscriptionId: sub.id },
+    update: { active: true, priceId, currentPeriodEndDate: new Date(periodEnd * 1000) },
+    create: { subscriptionId: sub.id, customerId, priceId, currentPeriodEndDate: new Date(periodEnd * 1000), active: true, agencyId },
+  });
 }
 
 export default async function BillingPage({
