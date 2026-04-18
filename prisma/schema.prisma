@@ -154,11 +154,11 @@ model SubAccount {
 }
 
 model Tag {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
   color        String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   subAccountId String
   SubAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   Ticket       Ticket[]
@@ -167,10 +167,10 @@ model Tag {
 }
 
 model Pipeline {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   Lane         Lane[]
   subAccountId String
   SubAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
@@ -192,20 +192,20 @@ model Lane {
 }
 
 model Ticket {
-  id          String   @id @default(uuid())
-  name        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  laneId      String
-  order       Int      @default(0)
-  value       Decimal?
-  description String?
-  Tags        Tag[]
-  customerId  String?
-  Customer    Contact? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  id             String   @id @default(uuid())
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  laneId         String
+  order          Int      @default(0)
+  value          Decimal?
+  description    String?
+  Tags           Tag[]
+  customerId     String?
+  Customer       Contact? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   assignedUserId String?
   Assigned       User?    @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
-  Lane        Lane     @relation(fields: [laneId], references: [id], onDelete: Cascade)
+  Lane           Lane     @relation(fields: [laneId], references: [id], onDelete: Cascade)
 
   @@index([laneId])
   @@index([customerId])
@@ -268,11 +268,11 @@ model Action {
 }
 
 model Contact {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
   email        String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   subAccountId String
   SubAccount   SubAccount @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
   Ticket       Ticket[]
@@ -378,18 +378,16 @@ model Invitation {
 }
 
 model Notification {
-  id           String  @id @default(uuid())
+  id           String      @id @default(uuid())
   notification String
   agencyId     String
   subAccountId String?
   userId       String
-
-  User       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  Agency     Agency     @relation(fields: [agencyId], references: [id], onDelete: Cascade)
-  SubAccount SubAccount? @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  User         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Agency       Agency      @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  SubAccount   SubAccount? @relation(fields: [subAccountId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   @@index([agencyId])
   @@index([subAccountId])
