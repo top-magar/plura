@@ -6,11 +6,16 @@ import Link from "next/link";
 import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical, Heading1, Heading2, List, SeparatorHorizontal, Square, Code, Quote, Star, MapPin, Phone, Mail, Globe, Clock, CheckSquare, Minus, ChevronUp, Timer, PanelTop, PanelBottom, Share2, CodeXml, ImageIcon, Navigation, Rows3, Bookmark, AlignLeft, AlignCenter, AlignRight, AlignJustify, ArrowRight, ArrowDown, ArrowUp, MoveHorizontal, MoveVertical, WrapText, Italic, Underline, Strikethrough, CaseSensitive, CaseUpper, CaseLower, Minus as MinusIcon } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { v4 } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { upsertFunnelPage, savePageTemplate, getPageTemplates, deletePageTemplate } from "@/lib/queries";
 import "./editor.css";
@@ -910,28 +915,36 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         )}
         {!preview && selected && (
           <div className="editor-props">
-            {/* Header: name + type */}
+            {/* Header */}
             <div className="editor-props-header">
-              <input className="editor-props-name-input" value={selected.name} onChange={(e) => doUpdate({ ...selected, name: e.target.value })} />
-              <div className="editor-props-type">{selected.type}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <input className="editor-props-name-input" value={selected.name} onChange={(e) => doUpdate({ ...selected, name: e.target.value })} />
+                <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 shrink-0">{selected.type}</Badge>
+              </div>
             </div>
 
-            {/* Actions bar */}
-            <div className="editor-props-actions">
-              <button className="editor-action-btn" title="Duplicate (Cmd+D)" onClick={doDuplicate}><Copy size={13} /></button>
-              {selected.type !== "__body" && (
-                <button className="editor-action-btn danger" title="Delete" onClick={() => doDelete(selected.id)}><Trash2 size={13} /></button>
-              )}
-            </div>
+            {/* Actions */}
+            <TooltipProvider delayDuration={200}>
+              <div className="editor-props-actions">
+                <Tooltip><TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={doDuplicate}><Copy size={13} /></Button>
+                </TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">Duplicate (Cmd+D)</TooltipContent></Tooltip>
+                {selected.type !== "__body" && (
+                  <Tooltip><TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-7 w-7 hover:bg-destructive/10 hover:text-destructive hover:border-destructive" onClick={() => doDelete(selected.id)}><Trash2 size={13} /></Button>
+                  </TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">Delete</TooltipContent></Tooltip>
+                )}
+              </div>
+            </TooltipProvider>
 
             {/* Tabs */}
-            <div className="editor-sidebar-tabs">
-              <button className={`editor-sidebar-tab ${propsTab === "design" ? "active" : ""}`} onClick={() => setPropsTab("design")}>Design</button>
-              <button className={`editor-sidebar-tab ${propsTab === "content" ? "active" : ""}`} onClick={() => setPropsTab("content")}>Content</button>
-            </div>
+            <Tabs defaultValue="design" value={propsTab} onValueChange={(v) => setPropsTab(v as "design" | "content")} className="flex flex-col flex-1 min-h-0">
+              <TabsList className="w-full rounded-none border-b h-8 bg-transparent p-0">
+                <TabsTrigger value="design" className="flex-1 rounded-none h-full text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary">Design</TabsTrigger>
+                <TabsTrigger value="content" className="flex-1 rounded-none h-full text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary">Content</TabsTrigger>
+              </TabsList>
 
-            <div className="editor-scroll-panel">
-              {propsTab === "content" && (
+              <TabsContent value="content" className="editor-scroll-panel mt-0 p-0">
                 <div className="editor-props-section">
                   {!Array.isArray(selected.content) ? (
                     Object.entries(selected.content as Record<string, string>).map(([key, val]) => (
@@ -945,19 +958,19 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
                       </div>
                     ))
                   ) : (
-                    <div className="editor-empty-state">Container element — no editable content. Add child elements by dragging from the sidebar.</div>
+                    <div className="editor-empty-state">Container element — drag child elements from the sidebar.</div>
                   )}
                 </div>
-              )}
+              </TabsContent>
 
-              {propsTab === "design" && (
+              <TabsContent value="design" className="editor-scroll-panel mt-0 p-0">
                 <div className="editor-props-section">
                   {propGroups.map((g) => (
                     <PropGroup key={g.title} title={g.title} props={g.props} selected={selected} onUpdate={doUpdate} />
                   ))}
                 </div>
-              )}
-            </div>
+              </TabsContent>
+            </Tabs>
           </div>
         )}
       </div>
@@ -1071,11 +1084,11 @@ function IconToggle({ value, options, onChange }: { value: string; options: Icon
 function PropGroup({ title, props, selected, onUpdate }: { title: string; props: string[]; selected: El; onUpdate: (el: El) => void }) {
   const [open, setOpen] = useState(true);
   return (
-    <div style={{ marginBottom: 4 }}>
-      <button onClick={() => setOpen(!open)} className="editor-prop-group-toggle">
+    <Collapsible open={open} onOpenChange={setOpen} className="mb-1">
+      <CollapsibleTrigger className="editor-prop-group-toggle">
         {open ? <ChevronDown size={10} /> : <ChevronRight size={10} />} {title}
-      </button>
-      {open && (
+      </CollapsibleTrigger>
+      <CollapsibleContent>
         <div className="editor-style-grid">
           {props.map((p) => {
             const val = String((selected.styles as Record<string, unknown>)[p] ?? "");
@@ -1083,43 +1096,76 @@ function PropGroup({ title, props, selected, onUpdate }: { title: string; props:
             const options = selectOptions[p];
             const update = (v: string) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties });
 
-            // Range slider for opacity
             if (p === "opacity") {
               return (
-                <div key={p} style={{ gridColumn: "1 / -1" }}>
+                <div key={p} className="editor-style-full">
                   <label className="editor-prop-label">opacity</label>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <input type="range" min="0" max="1" step="0.05" value={val || "1"} onChange={(e) => update(e.target.value)} className="editor-range" />
-                    <span style={{ fontSize: 10, width: 28, textAlign: "right", color: "var(--ed-text-secondary)" }}>{val || "1"}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Slider value={[parseFloat(val || "1")]} min={0} max={1} step={0.05} onValueChange={([v]) => update(String(v))} className="flex-1" />
+                    <span className="text-[10px] w-7 text-right text-muted-foreground">{val || "1"}</span>
                   </div>
                 </div>
               );
             }
 
-            return (
-              <div key={p} className={iconOptions[p] ? "editor-style-full" : ""}>
-                <label className="editor-prop-label">{p.replace(/([A-Z])/g, " $1")}</label>
-                <div className="editor-style-field">
-                  {isColor && (
-                    <input type="color" value={val || "#000000"} onChange={(e) => update(e.target.value)} className="editor-color-picker" />
-                  )}
-                  {iconOptions[p] ? (
-                    <IconToggle value={val} options={iconOptions[p]} onChange={update} />
-                  ) : options ? (
-                    <select value={val} onChange={(e) => update(e.target.value)} className="editor-select">
-                      <option value="">—</option>
-                      {options.map((o) => <option key={o} value={o}>{o}</option>)}
-                    </select>
-                  ) : (
-                    <Input value={val} onChange={(e) => update(e.target.value)} className="h-6 text-[10px] flex-1" />
-                  )}
+            if (isColor) {
+              return (
+                <div key={p}>
+                  <label className="editor-prop-label">{p.replace(/([A-Z])/g, " $1")}</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="editor-color-btn">
+                        <span className="editor-color-swatch" style={{ background: val || "transparent" }} />
+                        <span className="text-[10px] text-muted-foreground truncate">{val || "none"}</span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-52 p-3" side="left" align="start">
+                      <input type="color" value={val || "#000000"} onChange={(e) => update(e.target.value)} style={{ width: "100%", height: 32, border: 0, cursor: "pointer", background: "transparent" }} />
+                      <div className="grid grid-cols-8 gap-1 mt-2">
+                        {["#000000","#ffffff","#ef4444","#f97316","#eab308","#22c55e","#3b82f6","#6366f1","#8b5cf6","#ec4899","#14b8a6","#64748b","#1e293b","#f1f5f9","#fef2f2","#fefce8"].map((c) => (
+                          <button key={c} onClick={() => update(c)} className="w-5 h-5 border border-border cursor-pointer" style={{ background: c }} />
+                        ))}
+                      </div>
+                      <Input value={val} onChange={(e) => update(e.target.value)} className="h-6 text-[10px] mt-2" placeholder="#hex or rgb()" />
+                    </PopoverContent>
+                  </Popover>
                 </div>
+              );
+            }
+
+            if (iconOptions[p]) {
+              return (
+                <div key={p} className="editor-style-full">
+                  <label className="editor-prop-label">{p.replace(/([A-Z])/g, " $1")}</label>
+                  <IconToggle value={val} options={iconOptions[p]} onChange={update} />
+                </div>
+              );
+            }
+
+            if (options) {
+              return (
+                <div key={p}>
+                  <label className="editor-prop-label">{p.replace(/([A-Z])/g, " $1")}</label>
+                  <Select value={val || undefined} onValueChange={update}>
+                    <SelectTrigger className="h-6 text-[10px] px-2"><SelectValue placeholder="—" /></SelectTrigger>
+                    <SelectContent>
+                      {options.map((o) => <SelectItem key={o} value={o} className="text-[11px]">{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            }
+
+            return (
+              <div key={p}>
+                <label className="editor-prop-label">{p.replace(/([A-Z])/g, " $1")}</label>
+                <Input value={val} onChange={(e) => update(e.target.value)} className="h-6 text-[10px]" />
               </div>
             );
           })}
         </div>
-      )}
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 

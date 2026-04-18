@@ -821,3 +821,29 @@
 .editor-style-full {
   grid-column: 1 / -1;
 }
+
+/* ── Color Picker Button ──────────────────────────────── */
+
+.editor-color-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--ed-spacing-03);
+  width: 100%;
+  height: 24px;
+  padding: 0 var(--ed-spacing-03);
+  border: 1px solid var(--ed-border-subtle);
+  background: var(--ed-layer-02);
+  cursor: pointer;
+  transition: border-color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-color-btn:hover {
+  border-color: var(--ed-border-strong);
+}
+
+.editor-color-swatch {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 1px solid var(--ed-border-subtle);
+}
