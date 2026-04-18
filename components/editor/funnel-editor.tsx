@@ -3,7 +3,7 @@
 import { useState, useCallback, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical, Heading1, Heading2, List, SeparatorHorizontal, Square, Code, Quote, Star, MapPin, Phone, Mail, Globe, Clock, CheckSquare, Minus } from "lucide-react";
 import { toast } from "sonner";
 import { v4 } from "uuid";
 import { Button } from "@/components/ui/button";
@@ -70,22 +70,65 @@ function cloneEl(el: El): El {
 function makeEl(type: string): El | null {
   const id = v4();
   const m: Record<string, () => El> = {
+    // Text
     text: () => ({ id, type: "text", name: "Text", styles: { fontSize: "16px" }, content: { innerText: "Edit this text" } }),
+    heading: () => ({ id, type: "text", name: "Heading", styles: { fontSize: "36px", fontWeight: "700", lineHeight: "1.2" }, content: { innerText: "Heading" } }),
+    subheading: () => ({ id, type: "text", name: "Subheading", styles: { fontSize: "20px", fontWeight: "500", opacity: "0.7" }, content: { innerText: "Subheading text goes here" } }),
+    // Interactive
     link: () => ({ id, type: "link", name: "Link", styles: { color: "#6366f1", textDecoration: "underline" }, content: { innerText: "Click here", href: "#" } }),
-    image: () => ({ id, type: "image", name: "Image", styles: { width: "100%" }, content: { src: "" } }),
+    button: () => ({ id, type: "button", name: "Button", styles: { padding: "12px 24px", backgroundColor: "#6366f1", color: "#ffffff", fontSize: "14px", fontWeight: "600", textAlign: "center", cursor: "pointer" }, content: { innerText: "Click Me", href: "#" } }),
+    // Media
+    image: () => ({ id, type: "image", name: "Image", styles: { width: "100%" }, content: { src: "", alt: "Image" } }),
     video: () => ({ id, type: "video", name: "Video", styles: { width: "100%" }, content: { src: "https://www.youtube.com/embed/dQw4w9WgXcQ" } }),
+    // Layout
     container: () => ({ id, type: "container", name: "Container", styles: { padding: "16px" }, content: [] }),
-    "2Col": () => ({ id, type: "2Col", name: "2 Columns", styles: { display: "flex", gap: "8px" }, content: [
+    section: () => ({ id, type: "container", name: "Section", styles: { padding: "64px 24px", maxWidth: "1200px", margin: "0 auto" }, content: [] }),
+    "2Col": () => ({ id, type: "2Col", name: "2 Columns", styles: { display: "flex", gap: "16px" }, content: [
       { id: v4(), type: "container", name: "Col 1", styles: { flex: "1", padding: "8px" }, content: [] },
       { id: v4(), type: "container", name: "Col 2", styles: { flex: "1", padding: "8px" }, content: [] },
     ]}),
-    "3Col": () => ({ id, type: "3Col", name: "3 Columns", styles: { display: "flex", gap: "8px" }, content: [
+    "3Col": () => ({ id, type: "3Col", name: "3 Columns", styles: { display: "flex", gap: "16px" }, content: [
       { id: v4(), type: "container", name: "Col 1", styles: { flex: "1", padding: "8px" }, content: [] },
       { id: v4(), type: "container", name: "Col 2", styles: { flex: "1", padding: "8px" }, content: [] },
       { id: v4(), type: "container", name: "Col 3", styles: { flex: "1", padding: "8px" }, content: [] },
     ]}),
+    "4Col": () => ({ id, type: "4Col", name: "4 Columns", styles: { display: "flex", gap: "16px" }, content: [
+      { id: v4(), type: "container", name: "Col 1", styles: { flex: "1", padding: "8px" }, content: [] },
+      { id: v4(), type: "container", name: "Col 2", styles: { flex: "1", padding: "8px" }, content: [] },
+      { id: v4(), type: "container", name: "Col 3", styles: { flex: "1", padding: "8px" }, content: [] },
+      { id: v4(), type: "container", name: "Col 4", styles: { flex: "1", padding: "8px" }, content: [] },
+    ]}),
+    // Decorative
+    divider: () => ({ id, type: "divider", name: "Divider", styles: { borderTop: "1px solid #333", margin: "16px 0" }, content: {} }),
+    spacer: () => ({ id, type: "spacer", name: "Spacer", styles: { height: "48px" }, content: {} }),
+    quote: () => ({ id, type: "quote", name: "Quote", styles: { padding: "16px 24px", borderLeft: "3px solid #6366f1", fontStyle: "italic", fontSize: "18px" }, content: { innerText: "This is a quote block" } }),
+    badge: () => ({ id, type: "badge", name: "Badge", styles: { display: "inline-block", padding: "4px 12px", fontSize: "12px", fontWeight: "600", backgroundColor: "#6366f1", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.5px" }, content: { innerText: "New" } }),
+    list: () => ({ id, type: "list", name: "List", styles: { padding: "0 0 0 20px", fontSize: "16px", lineHeight: "1.8" }, content: { innerText: "First item\nSecond item\nThird item" } }),
+    code: () => ({ id, type: "code", name: "Code Block", styles: { padding: "16px", backgroundColor: "#111", fontFamily: "monospace", fontSize: "13px", whiteSpace: "pre-wrap", overflow: "auto" }, content: { innerText: "const hello = 'world';" } }),
+    // Forms
     contactForm: () => ({ id, type: "contactForm", name: "Contact Form", styles: { padding: "16px" }, content: {} }),
     paymentForm: () => ({ id, type: "paymentForm", name: "Payment", styles: { padding: "16px" }, content: {} }),
+    // Pre-built blocks
+    hero: () => ({ id, type: "container", name: "Hero", styles: { padding: "80px 24px", textAlign: "center" }, content: [
+      { id: v4(), type: "text", name: "Hero Title", styles: { fontSize: "48px", fontWeight: "800", lineHeight: "1.1", marginBottom: "16px" }, content: { innerText: "Build Something Amazing" } },
+      { id: v4(), type: "text", name: "Hero Subtitle", styles: { fontSize: "18px", opacity: "0.6", maxWidth: "600px", margin: "0 auto 32px" }, content: { innerText: "Create beautiful websites and funnels with our drag-and-drop builder." } },
+      { id: v4(), type: "button", name: "Hero CTA", styles: { padding: "14px 32px", backgroundColor: "#6366f1", color: "#ffffff", fontSize: "16px", fontWeight: "600", display: "inline-block" }, content: { innerText: "Get Started", href: "#" } },
+    ] as El[] }),
+    cta: () => ({ id, type: "container", name: "CTA Block", styles: { padding: "48px 24px", textAlign: "center", backgroundColor: "#6366f1" }, content: [
+      { id: v4(), type: "text", name: "CTA Title", styles: { fontSize: "28px", fontWeight: "700", color: "#ffffff", marginBottom: "8px" }, content: { innerText: "Ready to get started?" } },
+      { id: v4(), type: "text", name: "CTA Text", styles: { fontSize: "16px", color: "#ffffff", opacity: "0.8", marginBottom: "24px" }, content: { innerText: "Join thousands of happy customers today." } },
+      { id: v4(), type: "button", name: "CTA Button", styles: { padding: "12px 28px", backgroundColor: "#ffffff", color: "#6366f1", fontSize: "14px", fontWeight: "600", display: "inline-block" }, content: { innerText: "Sign Up Free", href: "#" } },
+    ] as El[] }),
+    testimonial: () => ({ id, type: "container", name: "Testimonial", styles: { padding: "32px", backgroundColor: "#111" }, content: [
+      { id: v4(), type: "text", name: "Quote", styles: { fontSize: "18px", fontStyle: "italic", lineHeight: "1.6", marginBottom: "16px" }, content: { innerText: "\"This product changed the way we work. Highly recommended!\"" } },
+      { id: v4(), type: "text", name: "Author", styles: { fontSize: "14px", fontWeight: "600" }, content: { innerText: "— Jane Doe, CEO at Company" } },
+    ] as El[] }),
+    pricing: () => ({ id, type: "container", name: "Pricing Card", styles: { padding: "32px", textAlign: "center", border: "1px solid #333" }, content: [
+      { id: v4(), type: "text", name: "Plan", styles: { fontSize: "14px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" }, content: { innerText: "Pro Plan" } },
+      { id: v4(), type: "text", name: "Price", styles: { fontSize: "48px", fontWeight: "800", marginBottom: "8px" }, content: { innerText: "$49" } },
+      { id: v4(), type: "text", name: "Period", styles: { fontSize: "14px", opacity: "0.5", marginBottom: "24px" }, content: { innerText: "per month" } },
+      { id: v4(), type: "button", name: "CTA", styles: { padding: "12px 24px", backgroundColor: "#6366f1", color: "#ffffff", fontSize: "14px", fontWeight: "600", width: "100%" }, content: { innerText: "Choose Plan", href: "#" } },
+    ] as El[] }),
   };
   return m[type]?.() ?? null;
 }
@@ -94,19 +137,38 @@ function makeEl(type: string): El | null {
 
 const componentGroups = [
   { label: "Layout", items: [
-    { type: "container", label: "Container", icon: Layout },
+    { type: "container", label: "Container", icon: Square },
+    { type: "section", label: "Section", icon: Layout },
     { type: "2Col", label: "2 Columns", icon: Columns2 },
     { type: "3Col", label: "3 Columns", icon: Columns3 },
+    { type: "4Col", label: "4 Columns", icon: GripVertical },
+    { type: "divider", label: "Divider", icon: Minus },
+    { type: "spacer", label: "Spacer", icon: SeparatorHorizontal },
   ]},
-  { label: "Elements", items: [
-    { type: "text", label: "Text", icon: Type },
-    { type: "link", label: "Link", icon: Link2 },
+  { label: "Typography", items: [
+    { type: "heading", label: "Heading", icon: Heading1 },
+    { type: "subheading", label: "Subheading", icon: Heading2 },
+    { type: "text", label: "Paragraph", icon: Type },
+    { type: "list", label: "List", icon: List },
+    { type: "quote", label: "Quote", icon: Quote },
+    { type: "badge", label: "Badge", icon: Star },
+    { type: "code", label: "Code", icon: Code },
+  ]},
+  { label: "Media", items: [
     { type: "image", label: "Image", icon: Image },
     { type: "video", label: "Video", icon: Video },
+    { type: "link", label: "Link", icon: Link2 },
+    { type: "button", label: "Button", icon: CheckSquare },
   ]},
   { label: "Forms", items: [
     { type: "contactForm", label: "Contact", icon: Contact },
     { type: "paymentForm", label: "Payment", icon: CreditCard },
+  ]},
+  { label: "Blocks", items: [
+    { type: "hero", label: "Hero", icon: Globe },
+    { type: "cta", label: "CTA", icon: Phone },
+    { type: "testimonial", label: "Testimonial", icon: Quote },
+    { type: "pricing", label: "Pricing", icon: CreditCard },
   ]},
 ];
 
@@ -342,6 +404,84 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
           {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
           {isHov && <HoverBadge name={el.name} />}
           <iframe src={c.src} style={{ width: "100%", aspectRatio: "16/9", border: 0 }} allowFullScreen />
+        </div>
+      );
+    }
+
+    if (el.type === "button") {
+      const c = el.content as Record<string, string>;
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <a href={preview ? c.href : undefined} style={{ display: "block", textDecoration: "none", color: "inherit" }}>{c.innerText || "Button"}</a>
+        </div>
+      );
+    }
+
+    if (el.type === "divider") {
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <hr style={{ border: "none", borderTop: "inherit" }} />
+        </div>
+      );
+    }
+
+    if (el.type === "spacer") {
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          {!preview && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: 10, color: "var(--ed-text-placeholder)" }}>spacer</div>}
+        </div>
+      );
+    }
+
+    if (el.type === "quote") {
+      const c = el.content as Record<string, string>;
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <blockquote style={{ margin: 0 }}>{c.innerText || "Quote"}</blockquote>
+        </div>
+      );
+    }
+
+    if (el.type === "badge") {
+      const c = el.content as Record<string, string>;
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <span>{c.innerText || "Badge"}</span>
+        </div>
+      );
+    }
+
+    if (el.type === "list") {
+      const c = el.content as Record<string, string>;
+      const items = (c.innerText || "").split("\n").filter(Boolean);
+      return (
+        <div className={elClass} style={{ ...wrapStyle, listStyleType: "disc" }} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <ul style={{ margin: 0, paddingLeft: "inherit" }}>
+            {items.map((item, i) => <li key={i}>{item}</li>)}
+          </ul>
+        </div>
+      );
+    }
+
+    if (el.type === "code") {
+      const c = el.content as Record<string, string>;
+      return (
+        <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+          {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
+          <code>{c.innerText || "// code"}</code>
         </div>
       );
     }

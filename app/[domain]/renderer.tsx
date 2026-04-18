@@ -7,8 +7,15 @@ type El = { id: string; type: string; name: string; styles: CSSProperties; conte
 function R({ el }: { el: El }) {
   if (el.type === "text") { const c = el.content as Record<string, string>; return <p style={el.styles}>{c.innerText}</p>; }
   if (el.type === "link") { const c = el.content as Record<string, string>; return <a href={c.href || "#"} style={el.styles}>{c.innerText}</a>; }
-  if (el.type === "image") { const c = el.content as Record<string, string>; return <img src={c.src} alt={el.name} style={{ width: "100%", ...el.styles }} />; } // eslint-disable-line
+  if (el.type === "button") { const c = el.content as Record<string, string>; return <a href={c.href || "#"} style={{ ...el.styles, display: "block", textDecoration: "none", color: "inherit" }}>{c.innerText}</a>; }
+  if (el.type === "image") { const c = el.content as Record<string, string>; return <img src={c.src} alt={c.alt || el.name} style={{ width: "100%", ...el.styles }} />; } // eslint-disable-line
   if (el.type === "video") { const c = el.content as Record<string, string>; return <iframe src={c.src} style={{ width: "100%", aspectRatio: "16/9", border: 0, ...el.styles }} allowFullScreen />; }
+  if (el.type === "divider") { return <div style={el.styles}><hr style={{ border: "none", borderTop: "inherit" }} /></div>; }
+  if (el.type === "spacer") { return <div style={el.styles} />; }
+  if (el.type === "quote") { const c = el.content as Record<string, string>; return <blockquote style={{ margin: 0, ...el.styles }}>{c.innerText}</blockquote>; }
+  if (el.type === "badge") { const c = el.content as Record<string, string>; return <span style={el.styles}>{c.innerText}</span>; }
+  if (el.type === "list") { const c = el.content as Record<string, string>; return <ul style={{ margin: 0, ...el.styles }}>{(c.innerText || "").split("\n").filter(Boolean).map((item, i) => <li key={i}>{item}</li>)}</ul>; }
+  if (el.type === "code") { const c = el.content as Record<string, string>; return <div style={el.styles}><code>{c.innerText}</code></div>; }
   if (el.type === "contactForm") {
     return (
       <form style={el.styles} method="POST">
