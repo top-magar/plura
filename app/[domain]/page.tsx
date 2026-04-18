@@ -4,9 +4,9 @@ import { notFound } from "next/navigation";
 export default async function DomainPage({
   params,
 }: {
-  params: { domain: string };
+  params: Promise<{ domain: string }>;
 }) {
-  const { domain } = params;
+  const { domain } = await params;
 
   const funnel = await db.funnel.findUnique({
     where: { subDomainName: domain },
@@ -15,6 +15,5 @@ export default async function DomainPage({
 
   if (!funnel) return notFound();
 
-  // TODO: render first funnel page content
   return <div>{funnel.name}</div>;
 }
