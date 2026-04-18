@@ -38,10 +38,20 @@ export default function BillingClient({ agencyId, subscription, charges, pricing
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
 
+  // Verify subscription on success redirect
   useEffect(() => {
-    if (success) toast.success("Subscription activated!");
+    if (success) {
+      fetch("/api/stripe/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agencyId }),
+      }).then(() => {
+        toast.success("Subscription activated!");
+        router.refresh();
+      });
+    }
     if (cancelled) toast.error("Payment cancelled");
-  }, [success, cancelled]);
+  }, [success, cancelled, agencyId, router]);
 
   useEffect(() => {
     if (initialPlan && !subscription?.active) handleSubscribe(initialPlan);
