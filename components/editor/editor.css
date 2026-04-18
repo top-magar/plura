@@ -25,6 +25,7 @@
   flex-shrink: 0;
   background: var(--card);
   border-bottom: 1px solid var(--border);
+  z-index: 10;
 }
 
 .editor-body {
@@ -72,7 +73,11 @@
 }
 
 .editor-sidebar-tab:hover { color: var(--foreground); }
-.editor-sidebar-tab.active { color: hsl(var(--primary)); border-bottom-color: hsl(var(--primary)); }
+.editor-sidebar-tab.active {
+  color: hsl(var(--primary));
+  border-bottom-color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.05);
+}
 
 .editor-sidebar-header {
   padding: 8px 16px;
@@ -113,13 +118,15 @@
   font-size: 11px;
   cursor: grab;
   color: var(--muted-foreground);
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
 .editor-component-card:hover {
   background: var(--muted);
   border-color: var(--border);
   color: var(--foreground);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px hsl(0 0% 0% / 0.06);
 }
 
 .editor-component-card:active { cursor: grabbing; }
@@ -147,6 +154,8 @@
   padding: 16px;
   background: var(--muted);
   min-height: 0;
+  background-image: radial-gradient(circle, var(--border) 0.5px, transparent 0.5px);
+  background-size: 16px 16px;
 }
 
 .editor-canvas.preview { padding: 0; background: var(--background); }
@@ -194,11 +203,11 @@
 
 /* ── Element States ───────────────────────────────────── */
 
-.editor-el { position: relative; }
+.editor-el { position: relative; transition: outline-color 0.15s; }
 .editor-el:not(.is-body) { cursor: pointer; }
-.editor-el.is-selected { outline: 2px solid hsl(var(--primary)); outline-offset: 1px; }
-.editor-el.is-drop-target { outline: 2px dashed hsl(var(--primary)); outline-offset: 1px; }
-.editor-el.is-hovered:not(.is-selected) { outline: 1px dashed var(--border); outline-offset: 1px; }
+.editor-el.is-selected { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.editor-el.is-drop-target { outline: 2px dashed hsl(var(--primary)); outline-offset: 2px; background: hsl(var(--primary) / 0.02); }
+.editor-el.is-hovered:not(.is-selected) { outline: 1px dashed var(--border); outline-offset: 2px; }
 
 /* ── Drop Zone ────────────────────────────────────────── */
 
@@ -310,7 +319,13 @@
 
 /* ── Empty State ──────────────────────────────────────── */
 
-.editor-empty-state { font-size: 12px; color: var(--muted-foreground); line-height: 1.5; padding: 16px; }
+.editor-empty-state {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  padding: 24px 16px;
+  text-align: center;
+}
 
 /* ── Dirty Indicator ──────────────────────────────────── */
 

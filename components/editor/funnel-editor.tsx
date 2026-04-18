@@ -175,12 +175,12 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
                   </button>
                   {templates.length === 0 && <div className="editor-empty-state">No saved templates yet.</div>}
                   {templates.map((t) => (
-                    <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px", marginBottom: 4, fontSize: 12, border: "1px solid var(--ed-border-subtle)" }}>
+                    <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 8, marginBottom: 4, fontSize: 12, border: "1px solid var(--border)" }}>
                       <button onClick={() => handleLoadTemplate(t.content)} style={{ background: "none", border: 0, color: "inherit", cursor: "pointer", textAlign: "left", flex: 1, fontSize: 12 }}>
                         <div style={{ fontWeight: 500 }}>{t.name}</div>
-                        <div style={{ fontSize: 10, opacity: 0.5 }}>{t.category}</div>
+                        <div style={{ fontSize: 10, color: "var(--muted-foreground)" }}>{t.category}</div>
                       </button>
-                      <button onClick={() => handleDeleteTemplate(t.id)} style={{ background: "none", border: 0, color: "var(--ed-danger)", cursor: "pointer", padding: 4 }}>
+                      <button onClick={() => handleDeleteTemplate(t.id)} style={{ background: "none", border: 0, color: "hsl(var(--destructive))", cursor: "pointer", padding: 4 }}>
                         <Trash2 size={12} />
                       </button>
                     </div>
