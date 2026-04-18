@@ -81,8 +81,8 @@ export default function TicketCard({ ticket, subAccountId, onDragStart }: Props)
               {ticket.Customer && (
                 <span className="text-[11px] text-muted-foreground">{ticket.Customer.name}</span>
               )}
-              {ticket.value && (
-                <span className="text-[11px] font-medium tabular-nums">${String(ticket.value)}</span>
+              {ticket.value != null && Number(ticket.value) > 0 && (
+                <span className="text-[11px] font-medium tabular-nums">${Number(ticket.value)}</span>
               )}
             </div>
 

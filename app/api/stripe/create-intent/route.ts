@@ -19,7 +19,13 @@ export async function POST(req: NextRequest) {
     metadata: { agencyId },
   });
 
-  const invoice = subscription.latest_invoice as { payment_intent: { client_secret: string } };
+  const invoice = subscription.latest_invoice as unknown as {
+    payment_intent: { client_secret: string };
+  } | null;
+
+  if (!invoice?.payment_intent?.client_secret) {
+    return NextResponse.json({ error: "Could not create payment intent" }, { status: 500 });
+  }
 
   return NextResponse.json({
     subscriptionId: subscription.id,

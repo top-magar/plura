@@ -22,34 +22,35 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
-        if (subscription.status !== "active") break;
+        const sub = event.data.object as unknown as Record<string, unknown>;
+        if (sub.status !== "active") break;
+
+        const items = sub.items as { data: { price: { id: string } }[] };
+        const periodEnd = sub.current_period_end as number;
 
         await db.subscription.upsert({
-          where: { subscriptionId: subscription.id },
+          where: { subscriptionId: sub.id as string },
           update: {
             active: true,
-            currentPeriodEndDate: new Date(subscription.current_period_end * 1000),
-            priceId: subscription.items.data[0].price.id,
-            plan: subscription.items.data[0].price.id as never,
+            currentPeriodEndDate: new Date(periodEnd * 1000),
+            priceId: items.data[0].price.id,
           },
           create: {
-            subscriptionId: subscription.id,
-            customerId: subscription.customer as string,
-            currentPeriodEndDate: new Date(subscription.current_period_end * 1000),
-            priceId: subscription.items.data[0].price.id,
-            plan: subscription.items.data[0].price.id as never,
+            subscriptionId: sub.id as string,
+            customerId: sub.customer as string,
+            currentPeriodEndDate: new Date(periodEnd * 1000),
+            priceId: items.data[0].price.id,
             active: true,
-            agencyId: subscription.metadata.agencyId,
+            agencyId: (sub.metadata as Record<string, string>)?.agencyId,
           },
         });
         break;
       }
 
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const sub = event.data.object as unknown as Record<string, unknown>;
         await db.subscription.update({
-          where: { subscriptionId: subscription.id },
+          where: { subscriptionId: sub.id as string },
           data: { active: false },
         });
         break;

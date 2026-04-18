@@ -60,6 +60,7 @@ export default function SubAccountDetails({ agencyDetails, details, userName }: 
     reset,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
+    // @ts-expect-error zod v3/v4 compat
     resolver: zodResolver(formSchema),
     mode: "onChange",
     defaultValues: {
@@ -126,7 +127,7 @@ export default function SubAccountDetails({ agencyDetails, details, userName }: 
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit as never)} className="space-y-5">
       <input type="hidden" {...register("subAccountLogo")} />
 
       {/* Logo */}

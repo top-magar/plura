@@ -89,6 +89,7 @@ export default function AgencyDetails({ data }: { data?: Partial<Agency> }) {
     watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
+    // @ts-expect-error zod v3/v4 compat
     resolver: zodResolver(formSchema),
     mode: "onChange",
     defaultValues: {
@@ -164,7 +165,7 @@ export default function AgencyDetails({ data }: { data?: Partial<Agency> }) {
 
   return (
     <AlertDialog>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit as never)} className="space-y-6">
         {/* Hidden input to hold logo value for form */}
         <input type="hidden" {...register("agencyLogo")} />
 
