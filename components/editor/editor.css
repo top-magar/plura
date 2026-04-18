@@ -174,9 +174,12 @@
 .editor-props {
   width: 260px;
   flex-shrink: 0;
-  overflow-y: auto;
+  overflow: hidden;
   background: var(--ed-layer-01);
   border-left: 1px solid var(--ed-border-subtle);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .editor-props-header {
@@ -746,4 +749,23 @@
   min-width: 20px;
   text-align: center;
   color: var(--ed-text-secondary);
+}
+
+/* ── Range Slider ─────────────────────────────────────── */
+
+.editor-range {
+  flex: 1;
+  height: 4px;
+  appearance: none;
+  background: var(--ed-border-subtle);
+  outline: none;
+  cursor: pointer;
+}
+
+.editor-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--ed-interactive);
+  cursor: pointer;
 }

@@ -258,22 +258,35 @@ const componentGroups = [
 // ── CSS property groups ──────────────────────────────────────
 
 const selectOptions: Record<string, string[]> = {
-  display: ["block", "flex", "grid", "inline", "inline-flex", "none"],
+  display: ["block", "flex", "grid", "inline", "inline-block", "inline-flex", "none"],
   flexDirection: ["row", "column", "row-reverse", "column-reverse"],
   justifyContent: ["flex-start", "center", "flex-end", "space-between", "space-around", "space-evenly"],
   alignItems: ["flex-start", "center", "flex-end", "stretch", "baseline"],
   textAlign: ["left", "center", "right", "justify"],
-  fontWeight: ["300", "400", "500", "600", "700", "800"],
+  fontWeight: ["300", "400", "500", "600", "700", "800", "900"],
+  fontStyle: ["normal", "italic"],
+  textDecoration: ["none", "underline", "line-through"],
+  textTransform: ["none", "uppercase", "lowercase", "capitalize"],
+  overflow: ["visible", "hidden", "auto", "scroll"],
+  position: ["static", "relative", "absolute", "fixed", "sticky"],
+  cursor: ["default", "pointer", "text", "move", "not-allowed", "grab"],
+  borderStyle: ["none", "solid", "dashed", "dotted", "double"],
+  backgroundSize: ["auto", "cover", "contain"],
+  backgroundPosition: ["center", "top", "bottom", "left", "right"],
+  backgroundRepeat: ["no-repeat", "repeat", "repeat-x", "repeat-y"],
+  flexWrap: ["nowrap", "wrap", "wrap-reverse"],
+  objectFit: ["fill", "contain", "cover", "none", "scale-down"],
 };
 
 const propGroups = [
-  { title: "Typography", props: ["fontSize", "fontWeight", "color", "textAlign", "lineHeight", "letterSpacing"] },
-  { title: "Spacing", props: ["padding", "margin", "paddingTop", "paddingBottom", "paddingLeft", "paddingRight", "marginTop", "marginBottom"] },
-  { title: "Size", props: ["width", "height", "maxWidth", "minHeight", "overflow"] },
-  { title: "Background", props: ["backgroundColor", "backgroundImage", "backgroundSize"] },
-  { title: "Border", props: ["borderWidth", "borderColor", "borderStyle"] },
-  { title: "Layout", props: ["display", "flexDirection", "justifyContent", "alignItems", "gap", "flex"] },
-  { title: "Effects", props: ["opacity", "boxShadow", "cursor"] },
+  { title: "Typography", props: ["fontSize", "fontWeight", "fontStyle", "color", "textAlign", "textDecoration", "textTransform", "lineHeight", "letterSpacing"] },
+  { title: "Spacing", props: ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft"] },
+  { title: "Size", props: ["width", "height", "maxWidth", "maxHeight", "minWidth", "minHeight", "overflow", "objectFit"] },
+  { title: "Background", props: ["backgroundColor", "backgroundImage", "backgroundSize", "backgroundPosition", "backgroundRepeat"] },
+  { title: "Border", props: ["borderWidth", "borderColor", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight"] },
+  { title: "Layout", props: ["display", "flexDirection", "flexWrap", "justifyContent", "alignItems", "gap", "flex"] },
+  { title: "Position", props: ["position", "top", "right", "bottom", "left", "zIndex"] },
+  { title: "Effects", props: ["opacity", "boxShadow", "cursor", "transition"] },
 ];
 
 // ── Default body ─────────────────────────────────────────────
@@ -995,6 +1008,20 @@ function PropGroup({ title, props, selected, onUpdate }: { title: string; props:
             const isColor = colorProps.has(p);
             const options = selectOptions[p];
             const update = (v: string) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties });
+
+            // Range slider for opacity
+            if (p === "opacity") {
+              return (
+                <div key={p} style={{ gridColumn: "1 / -1" }}>
+                  <label className="editor-prop-label">opacity</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <input type="range" min="0" max="1" step="0.05" value={val || "1"} onChange={(e) => update(e.target.value)} className="editor-range" />
+                    <span style={{ fontSize: 10, width: 28, textAlign: "right", color: "var(--ed-text-secondary)" }}>{val || "1"}</span>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div key={p}>
                 <label className="editor-prop-label">{p.replace(/([A-Z])/g, " $1")}</label>
