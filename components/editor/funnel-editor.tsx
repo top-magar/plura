@@ -3,7 +3,9 @@
 import { useState, useCallback, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical, Heading1, Heading2, List, SeparatorHorizontal, Square, Code, Quote, Star, MapPin, Phone, Mail, Globe, Clock, CheckSquare, Minus, ChevronUp, Timer, PanelTop, PanelBottom, Share2, CodeXml, ImageIcon, Navigation, Rows3, Bookmark } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical, Heading1, Heading2, List, SeparatorHorizontal, Square, Code, Quote, Star, MapPin, Phone, Mail, Globe, Clock, CheckSquare, Minus, ChevronUp, Timer, PanelTop, PanelBottom, Share2, CodeXml, ImageIcon, Navigation, Rows3, Bookmark, AlignLeft, AlignCenter, AlignRight, AlignJustify, ArrowRight, ArrowDown, ArrowUp, MoveHorizontal, MoveVertical, WrapText, Italic, Underline, Strikethrough, CaseSensitive, CaseUpper, CaseLower, Minus as MinusIcon } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { v4 } from "uuid";
 import { Button } from "@/components/ui/button";
@@ -993,70 +995,76 @@ function HoverBadge({ name }: { name: string }) {
 
 const colorProps = new Set(["color", "backgroundColor", "borderColor"]);
 
-// Icon-based toggle options (label shown as tooltip, visual as content)
-const iconOptions: Record<string, { value: string; label: string; icon: string }[]> = {
+// Icon-based toggle options using Lucide icons
+type IconOpt = { value: string; label: string; icon: ReactNode };
+
+const iconOptions: Record<string, IconOpt[]> = {
   textAlign: [
-    { value: "left", label: "Left", icon: "☰" },
-    { value: "center", label: "Center", icon: "☰" },
-    { value: "right", label: "Right", icon: "☰" },
-    { value: "justify", label: "Justify", icon: "☰" },
+    { value: "left", label: "Left", icon: <AlignLeft size={12} /> },
+    { value: "center", label: "Center", icon: <AlignCenter size={12} /> },
+    { value: "right", label: "Right", icon: <AlignRight size={12} /> },
+    { value: "justify", label: "Justify", icon: <AlignJustify size={12} /> },
   ],
   flexDirection: [
-    { value: "row", label: "Row", icon: "→" },
-    { value: "column", label: "Column", icon: "↓" },
-    { value: "row-reverse", label: "Row Rev", icon: "←" },
-    { value: "column-reverse", label: "Col Rev", icon: "↑" },
+    { value: "row", label: "Row", icon: <ArrowRight size={12} /> },
+    { value: "column", label: "Column", icon: <ArrowDown size={12} /> },
+    { value: "row-reverse", label: "Row Reverse", icon: <ArrowLeft size={12} /> },
+    { value: "column-reverse", label: "Col Reverse", icon: <ArrowUp size={12} /> },
   ],
   justifyContent: [
-    { value: "flex-start", label: "Start", icon: "⫷" },
-    { value: "center", label: "Center", icon: "⫸" },
-    { value: "flex-end", label: "End", icon: "⫸" },
-    { value: "space-between", label: "Between", icon: "⟺" },
-    { value: "space-around", label: "Around", icon: "⟷" },
-    { value: "space-evenly", label: "Evenly", icon: "⟺" },
+    { value: "flex-start", label: "Start", icon: <AlignLeft size={12} /> },
+    { value: "center", label: "Center", icon: <AlignCenter size={12} /> },
+    { value: "flex-end", label: "End", icon: <AlignRight size={12} /> },
+    { value: "space-between", label: "Between", icon: <MoveHorizontal size={12} /> },
   ],
   alignItems: [
-    { value: "flex-start", label: "Start", icon: "⬆" },
-    { value: "center", label: "Center", icon: "⬌" },
-    { value: "flex-end", label: "End", icon: "⬇" },
-    { value: "stretch", label: "Stretch", icon: "↕" },
+    { value: "flex-start", label: "Start", icon: <ArrowUp size={12} /> },
+    { value: "center", label: "Center", icon: <Minus size={12} /> },
+    { value: "flex-end", label: "End", icon: <ArrowDown size={12} /> },
+    { value: "stretch", label: "Stretch", icon: <MoveVertical size={12} /> },
   ],
   fontStyle: [
-    { value: "normal", label: "Normal", icon: "N" },
-    { value: "italic", label: "Italic", icon: "I" },
+    { value: "normal", label: "Normal", icon: <Type size={12} /> },
+    { value: "italic", label: "Italic", icon: <Italic size={12} /> },
   ],
   textDecoration: [
-    { value: "none", label: "None", icon: "ab" },
-    { value: "underline", label: "Underline", icon: "U̲" },
-    { value: "line-through", label: "Strike", icon: "S̶" },
+    { value: "none", label: "None", icon: <Type size={12} /> },
+    { value: "underline", label: "Underline", icon: <Underline size={12} /> },
+    { value: "line-through", label: "Strikethrough", icon: <Strikethrough size={12} /> },
   ],
   textTransform: [
-    { value: "none", label: "None", icon: "—" },
-    { value: "uppercase", label: "Upper", icon: "AA" },
-    { value: "lowercase", label: "Lower", icon: "aa" },
-    { value: "capitalize", label: "Title", icon: "Aa" },
+    { value: "none", label: "None", icon: <MinusIcon size={12} /> },
+    { value: "uppercase", label: "Uppercase", icon: <CaseUpper size={12} /> },
+    { value: "lowercase", label: "Lowercase", icon: <CaseLower size={12} /> },
+    { value: "capitalize", label: "Capitalize", icon: <CaseSensitive size={12} /> },
   ],
   flexWrap: [
-    { value: "nowrap", label: "No Wrap", icon: "→" },
-    { value: "wrap", label: "Wrap", icon: "↩" },
+    { value: "nowrap", label: "No Wrap", icon: <ArrowRight size={12} /> },
+    { value: "wrap", label: "Wrap", icon: <WrapText size={12} /> },
   ],
   borderStyle: [
-    { value: "none", label: "None", icon: "—" },
-    { value: "solid", label: "Solid", icon: "─" },
-    { value: "dashed", label: "Dashed", icon: "╌" },
-    { value: "dotted", label: "Dotted", icon: "···" },
+    { value: "none", label: "None", icon: <MinusIcon size={12} /> },
+    { value: "solid", label: "Solid", icon: <Minus size={12} /> },
+    { value: "dashed", label: "Dashed", icon: <SeparatorHorizontal size={12} /> },
   ],
 };
 
-function IconToggle({ value, options, onChange }: { value: string; options: { value: string; label: string; icon: string }[]; onChange: (v: string) => void }) {
+function IconToggle({ value, options, onChange }: { value: string; options: IconOpt[]; onChange: (v: string) => void }) {
   return (
-    <div className="editor-icon-toggle">
-      {options.map((o) => (
-        <button key={o.value} title={o.label} onClick={() => onChange(o.value)} className={`editor-icon-toggle-btn ${value === o.value ? "active" : ""}`}>
-          {o.icon}
-        </button>
-      ))}
-    </div>
+    <TooltipProvider delayDuration={200}>
+      <ToggleGroup type="single" value={value} onValueChange={(v) => { if (v) onChange(v); }} className="editor-icon-toggle">
+        {options.map((o) => (
+          <Tooltip key={o.value}>
+            <TooltipTrigger asChild>
+              <ToggleGroupItem value={o.value} className="editor-icon-toggle-btn" aria-label={o.label}>
+                {o.icon}
+              </ToggleGroupItem>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-[10px] px-2 py-1">{o.label}</TooltipContent>
+          </Tooltip>
+        ))}
+      </ToggleGroup>
+    </TooltipProvider>
   );
 }
 
