@@ -100,6 +100,8 @@
   flex-direction: column;
   background: var(--ed-layer-01);
   border-right: 1px solid var(--ed-border-subtle);
+  overflow: hidden;
+  min-height: 0;
 }
 
 .editor-sidebar-header {
