@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
 import { pricingCards } from "@/lib/constants";
+import { currentUser } from "@clerk/nextjs/server";
 import BillingClient from "./client";
 
 async function syncSubscription(agencyId: string, customerId: string) {
@@ -39,10 +40,15 @@ export default async function BillingPage({
 
     // If no valid customerId, find by email
     if (!custId || !custId.startsWith("cus_")) {
-      const customers = await stripe.customers.list({ email: agency.companyEmail, limit: 1 });
-      if (customers.data[0]) {
-        custId = customers.data[0].id;
-        await db.agency.update({ where: { id: agencyId }, data: { customerId: custId } });
+      const user = await currentUser();
+      const emails = [agency.companyEmail, user?.emailAddresses?.[0]?.emailAddress].filter(Boolean);
+      for (const email of emails) {
+        const customers = await stripe.customers.list({ email: email!, limit: 1 });
+        if (customers.data[0]) {
+          custId = customers.data[0].id;
+          await db.agency.update({ where: { id: agencyId }, data: { customerId: custId } });
+          break;
+        }
       }
     }
 
