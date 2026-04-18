@@ -778,3 +778,41 @@
   overflow-y: auto;
   min-height: 0;
 }
+
+/* ── Icon Toggle (Figma-style property buttons) ───────── */
+
+.editor-icon-toggle {
+  display: flex;
+  gap: 1px;
+  background: var(--ed-border-subtle);
+  width: 100%;
+}
+
+.editor-icon-toggle-btn {
+  flex: 1;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: var(--ed-layer-02);
+  color: var(--ed-text-secondary);
+  font-size: 10px;
+  cursor: pointer;
+  transition: background var(--ed-duration) var(--ed-easing),
+              color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-icon-toggle-btn:hover {
+  color: var(--ed-text-primary);
+}
+
+.editor-icon-toggle-btn.active {
+  background: var(--ed-interactive);
+  color: var(--ed-text-on-color);
+}
+
+/* Full-width prop field (for icon toggles that span both columns) */
+.editor-style-full {
+  grid-column: 1 / -1;
+}

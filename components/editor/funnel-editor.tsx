@@ -993,6 +993,73 @@ function HoverBadge({ name }: { name: string }) {
 
 const colorProps = new Set(["color", "backgroundColor", "borderColor"]);
 
+// Icon-based toggle options (label shown as tooltip, visual as content)
+const iconOptions: Record<string, { value: string; label: string; icon: string }[]> = {
+  textAlign: [
+    { value: "left", label: "Left", icon: "☰" },
+    { value: "center", label: "Center", icon: "☰" },
+    { value: "right", label: "Right", icon: "☰" },
+    { value: "justify", label: "Justify", icon: "☰" },
+  ],
+  flexDirection: [
+    { value: "row", label: "Row", icon: "→" },
+    { value: "column", label: "Column", icon: "↓" },
+    { value: "row-reverse", label: "Row Rev", icon: "←" },
+    { value: "column-reverse", label: "Col Rev", icon: "↑" },
+  ],
+  justifyContent: [
+    { value: "flex-start", label: "Start", icon: "⫷" },
+    { value: "center", label: "Center", icon: "⫸" },
+    { value: "flex-end", label: "End", icon: "⫸" },
+    { value: "space-between", label: "Between", icon: "⟺" },
+    { value: "space-around", label: "Around", icon: "⟷" },
+    { value: "space-evenly", label: "Evenly", icon: "⟺" },
+  ],
+  alignItems: [
+    { value: "flex-start", label: "Start", icon: "⬆" },
+    { value: "center", label: "Center", icon: "⬌" },
+    { value: "flex-end", label: "End", icon: "⬇" },
+    { value: "stretch", label: "Stretch", icon: "↕" },
+  ],
+  fontStyle: [
+    { value: "normal", label: "Normal", icon: "N" },
+    { value: "italic", label: "Italic", icon: "I" },
+  ],
+  textDecoration: [
+    { value: "none", label: "None", icon: "ab" },
+    { value: "underline", label: "Underline", icon: "U̲" },
+    { value: "line-through", label: "Strike", icon: "S̶" },
+  ],
+  textTransform: [
+    { value: "none", label: "None", icon: "—" },
+    { value: "uppercase", label: "Upper", icon: "AA" },
+    { value: "lowercase", label: "Lower", icon: "aa" },
+    { value: "capitalize", label: "Title", icon: "Aa" },
+  ],
+  flexWrap: [
+    { value: "nowrap", label: "No Wrap", icon: "→" },
+    { value: "wrap", label: "Wrap", icon: "↩" },
+  ],
+  borderStyle: [
+    { value: "none", label: "None", icon: "—" },
+    { value: "solid", label: "Solid", icon: "─" },
+    { value: "dashed", label: "Dashed", icon: "╌" },
+    { value: "dotted", label: "Dotted", icon: "···" },
+  ],
+};
+
+function IconToggle({ value, options, onChange }: { value: string; options: { value: string; label: string; icon: string }[]; onChange: (v: string) => void }) {
+  return (
+    <div className="editor-icon-toggle">
+      {options.map((o) => (
+        <button key={o.value} title={o.label} onClick={() => onChange(o.value)} className={`editor-icon-toggle-btn ${value === o.value ? "active" : ""}`}>
+          {o.icon}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function PropGroup({ title, props, selected, onUpdate }: { title: string; props: string[]; selected: El; onUpdate: (el: El) => void }) {
   const [open, setOpen] = useState(true);
   return (
@@ -1022,13 +1089,15 @@ function PropGroup({ title, props, selected, onUpdate }: { title: string; props:
             }
 
             return (
-              <div key={p}>
+              <div key={p} className={iconOptions[p] ? "editor-style-full" : ""}>
                 <label className="editor-prop-label">{p.replace(/([A-Z])/g, " $1")}</label>
                 <div className="editor-style-field">
                   {isColor && (
                     <input type="color" value={val || "#000000"} onChange={(e) => update(e.target.value)} className="editor-color-picker" />
                   )}
-                  {options ? (
+                  {iconOptions[p] ? (
+                    <IconToggle value={val} options={iconOptions[p]} onChange={update} />
+                  ) : options ? (
                     <select value={val} onChange={(e) => update(e.target.value)} className="editor-select">
                       <option value="">—</option>
                       {options.map((o) => <option key={o} value={o}>{o}</option>)}
