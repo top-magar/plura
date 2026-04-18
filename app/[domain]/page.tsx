@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
+import { updateFunnelPageVisits } from "@/lib/queries";
+import FunnelPageRenderer from "@/components/editor/page-renderer";
 
 export default async function DomainPage({
   params,
@@ -13,7 +15,13 @@ export default async function DomainPage({
     include: { FunnelPages: { orderBy: { order: "asc" } } },
   });
 
-  if (!funnel) return notFound();
+  if (!funnel || !funnel.published) return notFound();
 
-  return <div>{funnel.name}</div>;
+  const firstPage = funnel.FunnelPages[0];
+  if (!firstPage) return notFound();
+
+  // Track visit
+  await updateFunnelPageVisits(firstPage.id);
+
+  return <FunnelPageRenderer content={firstPage.content} />;
 }

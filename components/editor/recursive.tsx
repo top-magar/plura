@@ -8,7 +8,8 @@ import clsx from "clsx";
 import { v4 } from "uuid";
 import dynamic from "next/dynamic";
 
-const RichTextEditor = dynamic(() => import("./rich-text"), { ssr: false });
+const RichTextEditor = dynamic(() => import("./rich-text").then((m) => m.default), { ssr: false });
+const RichTextRenderer = dynamic(() => import("./rich-text").then((m) => m.RichTextRenderer), { ssr: false });
 
 function Recursive({ element }: { element: EditorElement }) {
   const { state, dispatch } = useEditor();
@@ -83,17 +84,20 @@ function Recursive({ element }: { element: EditorElement }) {
         {!previewMode && isSelected ? (
           <RichTextEditor
             initialContent={content.innerText}
-            onChange={(html) => {
+            onChange={(json) => {
               dispatch({
                 type: "UPDATE_ELEMENT",
                 payload: {
-                  elementDetails: { ...element, content: { ...content, innerText: html } },
+                  elementDetails: { ...element, content: { ...content, innerText: json } },
                 },
               });
             }}
+            minimal
           />
+        ) : content.innerText ? (
+          <RichTextRenderer content={content.innerText} />
         ) : (
-          <div dangerouslySetInnerHTML={{ __html: content.innerText || "Text element" }} />
+          <p className="text-muted-foreground/50 text-sm">Click to edit text</p>
         )}
       </div>
     );
