@@ -3,7 +3,7 @@
 import { useState, useCallback, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { v4 } from "uuid";
 import { Button } from "@/components/ui/button";
@@ -137,6 +137,8 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
   const [historyIdx, setHistoryIdx] = useState(-1);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [clipboard, setClipboard] = useState<El | null>(null);
 
   // History
   const pushHistory = useCallback((prev: El[]) => {
@@ -221,6 +223,15 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     if ((e.metaKey || e.ctrlKey) && e.key === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
     if ((e.metaKey || e.ctrlKey) && e.key === "s") { e.preventDefault(); handleSave(); }
     if ((e.metaKey || e.ctrlKey) && e.key === "d") { e.preventDefault(); doDuplicate(); }
+    if ((e.metaKey || e.ctrlKey) && e.key === "c" && selected && selected.type !== "__body") { e.preventDefault(); setClipboard(selected); toast.success("Copied"); }
+    if ((e.metaKey || e.ctrlKey) && e.key === "v" && clipboard) {
+      e.preventDefault();
+      const target = selected && Array.isArray(selected.content) ? selected.id : "__body";
+      const clone = cloneEl(clipboard);
+      pushHistory(elements);
+      setElements((prev) => addEl(prev, target, clone));
+      setDirty(true);
+    }
     if ((e.key === "Delete" || e.key === "Backspace") && selected && selected.type !== "__body") {
       if ((e.target as HTMLElement).tagName === "INPUT") return;
       doDelete(selected.id);
@@ -235,15 +246,19 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     const isBody = el.type === "__body";
     const isContainer = Array.isArray(el.content);
 
+    const isHov = !preview && hovered === el.id && !isSel;
+
     const wrapStyle: CSSProperties = {
       ...el.styles,
       position: "relative" as const,
-      outline: !preview && isSel ? "2px solid #6366f1" : !preview && dropTarget === el.id && isContainer ? "2px dashed #6366f1" : undefined,
-      outlineOffset: !preview && (isSel || dropTarget === el.id) ? 2 : undefined,
+      outline: !preview && isSel ? "2px solid #6366f1" : !preview && dropTarget === el.id && isContainer ? "2px dashed #6366f1" : isHov ? "1px dashed #444" : undefined,
+      outlineOffset: !preview && (isSel || dropTarget === el.id) ? 2 : isHov ? 1 : undefined,
       cursor: !preview && !isBody ? "pointer" : undefined,
     };
 
     const handleClick = (e: React.MouseEvent) => { e.stopPropagation(); if (!preview) setSelected(el); };
+    const handleMouseEnter = () => { if (!preview) setHovered(el.id); };
+    const handleMouseLeave = () => { if (hovered === el.id) setHovered(null); };
     const handleDragOver = (e: React.DragEvent) => {
       if (isContainer) { e.preventDefault(); e.stopPropagation(); setDropTarget(el.id); }
     };
@@ -266,8 +281,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     if (el.type === "text") {
       const c = el.content as Record<string, string>;
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart}>
+        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
           {isSel && !preview ? (
             <span contentEditable suppressContentEditableWarning onBlur={(e) => doUpdate({ ...el, content: { ...c, innerText: (e.target as HTMLElement).innerText } })} style={{ outline: "none", display: "block", minHeight: 20 }}>
               {c.innerText || ""}
@@ -282,8 +298,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     if (el.type === "link") {
       const c = el.content as Record<string, string>;
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart}>
+        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
           <a href={preview ? c.href : undefined} style={{ color: "inherit" }}>{c.innerText || "Link"}</a>
         </div>
       );
@@ -292,8 +309,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     if (el.type === "image") {
       const c = el.content as Record<string, string>;
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart}>
+        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={c.src || "https://placehold.co/600x300/111/333?text=Image"} alt={el.name} style={{ width: "100%", display: "block" }} />
         </div>
@@ -303,8 +321,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     if (el.type === "video") {
       const c = el.content as Record<string, string>;
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart}>
+        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name={el.name} />}
           <iframe src={c.src} style={{ width: "100%", aspectRatio: "16/9", border: 0 }} allowFullScreen />
         </div>
       );
@@ -312,8 +331,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
     if (el.type === "contactForm") {
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart}>
+        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name="Contact Form" onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name="Contact Form" />}
           <form onSubmit={(e) => e.preventDefault()} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <input placeholder="Name" style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #333", background: "#111", color: "#fff" }} />
             <input placeholder="Email" style={{ padding: "8px 12px", borderRadius: 6, border: "1px solid #333", background: "#111", color: "#fff" }} />
@@ -325,8 +345,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
     if (el.type === "paymentForm") {
       return (
-        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart}>
+        <div style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {isSel && !preview && <SelectBadge name="Payment" onDelete={() => doDelete(el.id)} />}
+          {isHov && <HoverBadge name="Payment" />}
           <div style={{ padding: 16, border: "1px solid #333", borderRadius: 8, textAlign: "center", color: "#666", fontSize: 13 }}>
             <div style={{ height: 40, background: "#1a1a1a", borderRadius: 6, marginBottom: 8 }} />
             <button style={{ width: "100%", padding: 10, borderRadius: 6, background: "#6366f1", color: "#fff", border: 0 }}>Pay Now</button>
@@ -341,8 +362,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
     const isEmpty = children.length === 0;
 
     return (
-      <div style={wrapStyle} onClick={handleClick} onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} draggable={!isBody && !preview} onDragStart={handleDragStart}>
+      <div style={wrapStyle} onClick={handleClick} onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} draggable={!isBody && !preview} onDragStart={handleDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
         {isSel && !isBody && !preview && <SelectBadge name={el.name} onDelete={() => doDelete(el.id)} />}
+        {isHov && !isBody && <HoverBadge name={el.name} />}
         {children.map((child) => <R key={child.id} el={child} />)}
         {isEmpty && !preview && (
           <div onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} style={{ minHeight: isBody ? "calc(100vh - 48px)" : 60, display: "flex", alignItems: "center", justifyContent: "center", border: dropTarget === el.id ? "2px dashed #6366f1" : "2px dashed #333", borderRadius: 8, color: dropTarget === el.id ? "#818cf8" : "#555", fontSize: 12, margin: isBody ? 0 : undefined, transition: "border-color 0.15s, color 0.15s" }}>
@@ -446,17 +468,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
             {/* Style editor */}
             <div style={{ padding: "8px 12px" }}>
               {propGroups.map((g) => (
-                <div key={g.title} style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: "#666", textTransform: "uppercase", marginBottom: 6 }}>{g.title}</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
-                    {g.props.map((p) => (
-                      <div key={p}>
-                        <label style={{ fontSize: 9, color: "#555", display: "block" }}>{p.replace(/([A-Z])/g, " $1")}</label>
-                        <Input value={String((selected.styles as Record<string, unknown>)[p] ?? "")} onChange={(e) => doUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} className="h-6 text-[10px]" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <PropGroup key={g.title} title={g.title} props={g.props} selected={selected} onUpdate={doUpdate} />
               ))}
             </div>
           </div>
@@ -482,6 +494,46 @@ function SelectBadge({ name, onDelete }: { name: string; onDelete: () => void })
       <button onClick={(e) => { e.stopPropagation(); onDelete(); }} style={{ width: 20, height: 20, borderRadius: 4, background: "#ef4444", color: "#fff", border: 0, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Trash2 size={10} />
       </button>
+    </div>
+  );
+}
+
+function HoverBadge({ name }: { name: string }) {
+  return (
+    <div style={{ position: "absolute", top: -18, left: 0, zIndex: 9, pointerEvents: "none" }}>
+      <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 3, background: "#333", color: "#aaa", whiteSpace: "nowrap" }}>{name}</span>
+    </div>
+  );
+}
+
+const colorProps = new Set(["color", "backgroundColor", "borderColor"]);
+
+function PropGroup({ title, props, selected, onUpdate }: { title: string; props: string[]; selected: El; onUpdate: (el: El) => void }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div style={{ marginBottom: 4 }}>
+      <button onClick={() => setOpen(!open)} style={{ display: "flex", alignItems: "center", gap: 4, width: "100%", padding: "4px 0", border: 0, background: "transparent", color: "#666", fontSize: 10, fontWeight: 600, textTransform: "uppercase", cursor: "pointer", letterSpacing: 0.5 }}>
+        {open ? <ChevronDown size={10} /> : <ChevronRight size={10} />} {title}
+      </button>
+      {open && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, paddingBottom: 8 }}>
+          {props.map((p) => {
+            const val = String((selected.styles as Record<string, unknown>)[p] ?? "");
+            const isColor = colorProps.has(p);
+            return (
+              <div key={p}>
+                <label style={{ fontSize: 9, color: "#555", display: "block" }}>{p.replace(/([A-Z])/g, " $1")}</label>
+                <div style={{ display: "flex", gap: 2 }}>
+                  {isColor && (
+                    <input type="color" value={val || "#000000"} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} style={{ width: 24, height: 24, padding: 0, border: "1px solid #333", borderRadius: 4, cursor: "pointer", background: "transparent" }} />
+                  )}
+                  <Input value={val} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} className="h-6 text-[10px] flex-1" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
