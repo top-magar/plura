@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, ChevronRight, CreditCard, Crown, Download, Loader2, Receipt, Shield, Sparkles, Zap } from "lucide-react";
 import clsx from "clsx";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ type Props = {
 };
 
 export default function BillingClient({ agencyId, subscription, charges, pricingCards, addOns, initialPlan, success, cancelled }: Props) {
+  const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
@@ -94,7 +96,21 @@ export default function BillingClient({ agencyId, subscription, charges, pricing
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5 text-[12px]">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-[12px]"
+                onClick={async () => {
+                  const res = await fetch("/api/stripe/portal", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ agencyId }),
+                  });
+                  const data = await res.json();
+                  if (data.url) window.location.href = data.url;
+                  else toast.error("Subscribe to a plan first");
+                }}
+              >
                 <CreditCard className="h-3.5 w-3.5" /> Manage payment method
               </Button>
             </TooltipTrigger>
