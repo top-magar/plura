@@ -5,12 +5,14 @@ import BillingClient from "./client";
 
 async function syncSubscription(agencyId: string, customerId: string) {
   const subs = await stripe.subscriptions.list({ customer: customerId, status: "active", limit: 1 });
-  const sub = subs.data[0];
+  const sub = subs.data[0] as unknown as Record<string, unknown> | undefined;
   if (sub) {
+    const items = sub.items as { data: { price: { id: string } }[] };
+    const periodEnd = sub.current_period_end as number;
     await db.subscription.upsert({
-      where: { subscriptionId: sub.id },
-      update: { active: true, priceId: sub.items.data[0].price.id, currentPeriodEndDate: new Date(sub.current_period_end * 1000) },
-      create: { subscriptionId: sub.id, customerId, priceId: sub.items.data[0].price.id, currentPeriodEndDate: new Date(sub.current_period_end * 1000), active: true, agencyId },
+      where: { subscriptionId: sub.id as string },
+      update: { active: true, priceId: items.data[0].price.id, currentPeriodEndDate: new Date(periodEnd * 1000) },
+      create: { subscriptionId: sub.id as string, customerId, priceId: items.data[0].price.id, currentPeriodEndDate: new Date(periodEnd * 1000), active: true, agencyId },
     });
   }
 }
