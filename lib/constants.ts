@@ -85,7 +85,7 @@ export const pricingCards = [
       "Unlimited Team members",
       "Unlimited pipelines",
     ],
-    priceId: "price_1OYxkqFj9oKEERu1NbKUxXxN",
+    priceId: "price_1TNTZ9Rntb86KzsEg5BphfeE",
   },
   {
     title: "Basic",
@@ -94,6 +94,6 @@ export const pricingCards = [
     duration: "month",
     highlight: "Everything in Starter, plus",
     features: ["Unlimited Sub accounts", "Unlimited Team members", "Unlimited pipelines"],
-    priceId: "price_1OYxkqFj9oKEERu1KfJGWxgN",
+    priceId: "price_1TNTZARntb86KzsECaoSE8MJ",
   },
 ];
