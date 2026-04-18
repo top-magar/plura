@@ -20,8 +20,7 @@ export default async function EditorPage({
       subAccountId={subAccountId}
       funnelId={funnelId}
       funnelPageId={funnelPageId}
-      pageName={funnelPage.name}
-      pageContent={funnelPage.content}
+      pageDetails={funnelPage}
     />
   );
 }

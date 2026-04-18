@@ -12,28 +12,12 @@ export default function EditorCanvas({ funnelPageId, pageContent }: Props) {
   const { state, dispatch } = useEditor();
 
   useEffect(() => {
+    let elements: EditorElement[] = [];
     if (pageContent) {
-      try {
-        const elements = JSON.parse(pageContent) as EditorElement[];
-        dispatch({ type: "LOAD_DATA", payload: { elements, funnelPageId } });
-      } catch {
-        dispatch({
-          type: "LOAD_DATA",
-          payload: {
-            elements: [{ id: "__body", type: "__body", name: "Body", styles: {}, content: [] }],
-            funnelPageId,
-          },
-        });
-      }
-    } else {
-      dispatch({
-        type: "LOAD_DATA",
-        payload: {
-          elements: [{ id: "__body", type: "__body", name: "Body", styles: {}, content: [] }],
-          funnelPageId,
-        },
-      });
+      try { elements = JSON.parse(pageContent); } catch { /* invalid JSON */ }
     }
+    dispatch({ type: "LOAD_DATA", payload: { elements, withLive: false } });
+    dispatch({ type: "SET_FUNNELPAGE_ID", payload: { funnelPageId } });
   }, [funnelPageId, pageContent, dispatch]);
 
   // Keyboard shortcuts
@@ -63,14 +47,9 @@ export default function EditorCanvas({ funnelPageId, pageContent }: Props) {
 
   return (
     <div
-      className={clsx(
-        "flex-1 overflow-auto bg-muted/30 p-4",
-        state.editor.previewMode && "p-0"
-      )}
+      className={clsx("flex-1 overflow-auto bg-muted/30 p-4", state.editor.previewMode && "p-0")}
       onClick={() => {
-        if (!state.editor.previewMode) {
-          dispatch({ type: "SELECT_ELEMENT", payload: { element: null } });
-        }
+        if (!state.editor.previewMode) dispatch({ type: "SELECT_ELEMENT", payload: { element: null } });
       }}
     >
       <div

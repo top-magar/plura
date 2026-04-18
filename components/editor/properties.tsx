@@ -23,7 +23,7 @@ function PropGroup({ title, props }: { title: string; props: string[] }) {
       payload: {
         elementDetails: {
           ...el,
-          styles: { ...el.styles, [prop]: value },
+          styles: { ...el.styles, [prop]: value as never },
         },
       },
     });
@@ -37,7 +37,7 @@ function PropGroup({ title, props }: { title: string; props: string[] }) {
           <div key={prop} className="space-y-0.5">
             <label className="text-[10px] text-muted-foreground">{prop.replace(/([A-Z])/g, " $1").trim()}</label>
             <Input
-              value={el.styles[prop] || ""}
+              value={String((el.styles as Record<string, unknown>)[prop] ?? "")}
               onChange={(e) => handleChange(prop, e.target.value)}
               className="h-7 text-[11px]"
               placeholder="—"
