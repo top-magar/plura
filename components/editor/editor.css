@@ -520,7 +520,7 @@
 .editor-sidebar-tab {
   flex: 1;
   padding: var(--ed-spacing-03) 0;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   text-align: center;
   border: 0;
@@ -528,6 +528,10 @@
   color: var(--ed-text-secondary);
   cursor: pointer;
   border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ed-spacing-02);
   transition: color var(--ed-duration) var(--ed-easing),
               border-color var(--ed-duration) var(--ed-easing);
 }

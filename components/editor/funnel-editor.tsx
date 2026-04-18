@@ -3,7 +3,7 @@
 import { useState, useCallback, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical, Heading1, Heading2, List, SeparatorHorizontal, Square, Code, Quote, Star, MapPin, Phone, Mail, Globe, Clock, CheckSquare, Minus, ChevronUp, Timer, PanelTop, PanelBottom, Share2, CodeXml, ImageIcon, Navigation, Rows3, Bookmark, AlignLeft, AlignCenter, AlignRight, AlignJustify, ArrowRight, ArrowDown, ArrowUp, MoveHorizontal, MoveVertical, WrapText, Italic, Underline, Strikethrough, CaseSensitive, CaseUpper, CaseLower, Minus as MinusIcon } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical, Heading1, Heading2, List, SeparatorHorizontal, Square, Code, Quote, Star, MapPin, Phone, Mail, Globe, Clock, CheckSquare, Minus, ChevronUp, Timer, PanelTop, PanelBottom, Share2, CodeXml, ImageIcon, Navigation, Rows3, Bookmark, AlignLeft, AlignCenter, AlignRight, AlignJustify, ArrowRight, ArrowDown, ArrowUp, MoveHorizontal, MoveVertical, WrapText, Italic, Underline, Strikethrough, CaseSensitive, CaseUpper, CaseLower, Minus as MinusIcon, Paintbrush, Maximize, Box, Palette, Frame, LayoutGrid, Move, Sparkles, Pencil } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -285,14 +285,14 @@ const selectOptions: Record<string, string[]> = {
 };
 
 const propGroups = [
-  { title: "Typography", props: ["fontSize", "fontWeight", "fontStyle", "color", "textAlign", "textDecoration", "textTransform", "lineHeight", "letterSpacing"] },
-  { title: "Spacing", props: ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft"] },
-  { title: "Size", props: ["width", "height", "maxWidth", "maxHeight", "minWidth", "minHeight", "overflow", "objectFit"] },
-  { title: "Background", props: ["backgroundColor", "backgroundImage", "backgroundSize", "backgroundPosition", "backgroundRepeat"] },
-  { title: "Border", props: ["borderWidth", "borderColor", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight"] },
-  { title: "Layout", props: ["display", "flexDirection", "flexWrap", "justifyContent", "alignItems", "gap", "flex"] },
-  { title: "Position", props: ["position", "top", "right", "bottom", "left", "zIndex"] },
-  { title: "Effects", props: ["opacity", "boxShadow", "cursor", "transition"] },
+  { title: "Typography", icon: Type, props: ["fontSize", "fontWeight", "fontStyle", "color", "textAlign", "textDecoration", "textTransform", "lineHeight", "letterSpacing"] },
+  { title: "Spacing", icon: Box, props: ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "margin", "marginTop", "marginRight", "marginBottom", "marginLeft"] },
+  { title: "Size", icon: Maximize, props: ["width", "height", "maxWidth", "maxHeight", "minWidth", "minHeight", "overflow", "objectFit"] },
+  { title: "Background", icon: Palette, props: ["backgroundColor", "backgroundImage", "backgroundSize", "backgroundPosition", "backgroundRepeat"] },
+  { title: "Border", icon: Frame, props: ["borderWidth", "borderColor", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight"] },
+  { title: "Layout", icon: LayoutGrid, props: ["display", "flexDirection", "flexWrap", "justifyContent", "alignItems", "gap", "flex"] },
+  { title: "Position", icon: Move, props: ["position", "top", "right", "bottom", "left", "zIndex"] },
+  { title: "Effects", icon: Sparkles, props: ["opacity", "boxShadow", "cursor", "transition"] },
 ];
 
 // ── Default body ─────────────────────────────────────────────
@@ -814,17 +814,19 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
               </button>
             ))}
           </div>
+          <TooltipProvider delayDuration={300}>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <Button variant="ghost" size="icon-xs" onClick={() => setPreview(true)}><Eye /></Button>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={() => setPreview(true)}><Eye /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Preview</TooltipContent></Tooltip>
             <Separator orientation="vertical" className="h-5" />
-            <Button variant="ghost" size="icon-xs" onClick={undo} disabled={historyIdx < 0}><Undo2 /></Button>
-            <Button variant="ghost" size="icon-xs" onClick={redo} disabled={historyIdx >= history.length - 1}><Redo2 /></Button>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={undo} disabled={historyIdx < 0}><Undo2 /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Undo (Cmd+Z)</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={redo} disabled={historyIdx >= history.length - 1}><Redo2 /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Redo (Cmd+Shift+Z)</TooltipContent></Tooltip>
             <Separator orientation="vertical" className="h-5" />
             <Button size="sm" onClick={handleSave} className="gap-1 text-[12px] relative">
               <Save className="h-3.5 w-3.5" /> Save
               {dirty && <span className="editor-dirty-dot" />}
             </Button>
           </div>
+          </TooltipProvider>
         </div>
       )}
 
@@ -833,9 +835,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         {!preview && (
           <div className="editor-sidebar">
             <div className="editor-sidebar-tabs">
-              <button className={`editor-sidebar-tab ${sidebarTab === "components" ? "active" : ""}`} onClick={() => setSidebarTab("components")}>Components</button>
-              <button className={`editor-sidebar-tab ${sidebarTab === "layers" ? "active" : ""}`} onClick={() => setSidebarTab("layers")}>Layers</button>
-              <button className={`editor-sidebar-tab ${sidebarTab === "templates" ? "active" : ""}`} onClick={() => { setSidebarTab("templates"); loadTemplates(); }}>Templates</button>
+              <button className={`editor-sidebar-tab ${sidebarTab === "components" ? "active" : ""}`} onClick={() => setSidebarTab("components")}><Layout size={12} /> Components</button>
+              <button className={`editor-sidebar-tab ${sidebarTab === "layers" ? "active" : ""}`} onClick={() => setSidebarTab("layers")}><Layers size={12} /> Layers</button>
+              <button className={`editor-sidebar-tab ${sidebarTab === "templates" ? "active" : ""}`} onClick={() => { setSidebarTab("templates"); loadTemplates(); }}><Bookmark size={12} /> Templates</button>
             </div>
 
             {sidebarTab === "components" && (
@@ -918,6 +920,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
             {/* Header */}
             <div className="editor-props-header">
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <Pencil size={11} className="text-muted-foreground shrink-0" />
                 <input className="editor-props-name-input" value={selected.name} onChange={(e) => doUpdate({ ...selected, name: e.target.value })} />
                 <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 shrink-0">{selected.type}</Badge>
               </div>
@@ -940,8 +943,8 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
             {/* Tabs */}
             <Tabs defaultValue="design" value={propsTab} onValueChange={(v) => setPropsTab(v as "design" | "content")} className="flex flex-col flex-1 min-h-0">
               <TabsList className="w-full rounded-none border-b h-8 bg-transparent p-0">
-                <TabsTrigger value="design" className="flex-1 rounded-none h-full text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary">Design</TabsTrigger>
-                <TabsTrigger value="content" className="flex-1 rounded-none h-full text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary">Content</TabsTrigger>
+                <TabsTrigger value="design" className="flex-1 rounded-none h-full text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary gap-1"><Star size={11} /> Design</TabsTrigger>
+                <TabsTrigger value="content" className="flex-1 rounded-none h-full text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary gap-1"><Type size={11} /> Content</TabsTrigger>
               </TabsList>
 
               <TabsContent value="content" className="editor-scroll-panel mt-0 p-0">
@@ -966,7 +969,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
               <TabsContent value="design" className="editor-scroll-panel mt-0 p-0">
                 <div className="editor-props-section">
                   {propGroups.map((g) => (
-                    <PropGroup key={g.title} title={g.title} props={g.props} selected={selected} onUpdate={doUpdate} />
+                    <PropGroup key={g.title} title={g.title} icon={g.icon} props={g.props} selected={selected} onUpdate={doUpdate} />
                   ))}
                 </div>
               </TabsContent>
@@ -1081,12 +1084,14 @@ function IconToggle({ value, options, onChange }: { value: string; options: Icon
   );
 }
 
-function PropGroup({ title, props, selected, onUpdate }: { title: string; props: string[]; selected: El; onUpdate: (el: El) => void }) {
+function PropGroup({ title, icon: Icon, props, selected, onUpdate }: { title: string; icon: React.ComponentType<{ size?: number }>; props: string[]; selected: El; onUpdate: (el: El) => void }) {
   const [open, setOpen] = useState(true);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="mb-1">
       <CollapsibleTrigger className="editor-prop-group-toggle">
-        {open ? <ChevronDown size={10} /> : <ChevronRight size={10} />} {title}
+        {open ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+        <Icon size={11} />
+        {title}
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="editor-style-grid">
