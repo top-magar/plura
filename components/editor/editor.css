@@ -930,3 +930,76 @@
 .spacing-box-input.right  { grid-column: 3; grid-row: 2; }
 .spacing-box-input.bottom { grid-column: 2; grid-row: 3; }
 .spacing-box-input.left   { grid-column: 1; grid-row: 2; }
+
+/* ── Visual Box Components (Size, Border, Position) ───── */
+
+.visual-box-wrap {
+  padding: var(--ed-spacing-03) 0;
+}
+
+.visual-box-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ed-spacing-03);
+}
+
+.visual-box-x {
+  font-size: 10px;
+  color: var(--ed-text-placeholder);
+}
+
+.visual-box-field {
+  display: flex;
+  align-items: center;
+  gap: var(--ed-spacing-02);
+  flex: 1;
+}
+
+.visual-box-icon {
+  color: var(--ed-text-placeholder);
+  flex-shrink: 0;
+}
+
+.visual-box-flabel {
+  font-size: 9px;
+  color: var(--ed-text-secondary);
+  flex-shrink: 0;
+  min-width: 14px;
+}
+
+.visual-box-finput {
+  flex: 1;
+  height: 22px;
+  min-width: 0;
+  padding: 0 var(--ed-spacing-02);
+  border: 0;
+  border-bottom: 1px solid var(--ed-border-subtle);
+  background: transparent;
+  color: var(--ed-text-primary);
+  font-size: 10px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color var(--ed-duration) var(--ed-easing);
+}
+
+.visual-box-finput:focus {
+  border-bottom-color: var(--ed-interactive);
+}
+
+.visual-box-finput::placeholder {
+  color: var(--ed-text-placeholder);
+}
+
+.visual-box-grid4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ed-spacing-03);
+  margin-top: var(--ed-spacing-03);
+}
+
+.visual-box-grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ed-spacing-03);
+  margin-top: var(--ed-spacing-03);
+}

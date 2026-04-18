@@ -287,11 +287,11 @@ const selectOptions: Record<string, string[]> = {
 const propGroups = [
   { title: "Typography", icon: Type, props: ["fontSize", "fontWeight", "fontStyle", "color", "textAlign", "textDecoration", "textTransform", "lineHeight", "letterSpacing"] },
   { title: "Spacing", icon: Box, props: ["_spacing_box"] },
-  { title: "Size", icon: Maximize, props: ["width", "height", "maxWidth", "maxHeight", "minWidth", "minHeight", "overflow", "objectFit"] },
+  { title: "Size", icon: Maximize, props: ["_size_box"] },
   { title: "Background", icon: Palette, props: ["backgroundColor", "backgroundImage", "backgroundSize", "backgroundPosition", "backgroundRepeat"] },
-  { title: "Border", icon: Frame, props: ["borderWidth", "borderColor", "borderStyle", "borderTop", "borderBottom", "borderLeft", "borderRight"] },
+  { title: "Border", icon: Frame, props: ["_border_box"] },
   { title: "Layout", icon: LayoutGrid, props: ["display", "flexDirection", "flexWrap", "justifyContent", "alignItems", "gap", "flex"] },
-  { title: "Position", icon: Move, props: ["position", "top", "right", "bottom", "left", "zIndex"] },
+  { title: "Position", icon: Move, props: ["_position_box"] },
   { title: "Effects", icon: Sparkles, props: ["opacity", "boxShadow", "cursor", "transition"] },
 ];
 
@@ -1096,6 +1096,12 @@ function PropGroup({ title, icon: Icon, props, selected, onUpdate }: { title: st
       <CollapsibleContent>
         {props[0] === "_spacing_box" ? (
           <SpacingBox selected={selected} onUpdate={onUpdate} />
+        ) : props[0] === "_size_box" ? (
+          <SizeBox selected={selected} onUpdate={onUpdate} />
+        ) : props[0] === "_border_box" ? (
+          <BorderBox selected={selected} onUpdate={onUpdate} />
+        ) : props[0] === "_position_box" ? (
+          <PositionBox selected={selected} onUpdate={onUpdate} />
         ) : (
         <div className="editor-style-grid">
           {props.map((p) => {
@@ -1256,6 +1262,123 @@ function SpacingBox({ selected, onUpdate }: { selected: El; onUpdate: (el: El) =
 
           {/* Element center */}
           <div className="spacing-box-center" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SizeBox({ selected, onUpdate }: { selected: El; onUpdate: (el: El) => void }) {
+  const s = selected.styles as Record<string, unknown>;
+  const get = (p: string) => String(s[p] ?? "");
+  const set = (p: string, v: string) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties });
+  return (
+    <div className="visual-box-wrap">
+      {/* Main W x H */}
+      <div className="visual-box-row">
+        <div className="visual-box-field">
+          <Maximize size={10} className="visual-box-icon" />
+          <label className="visual-box-flabel">W</label>
+          <input className="visual-box-finput" value={get("width")} onChange={(e) => set("width", e.target.value)} placeholder="auto" />
+        </div>
+        <span className="visual-box-x">x</span>
+        <div className="visual-box-field">
+          <label className="visual-box-flabel">H</label>
+          <input className="visual-box-finput" value={get("height")} onChange={(e) => set("height", e.target.value)} placeholder="auto" />
+        </div>
+      </div>
+      {/* Min/Max */}
+      <div className="visual-box-grid4">
+        <div className="visual-box-field"><label className="visual-box-flabel">Min W</label><input className="visual-box-finput" value={get("minWidth")} onChange={(e) => set("minWidth", e.target.value)} placeholder="—" /></div>
+        <div className="visual-box-field"><label className="visual-box-flabel">Max W</label><input className="visual-box-finput" value={get("maxWidth")} onChange={(e) => set("maxWidth", e.target.value)} placeholder="—" /></div>
+        <div className="visual-box-field"><label className="visual-box-flabel">Min H</label><input className="visual-box-finput" value={get("minHeight")} onChange={(e) => set("minHeight", e.target.value)} placeholder="—" /></div>
+        <div className="visual-box-field"><label className="visual-box-flabel">Max H</label><input className="visual-box-finput" value={get("maxHeight")} onChange={(e) => set("maxHeight", e.target.value)} placeholder="—" /></div>
+      </div>
+      {/* Overflow & Object Fit */}
+      <div className="visual-box-grid2">
+        <div><label className="editor-prop-label">overflow</label>
+          <Select value={get("overflow") || undefined} onValueChange={(v) => set("overflow", v)}><SelectTrigger className="h-6 text-[10px] px-2"><SelectValue placeholder="—" /></SelectTrigger><SelectContent>{selectOptions.overflow.map((o) => <SelectItem key={o} value={o} className="text-[11px]">{o}</SelectItem>)}</SelectContent></Select>
+        </div>
+        <div><label className="editor-prop-label">object fit</label>
+          <Select value={get("objectFit") || undefined} onValueChange={(v) => set("objectFit", v)}><SelectTrigger className="h-6 text-[10px] px-2"><SelectValue placeholder="—" /></SelectTrigger><SelectContent>{selectOptions.objectFit.map((o) => <SelectItem key={o} value={o} className="text-[11px]">{o}</SelectItem>)}</SelectContent></Select>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BorderBox({ selected, onUpdate }: { selected: El; onUpdate: (el: El) => void }) {
+  const s = selected.styles as Record<string, unknown>;
+  const get = (p: string) => String(s[p] ?? "");
+  const set = (p: string, v: string) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties });
+  return (
+    <div className="visual-box-wrap">
+      {/* Border style toggle */}
+      <div><label className="editor-prop-label">style</label>
+        <IconToggle value={get("borderStyle")} options={iconOptions.borderStyle} onChange={(v) => set("borderStyle", v)} />
+      </div>
+      {/* Width + Color row */}
+      <div className="visual-box-row" style={{ marginTop: 8 }}>
+        <div className="visual-box-field">
+          <Frame size={10} className="visual-box-icon" />
+          <label className="visual-box-flabel">Width</label>
+          <input className="visual-box-finput" value={get("borderWidth")} onChange={(e) => set("borderWidth", e.target.value)} placeholder="0" />
+        </div>
+        <div className="visual-box-field">
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="editor-color-btn" style={{ height: 22 }}>
+                <span className="editor-color-swatch" style={{ background: get("borderColor") || "transparent" }} />
+                <span className="text-[9px] text-muted-foreground truncate">{get("borderColor") || "none"}</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-3" side="left">
+              <input type="color" value={get("borderColor") || "#000000"} onChange={(e) => set("borderColor", e.target.value)} style={{ width: "100%", height: 28, border: 0, cursor: "pointer", background: "transparent" }} />
+              <Input value={get("borderColor")} onChange={(e) => set("borderColor", e.target.value)} className="h-6 text-[10px] mt-2" placeholder="#hex" />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+      {/* Per-side borders */}
+      <div className="spacing-box-margin" style={{ marginTop: 8, minHeight: 50 }}>
+        <span className="spacing-box-label">sides</span>
+        <input className="spacing-box-input top" value={get("borderTop")} onChange={(e) => set("borderTop", e.target.value)} placeholder="—" title="border-top" />
+        <input className="spacing-box-input right" value={get("borderRight")} onChange={(e) => set("borderRight", e.target.value)} placeholder="—" title="border-right" />
+        <input className="spacing-box-input bottom" value={get("borderBottom")} onChange={(e) => set("borderBottom", e.target.value)} placeholder="—" title="border-bottom" />
+        <input className="spacing-box-input left" value={get("borderLeft")} onChange={(e) => set("borderLeft", e.target.value)} placeholder="—" title="border-left" />
+        <div className="spacing-box-center" />
+      </div>
+    </div>
+  );
+}
+
+function PositionBox({ selected, onUpdate }: { selected: El; onUpdate: (el: El) => void }) {
+  const s = selected.styles as Record<string, unknown>;
+  const get = (p: string) => String(s[p] ?? "");
+  const set = (p: string, v: string) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties });
+  return (
+    <div className="visual-box-wrap">
+      {/* Position type */}
+      <div><label className="editor-prop-label">position</label>
+        <Select value={get("position") || undefined} onValueChange={(v) => set("position", v)}><SelectTrigger className="h-6 text-[10px] px-2"><SelectValue placeholder="static" /></SelectTrigger><SelectContent>{selectOptions.position.map((o) => <SelectItem key={o} value={o} className="text-[11px]">{o}</SelectItem>)}</SelectContent></Select>
+      </div>
+      {/* TRBL visual box */}
+      <div className="spacing-box-margin" style={{ marginTop: 8, minHeight: 50, background: "hsl(var(--primary) / 0.04)" }}>
+        <span className="spacing-box-label">offsets</span>
+        <input className="spacing-box-input top" value={get("top")} onChange={(e) => set("top", e.target.value)} placeholder="—" title="top" />
+        <input className="spacing-box-input right" value={get("right")} onChange={(e) => set("right", e.target.value)} placeholder="—" title="right" />
+        <input className="spacing-box-input bottom" value={get("bottom")} onChange={(e) => set("bottom", e.target.value)} placeholder="—" title="bottom" />
+        <input className="spacing-box-input left" value={get("left")} onChange={(e) => set("left", e.target.value)} placeholder="—" title="left" />
+        <div className="spacing-box-center">
+          <Move size={10} style={{ margin: "auto", display: "block", opacity: 0.3, marginTop: 6 }} />
+        </div>
+      </div>
+      {/* Z-index */}
+      <div style={{ marginTop: 8 }}>
+        <div className="visual-box-field">
+          <Layers size={10} className="visual-box-icon" />
+          <label className="visual-box-flabel">z-index</label>
+          <input className="visual-box-finput" value={get("zIndex")} onChange={(e) => set("zIndex", e.target.value)} placeholder="auto" />
         </div>
       </div>
     </div>
