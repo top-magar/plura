@@ -499,6 +499,66 @@ export async function deleteTicket(ticketId: string) {
   return db.ticket.delete({ where: { id: ticketId } });
 }
 
+// ─── Funnels ─────────────────────────────────────────────────
+
+export async function getFunnels(subAccountId: string) {
+  return db.funnel.findMany({
+    where: { subAccountId },
+    include: { FunnelPages: { orderBy: { order: "asc" } } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getFunnelDetails(funnelId: string) {
+  return db.funnel.findUnique({
+    where: { id: funnelId },
+    include: { FunnelPages: { orderBy: { order: "asc" } } },
+  });
+}
+
+export async function upsertFunnel(funnel: {
+  id?: string;
+  name: string;
+  description?: string;
+  subDomainName?: string;
+  subAccountId: string;
+  favicon?: string;
+}) {
+  return db.funnel.upsert({
+    where: { id: funnel.id || "" },
+    update: { name: funnel.name, description: funnel.description, subDomainName: funnel.subDomainName, favicon: funnel.favicon },
+    create: { name: funnel.name, description: funnel.description, subDomainName: funnel.subDomainName, subAccountId: funnel.subAccountId, favicon: funnel.favicon },
+  });
+}
+
+export async function deleteFunnel(funnelId: string) {
+  return db.funnel.delete({ where: { id: funnelId } });
+}
+
+export async function upsertFunnelPage(page: {
+  id?: string;
+  name: string;
+  pathName?: string;
+  funnelId: string;
+  order: number;
+  content?: string;
+  previewImage?: string;
+}) {
+  return db.funnelPage.upsert({
+    where: { id: page.id || "" },
+    update: { name: page.name, pathName: page.pathName, content: page.content, previewImage: page.previewImage, order: page.order },
+    create: { name: page.name, pathName: page.pathName || "", funnelId: page.funnelId, order: page.order, content: page.content, previewImage: page.previewImage },
+  });
+}
+
+export async function deleteFunnelPage(pageId: string) {
+  return db.funnelPage.delete({ where: { id: pageId } });
+}
+
+export async function updateFunnelPageVisits(pageId: string) {
+  return db.funnelPage.update({ where: { id: pageId }, data: { visits: { increment: 1 } } });
+}
+
 // ─── Media ───────────────────────────────────────────────────
 
 export async function getMedia(subAccountId: string) {
