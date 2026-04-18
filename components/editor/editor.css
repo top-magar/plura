@@ -643,3 +643,90 @@
   display: flex;
   gap: var(--ed-spacing-01);
 }
+
+/* ── Props: Actions Bar ───────────────────────────────── */
+
+.editor-props-actions {
+  display: flex;
+  gap: var(--ed-spacing-02);
+  padding: var(--ed-spacing-03) var(--ed-spacing-05);
+  border-bottom: 1px solid var(--ed-border-subtle);
+}
+
+.editor-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ed-height-sm);
+  height: var(--ed-height-sm);
+  border: 1px solid var(--ed-border-subtle);
+  background: transparent;
+  color: var(--ed-text-secondary);
+  cursor: pointer;
+  transition: background var(--ed-duration) var(--ed-easing),
+              color var(--ed-duration) var(--ed-easing),
+              border-color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-action-btn:hover {
+  background: var(--ed-layer-02);
+  color: var(--ed-text-primary);
+  border-color: var(--ed-border-strong);
+}
+
+.editor-action-btn.danger:hover {
+  background: hsl(var(--destructive) / 0.1);
+  color: var(--ed-danger);
+  border-color: var(--ed-danger);
+}
+
+/* ── Props: Select ────────────────────────────────────── */
+
+.editor-select {
+  width: 100%;
+  height: 24px;
+  padding: 0 var(--ed-spacing-03);
+  font-size: 10px;
+  border: 0;
+  border-bottom: 1px solid var(--ed-border-subtle);
+  background: var(--ed-layer-02);
+  color: var(--ed-text-primary);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  transition: border-color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-select:focus {
+  border-bottom-color: var(--ed-interactive);
+}
+
+/* ── Props: Textarea ──────────────────────────────────── */
+
+.editor-textarea {
+  width: 100%;
+  padding: var(--ed-spacing-03);
+  font-size: 12px;
+  line-height: 1.5;
+  border: 0;
+  border-bottom: 1px solid var(--ed-border-subtle);
+  background: var(--ed-layer-02);
+  color: var(--ed-text-primary);
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color var(--ed-duration) var(--ed-easing);
+}
+
+.editor-textarea:focus {
+  border-bottom-color: var(--ed-interactive);
+}
+
+/* ── Empty State ──────────────────────────────────────── */
+
+.editor-empty-state {
+  font-size: 12px;
+  color: var(--ed-text-placeholder);
+  line-height: 1.5;
+  padding: var(--ed-spacing-05);
+}

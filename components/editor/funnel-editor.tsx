@@ -112,13 +112,23 @@ const componentGroups = [
 
 // ── CSS property groups ──────────────────────────────────────
 
+const selectOptions: Record<string, string[]> = {
+  display: ["block", "flex", "grid", "inline", "inline-flex", "none"],
+  flexDirection: ["row", "column", "row-reverse", "column-reverse"],
+  justifyContent: ["flex-start", "center", "flex-end", "space-between", "space-around", "space-evenly"],
+  alignItems: ["flex-start", "center", "flex-end", "stretch", "baseline"],
+  textAlign: ["left", "center", "right", "justify"],
+  fontWeight: ["300", "400", "500", "600", "700", "800"],
+};
+
 const propGroups = [
-  { title: "Typography", props: ["fontSize", "fontWeight", "color", "textAlign", "lineHeight"] },
-  { title: "Spacing", props: ["padding", "margin", "paddingTop", "paddingBottom", "paddingLeft", "paddingRight"] },
-  { title: "Size", props: ["width", "height", "maxWidth", "minHeight"] },
-  { title: "Background", props: ["backgroundColor", "backgroundImage"] },
-  { title: "Border", props: ["borderRadius", "borderWidth", "borderColor"] },
-  { title: "Layout", props: ["display", "flexDirection", "justifyContent", "alignItems", "gap", "opacity"] },
+  { title: "Typography", props: ["fontSize", "fontWeight", "color", "textAlign", "lineHeight", "letterSpacing"] },
+  { title: "Spacing", props: ["padding", "margin", "paddingTop", "paddingBottom", "paddingLeft", "paddingRight", "marginTop", "marginBottom"] },
+  { title: "Size", props: ["width", "height", "maxWidth", "minHeight", "overflow"] },
+  { title: "Background", props: ["backgroundColor", "backgroundImage", "backgroundSize"] },
+  { title: "Border", props: ["borderWidth", "borderColor", "borderStyle"] },
+  { title: "Layout", props: ["display", "flexDirection", "justifyContent", "alignItems", "gap", "flex"] },
+  { title: "Effects", props: ["opacity", "boxShadow", "cursor"] },
 ];
 
 // ── Default body ─────────────────────────────────────────────
@@ -147,6 +157,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
   const [hovered, setHovered] = useState<string | null>(null);
   const [clipboard, setClipboard] = useState<El | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"components" | "layers">("components");
+  const [propsTab, setPropsTab] = useState<"design" | "content">("design");
 
   // History
   const pushHistory = useCallback((prev: El[]) => {
@@ -462,34 +473,54 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         {/* Properties */}
         {!preview && selected && (
           <div className="editor-props">
+            {/* Header: name + type */}
             <div className="editor-props-header">
-              <input
-                className="editor-props-name-input"
-                value={selected.name}
-                onChange={(e) => doUpdate({ ...selected, name: e.target.value })}
-              />
+              <input className="editor-props-name-input" value={selected.name} onChange={(e) => doUpdate({ ...selected, name: e.target.value })} />
               <div className="editor-props-type">{selected.type}</div>
             </div>
 
-            {/* Content editor */}
-            {!Array.isArray(selected.content) && (
-              <div className="editor-props-section">
-                <div className="editor-component-group-label">Content</div>
-                {Object.entries(selected.content as Record<string, string>).map(([key, val]) => (
-                  <div key={key} className="editor-content-field">
-                    <label className="editor-content-label">{key}</label>
-                    <Input value={val} onChange={(e) => doUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-7 text-[11px]" />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Style editor */}
-            <div className="editor-props-section">
-              {propGroups.map((g) => (
-                <PropGroup key={g.title} title={g.title} props={g.props} selected={selected} onUpdate={doUpdate} />
-              ))}
+            {/* Actions bar */}
+            <div className="editor-props-actions">
+              <button className="editor-action-btn" title="Duplicate (Cmd+D)" onClick={doDuplicate}><Copy size={13} /></button>
+              {selected.type !== "__body" && (
+                <button className="editor-action-btn danger" title="Delete" onClick={() => doDelete(selected.id)}><Trash2 size={13} /></button>
+              )}
             </div>
+
+            {/* Tabs */}
+            <div className="editor-sidebar-tabs">
+              <button className={`editor-sidebar-tab ${propsTab === "design" ? "active" : ""}`} onClick={() => setPropsTab("design")}>Design</button>
+              <button className={`editor-sidebar-tab ${propsTab === "content" ? "active" : ""}`} onClick={() => setPropsTab("content")}>Content</button>
+            </div>
+
+            <ScrollArea className="flex-1">
+              {propsTab === "content" && (
+                <div className="editor-props-section">
+                  {!Array.isArray(selected.content) ? (
+                    Object.entries(selected.content as Record<string, string>).map(([key, val]) => (
+                      <div key={key} className="editor-content-field">
+                        <label className="editor-content-label">{key}</label>
+                        {key === "innerText" ? (
+                          <textarea value={val} onChange={(e) => doUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="editor-textarea" rows={3} />
+                        ) : (
+                          <Input value={val} onChange={(e) => doUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-7 text-[11px]" />
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="editor-empty-state">Container element — no editable content. Add child elements by dragging from the sidebar.</div>
+                  )}
+                </div>
+              )}
+
+              {propsTab === "design" && (
+                <div className="editor-props-section">
+                  {propGroups.map((g) => (
+                    <PropGroup key={g.title} title={g.title} props={g.props} selected={selected} onUpdate={doUpdate} />
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
           </div>
         )}
       </div>
@@ -539,14 +570,23 @@ function PropGroup({ title, props, selected, onUpdate }: { title: string; props:
           {props.map((p) => {
             const val = String((selected.styles as Record<string, unknown>)[p] ?? "");
             const isColor = colorProps.has(p);
+            const options = selectOptions[p];
+            const update = (v: string) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties });
             return (
               <div key={p}>
                 <label className="editor-prop-label">{p.replace(/([A-Z])/g, " $1")}</label>
                 <div className="editor-style-field">
                   {isColor && (
-                    <input type="color" value={val || "#000000"} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} className="editor-color-picker" />
+                    <input type="color" value={val || "#000000"} onChange={(e) => update(e.target.value)} className="editor-color-picker" />
                   )}
-                  <Input value={val} onChange={(e) => onUpdate({ ...selected, styles: { ...selected.styles, [p]: e.target.value } as CSSProperties })} className="h-6 text-[10px] flex-1" />
+                  {options ? (
+                    <select value={val} onChange={(e) => update(e.target.value)} className="editor-select">
+                      <option value="">—</option>
+                      {options.map((o) => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                  ) : (
+                    <Input value={val} onChange={(e) => update(e.target.value)} className="h-6 text-[10px] flex-1" />
+                  )}
                 </div>
               </div>
             );
