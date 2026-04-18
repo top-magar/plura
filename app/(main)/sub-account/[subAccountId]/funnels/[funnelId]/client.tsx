@@ -154,7 +154,7 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
                     </div>
                     <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                       <Button asChild variant="outline" size="sm" className="h-7 gap-1 text-[11px]">
-                        <Link href={`/sub-account/${subAccountId}/funnels/${funnel.id}/editor/${page.id}`}>
+                        <Link href={`/editor/${page.id}`}>
                           <Pencil className="h-3 w-3" /> Edit
                         </Link>
                       </Button>
