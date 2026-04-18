@@ -11,7 +11,7 @@ export default async function EditorPage({
 
   const page = await db.funnelPage.findUnique({
     where: { id: funnelPageId },
-    include: { Funnel: { select: { id: true, subAccountId: true } } },
+    include: { Funnel: { select: { id: true, subAccountId: true, SubAccount: { select: { agencyId: true } } } } },
   });
   if (!page) return notFound();
 
@@ -21,6 +21,7 @@ export default async function EditorPage({
       pageName={page.name}
       funnelId={page.Funnel.id}
       subAccountId={page.Funnel.subAccountId}
+      agencyId={page.Funnel.SubAccount.agencyId}
       initialContent={page.content}
     />
   );

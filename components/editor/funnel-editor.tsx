@@ -3,7 +3,7 @@
 import { useState, useCallback, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical, Heading1, Heading2, List, SeparatorHorizontal, Square, Code, Quote, Star, MapPin, Phone, Mail, Globe, Clock, CheckSquare, Minus, ChevronUp, Timer, PanelTop, PanelBottom, Share2, CodeXml, ImageIcon, Navigation, Rows3 } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard, ChevronRight, ChevronDown, Copy, Layers, GripVertical, Heading1, Heading2, List, SeparatorHorizontal, Square, Code, Quote, Star, MapPin, Phone, Mail, Globe, Clock, CheckSquare, Minus, ChevronUp, Timer, PanelTop, PanelBottom, Share2, CodeXml, ImageIcon, Navigation, Rows3, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import { v4 } from "uuid";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { upsertFunnelPage } from "@/lib/queries";
+import { upsertFunnelPage, savePageTemplate, getPageTemplates, deletePageTemplate } from "@/lib/queries";
 import "./editor.css";
 
 // ── Types ────────────────────────────────────────────────────
@@ -282,9 +282,9 @@ const defaultBody: El = { id: "__body", type: "__body", name: "Body", styles: { 
 
 // ── Main Editor ──────────────────────────────────────────────
 
-type Props = { pageId: string; pageName: string; funnelId: string; subAccountId: string; initialContent: string | null };
+type Props = { pageId: string; pageName: string; funnelId: string; subAccountId: string; agencyId: string; initialContent: string | null };
 
-export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId, initialContent }: Props) {
+export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId, agencyId, initialContent }: Props) {
   const router = useRouter();
 
   // State
@@ -301,9 +301,11 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
   const [dirty, setDirty] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const [clipboard, setClipboard] = useState<El | null>(null);
-  const [sidebarTab, setSidebarTab] = useState<"components" | "layers">("components");
+  const [sidebarTab, setSidebarTab] = useState<"components" | "layers" | "templates">("components");
   const [propsTab, setPropsTab] = useState<"design" | "content">("design");
   const [pageTitle, setPageTitle] = useState(pageName);
+  const [templates, setTemplates] = useState<{ id: string; name: string; content: string; category: string }[]>([]);
+  const [templatesLoaded, setTemplatesLoaded] = useState(false);
 
   // History
   const pushHistory = useCallback((prev: El[]) => {
@@ -381,6 +383,40 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
       toast.success("Saved");
       setDirty(false);
     } catch { toast.error("Could not save"); }
+  };
+
+  const loadTemplates = async () => {
+    if (templatesLoaded) return;
+    const t = await getPageTemplates(agencyId);
+    setTemplates(t.map((x) => ({ id: x.id, name: x.name, content: x.content, category: x.category })));
+    setTemplatesLoaded(true);
+  };
+
+  const handleSaveTemplate = async () => {
+    const name = prompt("Template name:");
+    if (!name) return;
+    await savePageTemplate({ name, content: JSON.stringify(elements), agencyId });
+    setTemplatesLoaded(false);
+    toast.success("Template saved");
+  };
+
+  const handleLoadTemplate = (content: string) => {
+    try {
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length) {
+        pushHistory(elements);
+        setElements(parsed);
+        setDirty(true);
+        setSelected(null);
+        toast.success("Template loaded");
+      }
+    } catch { toast.error("Invalid template"); }
+  };
+
+  const handleDeleteTemplate = async (id: string) => {
+    await deletePageTemplate(id);
+    setTemplates((t) => t.filter((x) => x.id !== id));
+    toast.success("Template deleted");
   };
 
   // Keyboard
@@ -780,6 +816,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
             <div className="editor-sidebar-tabs">
               <button className={`editor-sidebar-tab ${sidebarTab === "components" ? "active" : ""}`} onClick={() => setSidebarTab("components")}>Components</button>
               <button className={`editor-sidebar-tab ${sidebarTab === "layers" ? "active" : ""}`} onClick={() => setSidebarTab("layers")}>Layers</button>
+              <button className={`editor-sidebar-tab ${sidebarTab === "templates" ? "active" : ""}`} onClick={() => { setSidebarTab("templates"); loadTemplates(); }}>Templates</button>
             </div>
 
             {sidebarTab === "components" && (
@@ -803,6 +840,28 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
               <ScrollArea className="flex-1">
                 <div style={{ padding: "4px 8px" }}>
                   {body && <LayerTree el={body} depth={0} selected={selected} onSelect={setSelected} />}
+                </div>
+              </ScrollArea>
+            )}
+
+            {sidebarTab === "templates" && (
+              <ScrollArea className="flex-1">
+                <div style={{ padding: 8 }}>
+                  <button onClick={handleSaveTemplate} className="editor-component-item" style={{ width: "100%", marginBottom: 8, justifyContent: "center", cursor: "pointer" }}>
+                    <Bookmark size={14} /> Save Current Page
+                  </button>
+                  {templates.length === 0 && <div className="editor-empty-state">No saved templates yet.</div>}
+                  {templates.map((t) => (
+                    <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px", marginBottom: 4, fontSize: 12, border: "1px solid var(--ed-border-subtle)" }}>
+                      <button onClick={() => handleLoadTemplate(t.content)} style={{ background: "none", border: 0, color: "inherit", cursor: "pointer", textAlign: "left", flex: 1, fontSize: 12 }}>
+                        <div style={{ fontWeight: 500 }}>{t.name}</div>
+                        <div style={{ fontSize: 10, opacity: 0.5 }}>{t.category}</div>
+                      </button>
+                      <button onClick={() => handleDeleteTemplate(t.id)} style={{ background: "none", border: 0, color: "var(--ed-danger)", cursor: "pointer", padding: 4 }}>
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </ScrollArea>
             )}

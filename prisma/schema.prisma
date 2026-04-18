@@ -120,6 +120,7 @@ model Agency {
   Notification     Notification[]
   Subscription     Subscription?
   AddOns           AddOns[]
+  PageTemplate     PageTemplate[]
 }
 
 model SubAccount {
@@ -422,4 +423,16 @@ model AddOns {
   Agency    Agency?  @relation(fields: [agencyId], references: [id])
 
   @@index([agencyId])
+}
+
+model PageTemplate {
+  id        String   @id @default(uuid())
+  name      String
+  thumbnail String   @default("")
+  content   String
+  category  String   @default("custom")
+  agencyId  String
+  Agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -589,3 +589,17 @@ export async function getNotificationAndUser(agencyId: string) {
     console.log("[ERROR] Error fetching notifications");
   }
 }
+
+// ── Templates ────────────────────────────────────────────────
+
+export async function savePageTemplate(data: { name: string; content: string; category?: string; agencyId: string }) {
+  return db.pageTemplate.create({ data: { name: data.name, content: data.content, category: data.category || "custom", agencyId: data.agencyId } });
+}
+
+export async function getPageTemplates(agencyId: string) {
+  return db.pageTemplate.findMany({ where: { agencyId }, orderBy: { createdAt: "desc" } });
+}
+
+export async function deletePageTemplate(id: string) {
+  return db.pageTemplate.delete({ where: { id } });
+}
