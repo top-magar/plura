@@ -268,6 +268,16 @@ export async function changeUserPermissions(
 export async function upsertSubAccount(subAccount: SubAccount) {
   if (!subAccount.companyEmail) return null;
 
+  // Check subscription limits for new sub accounts
+  if (!subAccount.id || !(await db.subAccount.findUnique({ where: { id: subAccount.id } }))) {
+    const { getSubscriptionStatus } = await import("./subscription");
+    const { features } = await getSubscriptionStatus(subAccount.agencyId);
+    const currentCount = await db.subAccount.count({ where: { agencyId: subAccount.agencyId } });
+    if (currentCount >= features.maxSubAccounts) {
+      throw new Error(`Sub account limit reached (${features.maxSubAccounts}). Upgrade your plan.`);
+    }
+  }
+
   const agencyOwner = await db.user.findFirst({
     where: { Agency: { id: subAccount.agencyId }, role: "AGENCY_OWNER" },
   });
@@ -323,6 +333,14 @@ export async function getTeamMembers(agencyId: string) {
 }
 
 export async function sendInvitation(role: string, email: string, agencyId: string) {
+  // Check team member limit
+  const { getSubscriptionStatus } = await import("./subscription");
+  const { features } = await getSubscriptionStatus(agencyId);
+  const currentCount = await db.user.count({ where: { agencyId } });
+  if (currentCount >= features.maxTeamMembers) {
+    throw new Error(`Team member limit reached (${features.maxTeamMembers}). Upgrade your plan.`);
+  }
+
   const invitation = await db.invitation.create({
     data: { email, agencyId, role: role as "AGENCY_ADMIN" | "SUBACCOUNT_USER" | "SUBACCOUNT_GUEST" },
   });
