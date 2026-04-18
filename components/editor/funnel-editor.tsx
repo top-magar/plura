@@ -59,6 +59,23 @@ function moveEl(tree: El[], elId: string, targetContainerId: string): El[] {
   return addEl(removed, targetContainerId, el);
 }
 
+function reorderEl(tree: El[], elId: string, direction: "up" | "down"): El[] {
+  return tree.map((n) => {
+    if (Array.isArray(n.content)) {
+      const idx = n.content.findIndex((c) => c.id === elId);
+      if (idx >= 0) {
+        const newIdx = direction === "up" ? idx - 1 : idx + 1;
+        if (newIdx < 0 || newIdx >= n.content.length) return n;
+        const arr = [...n.content];
+        [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+        return { ...n, content: arr };
+      }
+      return { ...n, content: reorderEl(n.content, elId, direction) };
+    }
+    return n;
+  });
+}
+
 function cloneEl(el: El): El {
   const id = v4();
   if (Array.isArray(el.content)) return { ...el, id, name: el.name + " copy", content: el.content.map(cloneEl) };
@@ -286,6 +303,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
   const [clipboard, setClipboard] = useState<El | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"components" | "layers">("components");
   const [propsTab, setPropsTab] = useState<"design" | "content">("design");
+  const [pageTitle, setPageTitle] = useState(pageName);
 
   // History
   const pushHistory = useCallback((prev: El[]) => {
@@ -359,7 +377,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
   const handleSave = async () => {
     try {
-      await upsertFunnelPage({ id: pageId, name: pageName, funnelId, order: 0, content: JSON.stringify(elements) });
+      await upsertFunnelPage({ id: pageId, name: pageTitle, funnelId, order: 0, content: JSON.stringify(elements) });
       toast.success("Saved");
       setDirty(false);
     } catch { toast.error("Could not save"); }
@@ -380,10 +398,22 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
       setDirty(true);
     }
     if ((e.key === "Delete" || e.key === "Backspace") && selected && selected.type !== "__body") {
-      if ((e.target as HTMLElement).tagName === "INPUT") return;
+      if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
       doDelete(selected.id);
     }
     if (e.key === "Escape") setSelected(null);
+    if (e.key === "ArrowUp" && (e.metaKey || e.ctrlKey) && selected && selected.type !== "__body") {
+      e.preventDefault();
+      pushHistory(elements);
+      setElements((prev) => reorderEl(prev, selected.id, "up"));
+      setDirty(true);
+    }
+    if (e.key === "ArrowDown" && (e.metaKey || e.ctrlKey) && selected && selected.type !== "__body") {
+      e.preventDefault();
+      pushHistory(elements);
+      setElements((prev) => reorderEl(prev, selected.id, "down"));
+      setDirty(true);
+    }
   }, [selected, elements]);
 
   // ── Render element (recursive) ─────────────────────────────
@@ -720,7 +750,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         <div className="editor-toolbar">
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Button asChild variant="ghost" size="icon-xs"><Link href={`/sub-account/${subAccountId}/funnels/${funnelId}`}><ArrowLeft /></Link></Button>
-            <span style={{ fontSize: 13, fontWeight: 500 }}>{pageName}</span>
+            <input className="editor-props-name-input" value={pageTitle} onChange={(e) => { setPageTitle(e.target.value); setDirty(true); }} style={{ width: 140 }} />
           </div>
           <div className="editor-device-toggle">
             {([["Desktop", Laptop], ["Tablet", Tablet], ["Mobile", Smartphone]] as const).map(([d, Icon]) => (
@@ -787,6 +817,24 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         </div>
 
         {/* Properties */}
+        {!preview && !selected && (
+          <div className="editor-props">
+            <div className="editor-props-section" style={{ paddingTop: 24 }}>
+              <div className="editor-empty-state">
+                <p style={{ marginBottom: 16 }}>Select an element to edit its properties.</p>
+                <div style={{ fontSize: 11, lineHeight: 2 }}>
+                  <div><kbd>Cmd+S</kbd> Save</div>
+                  <div><kbd>Cmd+Z</kbd> Undo</div>
+                  <div><kbd>Cmd+D</kbd> Duplicate</div>
+                  <div><kbd>Cmd+C/V</kbd> Copy / Paste</div>
+                  <div><kbd>Cmd+Up/Down</kbd> Reorder</div>
+                  <div><kbd>Delete</kbd> Remove element</div>
+                  <div><kbd>Escape</kbd> Deselect</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {!preview && selected && (
           <div className="editor-props">
             {/* Header: name + type */}
