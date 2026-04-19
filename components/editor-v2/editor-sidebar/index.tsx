@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useEditor } from '../editor-provider';
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Database, Plus, SettingsIcon, SquareStackIcon } from 'lucide-react';
 import ComponentsTab from './components-tab';
@@ -40,23 +40,43 @@ export default function EditorSidebar() {
         <SheetContent
           
           side="right"
-          className={`mt-[97px] w-80 z-[40] mr-16 shadow-none p-0 focus:border-none transition-all overflow-hidden ${state.editor.previewMode ? 'hidden' : ''}`}
+          className={`mt-[97px] w-80 z-[40] shadow-none p-0 mr-16 bg-background h-full transition-all overflow-hidden ${state.editor.previewMode ? 'hidden' : ''}`}
         >
-          <SheetTitle className="sr-only">Sidebar Content</SheetTitle>
-          <div className="h-full overflow-auto px-4 py-4">
-            <TabsContent value="Settings" className="mt-0">
+          <div className="grid gap-4 h-full pb-36 overflow-scroll">
+            <TabsContent value="Settings">
+              <SheetHeader className="text-left p-6">
+                <SheetTitle>Styles</SheetTitle>
+                <SheetDescription>
+                  Show your creativity! You can customize every component as you like.
+                </SheetDescription>
+              </SheetHeader>
               <SettingsTab />
             </TabsContent>
-            <TabsContent value="Components" className="mt-0">
+            <TabsContent value="Components">
+              <SheetHeader className="text-left p-6">
+                <SheetTitle>Components</SheetTitle>
+                <SheetDescription>
+                  Drag and drop components onto the canvas.
+                </SheetDescription>
+              </SheetHeader>
               <ComponentsTab />
             </TabsContent>
-            <TabsContent value="Layers" className="mt-0">
+            <TabsContent value="Layers">
+              <SheetHeader className="text-left p-6">
+                <SheetTitle>Layers</SheetTitle>
+                <SheetDescription>
+                  View the editor layers.
+                </SheetDescription>
+              </SheetHeader>
               <LayersTab />
             </TabsContent>
-            <TabsContent value="Media" className="mt-0">
-              <div className="text-sm text-muted-foreground text-center py-8">
-                Media bucket coming soon
-              </div>
+            <TabsContent value="Media">
+              <SheetHeader className="text-left p-6">
+                <SheetTitle>Media</SheetTitle>
+                <SheetDescription>
+                  Media bucket coming soon.
+                </SheetDescription>
+              </SheetHeader>
             </TabsContent>
           </div>
         </SheetContent>
