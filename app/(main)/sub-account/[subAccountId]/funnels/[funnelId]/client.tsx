@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -19,7 +20,7 @@ import { FileUpload } from "@/components/global/file-upload";
 import { deleteFunnel, deleteFunnelPage, upsertFunnel, upsertFunnelPage, saveActivityLogsNotification } from "@/lib/queries";
 
 type FunnelPage = { id: string; name: string; pathName: string; order: number; visits: number; content: string | null };
-type Funnel = { id: string; name: string; description: string | null; subDomainName: string | null; published: boolean; favicon: string | null; subAccountId: string; FunnelPages: FunnelPage[] };
+type Funnel = { id: string; name: string; description: string | null; subDomainName: string | null; published: boolean; favicon: string | null; liveProducts: string | null; subAccountId: string; FunnelPages: FunnelPage[] };
 type Props = { funnel: Funnel; subAccountId: string };
 
 export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
@@ -36,6 +37,9 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
   const [favicon, setFavicon] = useState(funnel.favicon ?? "");
   const [funnelName, setFunnelName] = useState(funnel.name);
   const [deleteFunnelOpen, setDeleteFunnelOpen] = useState(false);
+  const [products, setProducts] = useState<{ id: string; name: string; description: string | null; amount: number; currency: string; recurring: string | null }[]>([]);
+  const [liveProducts, setLiveProducts] = useState<string[]>(() => { try { return JSON.parse(funnel.liveProducts || "[]"); } catch { return []; } });
+  const [productsLoaded, setProductsLoaded] = useState(false);
 
   const selectedPage = pages.find((p) => p.id === selectedPageId);
   const totalVisits = pages.reduce((s, p) => s + p.visits, 0);
@@ -95,7 +99,7 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
 
   const handleSaveSettings = async () => {
     try {
-      await upsertFunnel({ id: funnel.id, name: funnelName, description, subDomainName: subdomain || undefined, subAccountId });
+      await upsertFunnel({ id: funnel.id, name: funnelName, description, subDomainName: subdomain || undefined, subAccountId, liveProducts: JSON.stringify(liveProducts) });
       toast.success("Settings saved");
       router.refresh();
     } catch { toast.error("Could not save"); }
@@ -305,6 +309,48 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
               </div>
 
               <Button onClick={handleSaveSettings} className="gap-1.5">Save settings</Button>
+
+              <div className="border-t" />
+
+              {/* Live Products */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-[14px] font-semibold">Live Products</h3>
+                  <p className="text-[12px] text-muted-foreground">Select products available for checkout in this funnel</p>
+                </div>
+                {!productsLoaded ? (
+                  <Button variant="outline" size="sm" onClick={async () => {
+                    const res = await fetch(`/api/stripe/products?subAccountId=${subAccountId}`);
+                    const data = await res.json();
+                    setProducts(data.products || []);
+                    setProductsLoaded(true);
+                  }}>Load products from Stripe</Button>
+                ) : products.length === 0 ? (
+                  <p className="text-[12px] text-muted-foreground">No products found. Connect Stripe and create products first.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {products.map((p) => (
+                      <label key={p.id} className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer hover:bg-muted/30 transition-colors">
+                        <Checkbox
+                          checked={liveProducts.includes(p.id)}
+                          onCheckedChange={(checked) => {
+                            setLiveProducts((prev) => checked ? [...prev, p.id] : prev.filter((id) => id !== p.id));
+                          }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-medium">{p.name}</p>
+                          {p.description && <p className="text-[11px] text-muted-foreground line-clamp-1">{p.description}</p>}
+                        </div>
+                        <span className="text-[13px] font-semibold shrink-0">
+                          ${(p.amount / 100).toFixed(2)}
+                          {p.recurring && <span className="text-[10px] text-muted-foreground font-normal">/{p.recurring}</span>}
+                        </span>
+                      </label>
+                    ))}
+                    <p className="text-[11px] text-muted-foreground">{liveProducts.length} product{liveProducts.length !== 1 ? "s" : ""} selected</p>
+                  </div>
+                )}
+              </div>
 
               <div className="border-t" />
 
