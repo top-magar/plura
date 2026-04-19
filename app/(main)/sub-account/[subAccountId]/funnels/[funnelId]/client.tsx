@@ -3,15 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Copy, ExternalLink, FileText, Globe, GripVertical, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, ExternalLink, FileText, Globe, MoreHorizontal, Pencil, Plus, Trash2, ArrowUpDown, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { useReactTable, getCoreRowModel, getSortedRowModel, flexRender, type SortingState, type ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { deleteFunnelPage, upsertFunnel, upsertFunnelPage, saveActivityLogsNotification } from "@/lib/queries";
@@ -28,6 +29,43 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
   const [deletePageId, setDeletePageId] = useState<string | null>(null);
   const [subdomain, setSubdomain] = useState(funnel.subDomainName ?? "");
   const [description, setDescription] = useState(funnel.description ?? "");
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const columns: ColumnDef<FunnelPage>[] = [
+    { accessorKey: "order", header: "#", cell: ({ row }) => <span className="text-[12px] text-muted-foreground">{row.original.order + 1}</span>, size: 40 },
+    { accessorKey: "name", header: ({ column }) => <Button variant="ghost" size="sm" className="h-7 -ml-2 text-[12px]" onClick={() => column.toggleSorting()}>Name <ArrowUpDown className="ml-1 h-3 w-3" /></Button>,
+      cell: ({ row }) => (
+        <div>
+          <p className="text-[13px] font-medium">{row.original.name}</p>
+          <p className="text-[11px] text-muted-foreground">/{row.original.pathName || "(root)"}</p>
+        </div>
+      ),
+    },
+    { accessorKey: "visits", header: ({ column }) => <Button variant="ghost" size="sm" className="h-7 -ml-2 text-[12px]" onClick={() => column.toggleSorting()}>Visits <ArrowUpDown className="ml-1 h-3 w-3" /></Button>,
+      cell: ({ row }) => <div className="flex items-center gap-1.5 text-[13px]"><Eye className="h-3 w-3 text-muted-foreground" /> {row.original.visits}</div>,
+    },
+    { id: "status", header: "Status",
+      cell: ({ row }) => <Badge variant={row.original.content ? "default" : "outline"} className="text-[10px]">{row.original.content ? "Has content" : "Empty"}</Badge>,
+    },
+    { id: "actions", header: "", size: 80,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1">
+          <Button asChild variant="outline" size="sm" className="h-7 gap-1 text-[11px]">
+            <Link href={`/editor/${row.original.id}`}><Pencil className="h-3 w-3" /> Edit</Link>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild><Button variant="ghost" size="icon-xs"><MoreHorizontal /></Button></DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleDuplicate(row.original)}><Copy /> Duplicate</DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onClick={() => setDeletePageId(row.original.id)}><Trash2 /> Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
+  ];
+
+  const table = useReactTable({ data: funnel.FunnelPages, columns, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel() });
 
   const handleAddPage = async () => {
     if (!newPageName.trim()) return;
@@ -52,7 +90,7 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
 
   const handleDuplicate = async (page: FunnelPage) => {
     try {
-      await upsertFunnelPage({ name: `${page.name} (copy)`, pathName: `${page.pathName}-copy`, funnelId: funnel.id, order: funnel.FunnelPages.length, content: page.content });
+      await upsertFunnelPage({ name: `${page.name} (copy)`, pathName: `${page.pathName}-copy`, funnelId: funnel.id, order: funnel.FunnelPages.length, content: page.content ?? undefined });
       toast.success("Page duplicated");
       router.refresh();
     } catch { toast.error("Could not duplicate"); }
@@ -143,33 +181,29 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
             )}
 
             {funnel.FunnelPages.length > 0 ? (
-              <div className="space-y-1.5">
-                {funnel.FunnelPages.map((page, i) => (
-                  <div key={page.id} className="group flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors hover:bg-muted/30">
-                    <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground/40" />
-                    <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-[11px] font-semibold text-primary">{i + 1}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-medium">{page.name}</p>
-                      <p className="text-[11px] text-muted-foreground">/{page.pathName || "(root)"} · {page.visits} visit{page.visits !== 1 ? "s" : ""}</p>
-                    </div>
-                    <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <Button asChild variant="outline" size="sm" className="h-7 gap-1 text-[11px]">
-                        <Link href={`/editor/${page.id}`}>
-                          <Pencil className="h-3 w-3" /> Edit
-                        </Link>
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon-xs"><MoreHorizontal /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleDuplicate(page)}><Copy /> Duplicate</DropdownMenuItem>
-                          <DropdownMenuItem variant="destructive" onClick={() => setDeletePageId(page.id)}><Trash2 /> Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                ))}
+              <div className="rounded-lg border">
+                <Table>
+                  <TableHeader>
+                    {table.getHeaderGroups().map((hg) => (
+                      <TableRow key={hg.id}>
+                        {hg.headers.map((h) => (
+                          <TableHead key={h.id} style={{ width: h.getSize() !== 150 ? h.getSize() : undefined }}>
+                            {h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id} className="group">
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             ) : (
               <div className="rounded-lg border border-dashed py-12 text-center">
