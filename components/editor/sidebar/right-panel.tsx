@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PanelRightClose, PanelRightOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEditor } from "../editor-provider";
@@ -10,6 +10,11 @@ export default function RightPanel() {
   const { state } = useEditor();
   const selected = state.editor.selected;
   const [collapsed, setCollapsed] = useState(false);
+
+  // Auto-open when an element is selected
+  useEffect(() => {
+    if (selected) setCollapsed(false);
+  }, [selected]);
 
   return (
     <div className={cn("flex h-full border-l border-sidebar-border", collapsed ? "w-0" : "w-72")}>
