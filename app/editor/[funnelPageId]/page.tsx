@@ -1,7 +1,6 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import { EditorProvider } from "@/components/editor-v2/editor-provider";
-import Editor from "@/components/editor-v2/editor";
+import FunnelEditor from "@/components/editor/funnel-editor";
 
 export default async function EditorPage({
   params,
@@ -12,24 +11,26 @@ export default async function EditorPage({
 
   const page = await db.funnelPage.findUnique({
     where: { id: funnelPageId },
-    include: { Funnel: { select: { id: true, subAccountId: true, published: true } } },
+    include: {
+      Funnel: {
+        select: {
+          id: true,
+          subAccountId: true,
+          SubAccount: { select: { agencyId: true } },
+        },
+      },
+    },
   });
   if (!page) return notFound();
 
   return (
-    <EditorProvider
-      subaccountId={page.Funnel.subAccountId}
+    <FunnelEditor
+      pageId={page.id}
+      pageName={page.name}
       funnelId={page.Funnel.id}
-      pageDetails={{
-        id: page.id,
-        name: page.name,
-        order: page.order,
-        content: page.content,
-        funnelId: page.funnelId,
-        published: page.Funnel.published,
-      }}
-    >
-      <Editor />
-    </EditorProvider>
+      subAccountId={page.Funnel.subAccountId}
+      agencyId={page.Funnel.SubAccount.agencyId}
+      initialContent={page.content}
+    />
   );
 }
