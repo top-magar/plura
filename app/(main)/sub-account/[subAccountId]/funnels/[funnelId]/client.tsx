@@ -317,7 +317,7 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
                             const isSelected = liveProducts.includes(p.id);
                             return (
                               <TableRow key={p.id} className={`cursor-pointer ${isSelected ? "bg-primary/[0.03]" : ""}`} onClick={() => setLiveProducts((prev) => prev.includes(p.id) ? prev.filter((id) => id !== p.id) : [...prev, p.id])}>
-                                <TableCell>
+                                <TableCell onClick={(e) => e.stopPropagation()}>
                                   <Checkbox checked={isSelected} onCheckedChange={(checked) => setLiveProducts((prev) => checked ? [...prev, p.id] : prev.filter((id) => id !== p.id))} />
                                 </TableCell>
                                 <TableCell>
