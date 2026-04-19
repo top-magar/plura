@@ -22,7 +22,7 @@ export default function ImageComponent({ element }: { element: EditorElement }) 
 
   if (previewMode || liveMode) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={content.src} alt={content.alt || ''} style={element.styles} />;
+    return <img src={content.src || undefined} alt={content.alt || ''} style={element.styles} />;
   }
 
   return (
@@ -34,7 +34,7 @@ export default function ImageComponent({ element }: { element: EditorElement }) 
     >
       {isSelected && <span className="editor-badge-select">{element.name}</span>}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={content.src} alt={content.alt || ''} style={element.styles} />
+      <img src={content.src || undefined} alt={content.alt || ''} style={element.styles} />
       {isSelected && (
         <button
           className="editor-el-delete"
