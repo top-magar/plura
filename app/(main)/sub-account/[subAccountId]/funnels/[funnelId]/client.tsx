@@ -251,7 +251,7 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="mt-4">
-            <div className="max-w-lg space-y-8">
+            <div className="mx-auto max-w-lg space-y-8">
               {/* General */}
               <div className="space-y-4">
                 <div>
