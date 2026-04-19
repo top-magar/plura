@@ -18,7 +18,7 @@ export default function RightPanel() {
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              className="w-12 shrink-0 h-full border-l flex items-start justify-center pt-3 bg-background text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              className="w-12 shrink-0 h-full border-l border-sidebar-border flex items-start justify-center pt-3 bg-sidebar text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors cursor-pointer"
               onClick={() => setOpen(true)}
             >
               <PanelRightOpen size={18} />
@@ -31,9 +31,9 @@ export default function RightPanel() {
   }
 
   return (
-    <div className="w-80 shrink-0 h-full border-l bg-background flex flex-col overflow-hidden">
+    <div className="w-80 shrink-0 h-full border-l border-sidebar-border bg-sidebar flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-sidebar-border shrink-0">
         <div className="min-w-0">
           <h3 className="font-medium text-sm truncate">
             {hasSelection ? el.name || el.type : 'Properties'}
@@ -44,7 +44,7 @@ export default function RightPanel() {
         </div>
         <button
           onClick={() => setOpen(false)}
-          className="p-1 rounded-md hover:bg-accent text-muted-foreground shrink-0"
+          className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/60 shrink-0"
         >
           <PanelRightClose size={16} />
         </button>

@@ -23,15 +23,15 @@ export default function LeftPanel() {
     <div className="flex shrink-0 h-full">
       {/* Icon rail */}
       <TooltipProvider delayDuration={0}>
-        <div className="w-12 shrink-0 border-r pt-3 flex flex-col items-center gap-1 bg-background">
+        <div className="w-12 shrink-0 border-r border-sidebar-border pt-3 flex flex-col items-center gap-1 bg-sidebar">
           {tabs.map((t) => (
             <Tooltip key={t.id}>
               <TooltipTrigger asChild>
                 <button
                   onClick={() => toggle(t.id)}
                   className={cn(
-                    'flex items-center justify-center size-9 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors',
-                    active === t.id && 'bg-accent text-foreground'
+                    'flex items-center justify-center size-9 rounded-md text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors',
+                    active === t.id && 'bg-sidebar-accent text-sidebar-foreground'
                   )}
                 >
                   <t.icon size={18} />
@@ -45,7 +45,7 @@ export default function LeftPanel() {
 
       {/* Flyout */}
       <div
-        className="shrink-0 overflow-y-auto overflow-x-hidden border-r transition-[width] duration-200 bg-background"
+        className="shrink-0 overflow-y-auto overflow-x-hidden border-r border-sidebar-border transition-[width] duration-200 bg-sidebar"
         style={{ width: active ? 280 : 0 }}
       >
         {active === 'components' && (

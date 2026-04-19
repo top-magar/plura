@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import type { DeviceType } from './types';
 
-const iconBtn = 'flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer';
+const iconBtn = 'flex items-center justify-center size-8 rounded-md text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors cursor-pointer';
 
 const devices: { value: DeviceType; icon: React.ElementType; label: string }[] = [
   { value: 'Desktop', icon: Monitor, label: 'Desktop' },
@@ -61,7 +61,7 @@ export default function EditorNavigation() {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <nav className="flex items-center justify-between h-12 px-3 border-b bg-card shrink-0">
+      <nav className="flex items-center justify-between h-12 px-3 border-b border-sidebar-border bg-sidebar shrink-0">
         {/* Left: back + page name */}
         <div className="flex items-center gap-2">
           <Tooltip>
@@ -81,7 +81,7 @@ export default function EditorNavigation() {
             <Tooltip key={d.value}>
               <TooltipTrigger asChild>
                 <button
-                  className={cn(iconBtn, device === d.value && 'text-foreground bg-accent')}
+                  className={cn(iconBtn, device === d.value && 'text-sidebar-foreground bg-sidebar-accent')}
                   onClick={() => dispatch({ type: 'CHANGE_DEVICE', payload: { device: d.value } })}
                 >
                   <d.icon size={16} />
