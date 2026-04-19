@@ -23,7 +23,8 @@ export default function PipelineForm({ subAccountId, defaultData }: Props) {
   const router = useRouter();
   const { setClose } = useModal();
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, formState: { errors, isSubmitting, isValid } } = useForm({
+    mode: "onChange",
     resolver: zodResolver(schema),
     defaultValues: { name: defaultData?.name ?? "" },
   });
@@ -50,7 +51,7 @@ export default function PipelineForm({ subAccountId, defaultData }: Props) {
         <Input placeholder="Lead Cycle" {...register("name")} disabled={isSubmitting} autoFocus />
         {errors.name && <p className="text-[12px] text-destructive">{errors.name.message}</p>}
       </div>
-      <Button type="submit" disabled={isSubmitting} className="w-full">
+      <Button type="submit" disabled={isSubmitting || !isValid} className="w-full">
         {isSubmitting ? <><Spinner /> Saving...</> : defaultData ? "Update" : "Create pipeline"}
       </Button>
     </form>

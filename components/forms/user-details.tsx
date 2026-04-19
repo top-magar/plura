@@ -42,7 +42,7 @@ export default function UserDetails({ data }: { data: User }) {
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     mode: "onChange",
@@ -108,7 +108,7 @@ export default function UserDetails({ data }: { data: User }) {
 
       <Separator />
 
-      <Button type="submit" disabled={isSubmitting} size="lg">
+      <Button type="submit" disabled={isSubmitting || !isValid} size="lg">
         {isSubmitting ? <><Spinner /> Saving...</> : "Save profile"}
       </Button>
     </form>

@@ -28,8 +28,9 @@ export default function UploadMediaForm({ subAccountId }: { subAccountId: string
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<FormValues>({
+    mode: "onChange",
     resolver: zodResolver(schema),
     defaultValues: { link: "", name: "" },
   });
@@ -66,7 +67,7 @@ export default function UploadMediaForm({ subAccountId }: { subAccountId: string
         <Input placeholder="My image" {...register("name")} disabled={isSubmitting} />
         {errors.name && <p className="text-[12px] text-destructive">{errors.name.message}</p>}
       </div>
-      <Button type="submit" disabled={isSubmitting} className="w-full">
+      <Button type="submit" disabled={isSubmitting || !isValid} className="w-full">
         {isSubmitting ? <><Spinner /> Uploading...</> : "Upload media"}
       </Button>
     </form>

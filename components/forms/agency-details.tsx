@@ -87,7 +87,7 @@ export default function AgencyDetails({ data }: { data?: Partial<Agency> }) {
     setValue,
     reset,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<FormValues>({
     // @ts-expect-error zod v3/v4 compat
     resolver: zodResolver(formSchema),
@@ -266,7 +266,7 @@ export default function AgencyDetails({ data }: { data?: Partial<Agency> }) {
         )}
 
         {/* Actions */}
-        <Button type="submit" disabled={disabled} className="w-full" size="lg">
+        <Button type="submit" disabled={disabled || !isValid} className="w-full" size="lg">
           {isSubmitting ? (
             <><Spinner /> {isEdit ? "Saving…" : "Creating…"}</>
           ) : isEdit ? (

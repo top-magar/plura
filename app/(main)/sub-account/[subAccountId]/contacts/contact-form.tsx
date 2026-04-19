@@ -21,7 +21,8 @@ export default function ContactForm({ subAccountId }: { subAccountId: string }) 
   const router = useRouter();
   const { setClose } = useModal();
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, formState: { errors, isSubmitting, isValid } } = useForm({
+    mode: "onChange",
     resolver: zodResolver(schema),
     defaultValues: { name: "", email: "" },
   });
@@ -50,7 +51,7 @@ export default function ContactForm({ subAccountId }: { subAccountId: string }) 
         <Input placeholder="john@example.com" type="email" {...register("email")} disabled={isSubmitting} />
         {errors.email && <p className="text-[12px] text-destructive">{errors.email.message}</p>}
       </div>
-      <Button type="submit" disabled={isSubmitting} className="w-full">
+      <Button type="submit" disabled={isSubmitting || !isValid} className="w-full">
         {isSubmitting ? <><Spinner /> Adding...</> : "Add contact"}
       </Button>
     </form>

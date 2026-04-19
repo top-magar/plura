@@ -58,7 +58,7 @@ export default function SubAccountDetails({ agencyDetails, details, userName }: 
     handleSubmit,
     setValue,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<FormValues>({
     // @ts-expect-error zod v3/v4 compat
     resolver: zodResolver(formSchema),
@@ -179,7 +179,7 @@ export default function SubAccountDetails({ agencyDetails, details, userName }: 
         </>
       )}
 
-      <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
+      <Button type="submit" disabled={isSubmitting || !isValid} className="w-full" size="lg">
         {isSubmitting ? (
           <><Spinner /> {isEdit ? "Saving..." : "Creating..."}</>
         ) : isEdit ? (

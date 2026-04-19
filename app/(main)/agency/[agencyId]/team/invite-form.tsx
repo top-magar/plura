@@ -22,7 +22,8 @@ export default function InviteForm({ agencyId }: { agencyId: string }) {
   const router = useRouter();
   const { setClose } = useModal();
 
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, setValue, formState: { errors, isSubmitting, isValid } } = useForm({
+    mode: "onChange",
     resolver: zodResolver(schema),
     defaultValues: { email: "", role: "SUBACCOUNT_USER" as const },
   });
@@ -58,7 +59,7 @@ export default function InviteForm({ agencyId }: { agencyId: string }) {
         </Select>
         {errors.role && <p className="text-[12px] text-destructive">{errors.role.message}</p>}
       </div>
-      <Button type="submit" disabled={isSubmitting} className="w-full">
+      <Button type="submit" disabled={isSubmitting || !isValid} className="w-full">
         {isSubmitting ? <><Spinner /> Sending...</> : "Send invitation"}
       </Button>
     </form>
