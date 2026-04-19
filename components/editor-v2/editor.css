@@ -72,15 +72,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  order: 1; /* icons on the right */
 }
 
 .editor-sidebar-content {
-  width: 320px;
   flex-shrink: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  order: 0; /* content on the left */
+  transition: width 0.2s ease;
 }
 
 /* ── Elements ── */
