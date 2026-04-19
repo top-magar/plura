@@ -271,52 +271,6 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
           <TabsContent value="settings" className="mt-4">
             <div className="mx-auto max-w-2xl space-y-6">
 
-              {/* General */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-[15px]">General</CardTitle>
-                  <CardDescription>Basic funnel information</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <label className="text-[13px] font-medium">Funnel name</label>
-                      <Input value={funnelName} onChange={(e) => setFunnelName(e.target.value)} />
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-[13px] font-medium">Subdomain</label>
-                      <div className="flex">
-                        <Input value={subdomain} onChange={(e) => setSubdomain(e.target.value)} placeholder="my-site" className="rounded-r-none" />
-                        <div className="flex items-center rounded-r-md border border-l-0 bg-muted px-3 text-[12px] text-muted-foreground">.{process.env.NEXT_PUBLIC_DOMAIN}</div>
-                      </div>
-                      {subdomain && (
-                        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                          <Globe size={10} /> {subdomain}.{process.env.NEXT_PUBLIC_DOMAIN}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-medium">Description</label>
-                    <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this funnel for?" rows={3} className="resize-none text-[13px]" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-medium">Favicon</label>
-                    <div className="flex items-start gap-4">
-                      {favicon && (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg border bg-muted">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={favicon} alt="Favicon" className="h-8 w-8 object-contain" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <FileUpload value={favicon} onChange={(url: string | undefined) => setFavicon(url || "")} />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Live Products */}
               <Card>
                 <CardHeader>
@@ -390,6 +344,52 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
                       </Table>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+
+              {/* General */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-[15px]">General</CardTitle>
+                  <CardDescription>Basic funnel information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-medium">Funnel name</label>
+                      <Input value={funnelName} onChange={(e) => setFunnelName(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-medium">Subdomain</label>
+                      <div className="flex">
+                        <Input value={subdomain} onChange={(e) => setSubdomain(e.target.value)} placeholder="my-site" className="rounded-r-none" />
+                        <div className="flex items-center rounded-r-md border border-l-0 bg-muted px-3 text-[12px] text-muted-foreground">.{process.env.NEXT_PUBLIC_DOMAIN}</div>
+                      </div>
+                      {subdomain && (
+                        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                          <Globe size={10} /> {subdomain}.{process.env.NEXT_PUBLIC_DOMAIN}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-medium">Description</label>
+                    <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this funnel for?" rows={3} className="resize-none text-[13px]" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-medium">Favicon</label>
+                    <div className="flex items-start gap-4">
+                      {favicon && (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg border bg-muted">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={favicon} alt="Favicon" className="h-8 w-8 object-contain" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <FileUpload value={favicon} onChange={(url: string | undefined) => setFavicon(url || "")} />
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
