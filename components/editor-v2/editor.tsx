@@ -71,7 +71,7 @@ export default function Editor() {
 
         {/* Canvas */}
         <div
-          className="flex-1 overflow-auto bg-muted/50 p-6"
+          className="flex-1 overflow-auto bg-muted/50 p-4"
           style={{
             backgroundImage: 'radial-gradient(circle, hsl(var(--border) / 0.5) 1px, transparent 1px)',
             backgroundSize: '24px 24px',

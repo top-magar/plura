@@ -72,7 +72,7 @@ export default function EditorNavigation() {
             </TooltipTrigger>
             <TooltipContent>Back</TooltipContent>
           </Tooltip>
-          <span className="text-sm font-medium truncate max-w-[200px]">{pageDetails.name}</span>
+          <span className="text-xs font-medium truncate max-w-[180px]">{pageDetails.name}</span>
         </div>
 
         {/* Center: device toggle */}

@@ -50,18 +50,18 @@ export default function LeftPanel() {
       >
         {active === 'components' && (
           <div className="w-64">
-            <div className="p-4 pb-2">
-              <h3 className="font-medium text-sm">Components</h3>
-              <p className="text-xs text-muted-foreground">Drag onto the canvas</p>
+            <div className="px-3 py-2">
+              <h3 className="text-xs font-medium">Components</h3>
+              <p className="text-[10px] text-sidebar-foreground/50">Drag onto the canvas</p>
             </div>
             <ComponentsTab />
           </div>
         )}
         {active === 'layers' && (
           <div className="w-64">
-            <div className="p-4 pb-2">
-              <h3 className="font-medium text-sm">Layers</h3>
-              <p className="text-xs text-muted-foreground">Element tree</p>
+            <div className="px-3 py-2">
+              <h3 className="text-xs font-medium">Layers</h3>
+              <p className="text-[10px] text-sidebar-foreground/50">Element tree</p>
             </div>
             <LayersTab />
           </div>

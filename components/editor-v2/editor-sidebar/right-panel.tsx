@@ -33,12 +33,12 @@ export default function RightPanel() {
   return (
     <div className="w-64 shrink-0 h-full border-l border-sidebar-border bg-sidebar flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-sidebar-border shrink-0">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-sidebar-border shrink-0">
         <div className="min-w-0">
-          <h3 className="font-medium text-sm truncate">
+          <h3 className="text-xs font-medium truncate">
             {hasSelection ? el.name || el.type : 'Properties'}
           </h3>
-          <p className="text-xs text-muted-foreground truncate">
+          <p className="text-[10px] text-sidebar-foreground/50 truncate">
             {hasSelection ? el.type : 'Select an element'}
           </p>
         </div>

@@ -46,22 +46,22 @@ export default function ComponentsTab() {
   }
 
   return (
-    <div className="p-3 overflow-y-auto flex-1">
+    <div className="px-2 pb-2 overflow-y-auto">
       {groups.map((group) => (
-        <div key={group.label} style={{ marginBottom: '16px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: '8px' }}>
+        <div key={group.label} className="mb-3">
+          <p className="text-[10px] font-semibold uppercase text-sidebar-foreground/50 mb-1.5 px-1">
             {group.label}
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <div className="grid grid-cols-2 gap-1.5">
             {group.items.map((item) => (
               <div
                 key={item.type}
-                className="flex flex-col items-center justify-center gap-1 py-3 px-2 border border-border cursor-grab bg-background transition-colors hover:bg-accent"
+                className="flex flex-col items-center justify-center gap-0.5 py-2 px-1.5 rounded-md border border-sidebar-border cursor-grab bg-sidebar hover:bg-sidebar-accent transition-colors"
                 draggable
                 onDragStart={(e) => handleDragStart(e, item.type)}
               >
-                <item.icon size={20} />
-                <span style={{ fontSize: '12px' }}>{item.label}</span>
+                <item.icon className="size-4 text-sidebar-foreground/70" />
+                <span className="text-[11px] text-sidebar-foreground/80">{item.label}</span>
               </div>
             ))}
           </div>
