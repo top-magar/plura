@@ -42,8 +42,6 @@ export default function ElementWrapper({ element, children, className, style, is
       onClick={(e) => { e.stopPropagation(); dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: { element } }); }}
       draggable={!isBody}
       onDragStart={(e) => { if (isBody) return; e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); }}
-      onDragOver={(e) => { if (!isContainer) return; e.preventDefault(); e.stopPropagation(); dispatch({ type: 'SET_DROP_TARGET', payload: { id: element.id } }); }}
-      onDragLeave={() => { if (dropTarget === element.id) dispatch({ type: 'SET_DROP_TARGET', payload: { id: null } }); }}
       onMouseEnter={() => dispatch({ type: 'SET_HOVERED', payload: { id: element.id } })}
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
     >
