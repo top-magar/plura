@@ -2,78 +2,28 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ExternalLink, Globe, LayoutTemplate, MoreHorizontal, Pencil, Plus, Search, Trash2, ArrowUpDown } from "lucide-react";
+import { LayoutTemplate, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { useReactTable, getCoreRowModel, getSortedRowModel, flexRender, type SortingState, type ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useModal } from "@/providers/modal-provider";
 import CustomModal from "@/components/global/custom-modal";
+import { DataTable } from "@/components/global/data-table";
 import FunnelForm from "./funnel-form";
+import { columns, type FunnelColumn } from "./columns";
 import { deleteFunnel, saveActivityLogsNotification } from "@/lib/queries";
 
-type Funnel = {
-  id: string;
-  name: string;
-  description: string | null;
-  subDomainName: string | null;
-  published: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  subAccountId: string;
-  FunnelPages: { id: string }[];
-};
-
-type Props = { funnels: Funnel[]; subAccountId: string };
+type Props = { funnels: FunnelColumn[]; subAccountId: string };
 
 export default function FunnelsClient({ funnels, subAccountId }: Props) {
   const router = useRouter();
   const { setOpen } = useModal();
-  const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [tab, setTab] = useState<"all" | "live" | "draft">("all");
-  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const filtered = funnels
-    .filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))
-    .filter((f) => tab === "all" ? true : tab === "live" ? f.published : !f.published);
-
-  const columns: ColumnDef<Funnel>[] = [
-    { accessorKey: "name", header: ({ column }) => <Button variant="ghost" size="sm" className="h-7 -ml-2 text-[12px]" onClick={() => column.toggleSorting()}>Name <ArrowUpDown className="ml-1 h-3 w-3" /></Button>,
-      cell: ({ row }) => (
-        <Link href={`/sub-account/${subAccountId}/funnels/${row.original.id}`} className="hover:underline">
-          <p className="text-[13px] font-medium">{row.original.name}</p>
-          {row.original.description && <p className="text-[11px] text-muted-foreground line-clamp-1">{row.original.description}</p>}
-        </Link>
-      ),
-    },
-    { id: "status", header: "Status", cell: ({ row }) => <Badge variant="outline" className={`text-[10px] ${row.original.published ? "border-emerald-500/30 text-emerald-600" : ""}`}>{row.original.published ? "Live" : "Draft"}</Badge> },
-    { id: "pages", header: "Pages", cell: ({ row }) => <span className="text-[13px]">{row.original.FunnelPages.length}</span> },
-    { id: "domain", header: "Domain", cell: ({ row }) => row.original.subDomainName ? <span className="flex items-center gap-1 text-[12px] text-muted-foreground"><Globe className="h-3 w-3" />{row.original.subDomainName}</span> : <span className="text-[12px] text-muted-foreground">—</span> },
-    { accessorKey: "updatedAt", header: ({ column }) => <Button variant="ghost" size="sm" className="h-7 -ml-2 text-[12px]" onClick={() => column.toggleSorting()}>Updated <ArrowUpDown className="ml-1 h-3 w-3" /></Button>,
-      cell: ({ row }) => <span className="text-[12px] text-muted-foreground">{new Date(row.original.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>,
-    },
-    { id: "actions", header: "", size: 60, cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon-xs"><MoreHorizontal /></Button></DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild><Link href={`/sub-account/${subAccountId}/funnels/${row.original.id}`}><Pencil /> Edit</Link></DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(row.original.id)}><Trash2 /> Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    )},
-  ];
-
-  const table = useReactTable({ data: filtered, columns, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel() });
-
+  const filtered = funnels.filter((f) => tab === "all" ? true : tab === "live" ? f.published : !f.published);
   const liveCount = funnels.filter((f) => f.published).length;
   const draftCount = funnels.filter((f) => !f.published).length;
 
@@ -84,9 +34,7 @@ export default function FunnelsClient({ funnels, subAccountId }: Props) {
       await saveActivityLogsNotification({ description: "Deleted a funnel", subAccountId });
       toast.success("Funnel deleted");
       router.refresh();
-    } catch {
-      toast.error("Could not delete funnel");
-    }
+    } catch { toast.error("Could not delete funnel"); }
     setDeleteId(null);
   };
 
@@ -100,71 +48,32 @@ export default function FunnelsClient({ funnels, subAccountId }: Props) {
   return (
     <>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Funnels</h1>
-            <p className="mt-1 text-[13px] text-muted-foreground">
-              Build and manage websites and funnels for your clients.
-            </p>
+            <p className="mt-1 text-[13px] text-muted-foreground">Build and manage websites and funnels for your clients.</p>
           </div>
-          <Button onClick={openCreate} className="gap-1.5">
-            <Plus /> New funnel
-          </Button>
+          <Button onClick={openCreate} className="gap-1.5"><Plus /> New funnel</Button>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as "all" | "live" | "draft")}>
-            <TabsList>
-              <TabsTrigger value="all" className="text-[12px]">All ({funnels.length})</TabsTrigger>
-              <TabsTrigger value="live" className="text-[12px]">Live ({liveCount})</TabsTrigger>
-              <TabsTrigger value="draft" className="text-[12px]">Drafts ({draftCount})</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <div className="relative w-full sm:w-64">
-            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search funnels..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-          </div>
-        </div>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as "all" | "live" | "draft")}>
+          <TabsList>
+            <TabsTrigger value="all" className="text-[12px]">All ({funnels.length})</TabsTrigger>
+            <TabsTrigger value="live" className="text-[12px]">Live ({liveCount})</TabsTrigger>
+            <TabsTrigger value="draft" className="text-[12px]">Drafts ({draftCount})</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {filtered.length > 0 ? (
-          <div className="rounded-lg border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((hg) => (
-                  <TableRow key={hg.id}>
-                    {hg.headers.map((h) => (
-                      <TableHead key={h.id}>{h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}</TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <DataTable columns={columns(subAccountId, setDeleteId)} data={filtered} searchKey="name" searchPlaceholder="Search funnels..." />
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
               <LayoutTemplate className="h-6 w-6 text-muted-foreground/50" />
             </div>
-            <p className="mt-4 text-[14px] font-medium">{search ? "No funnels match your search" : "No funnels yet"}</p>
-            <p className="mt-1 text-[12px] text-muted-foreground">
-              {search ? "Try a different search term" : "Create your first funnel to get started"}
-            </p>
-            {!search && (
-              <Button className="mt-4 gap-1.5" onClick={openCreate}>
-                <Plus /> Create funnel
-              </Button>
-            )}
+            <p className="mt-4 text-[14px] font-medium">No funnels yet</p>
+            <p className="mt-1 text-[12px] text-muted-foreground">Create your first funnel to get started</p>
+            <Button className="mt-4 gap-1.5" onClick={openCreate}><Plus /> Create funnel</Button>
           </div>
         )}
       </div>
