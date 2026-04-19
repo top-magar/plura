@@ -14,7 +14,7 @@ import {
   CaseUpper, CaseLower, CaseSensitive,
   Minus, Minus as MinusIcon, SquareDashed, SeparatorHorizontal,
   BoxSelect, Scan, Palette, Radius, LayoutGrid, Move, Sparkles, Layers, Space,
-  Pencil, Copy, Trash2, Star,
+  Pencil, Copy, Trash2, Star, Lock as LockIcon, Eye as EyeIcon,
 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -27,6 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { El } from "../types";
+import { cn } from "@/lib/utils";
 import { useEditor } from "../editor-provider";
 import { findParentId } from "../tree-helpers";
 
@@ -241,6 +242,16 @@ export default function SettingsTab() {
       <TooltipProvider delayDuration={200}>
         <div className="flex gap-1 border-b border-sidebar-border px-3 py-1.5">
           <Tooltip><TooltipTrigger asChild><Button variant="outline" size="icon" className="size-7" onClick={onDuplicate}><Copy size={13} /></Button></TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">Duplicate</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild>
+            <Button variant="outline" size="icon" className={cn("size-7", selected.locked && "bg-amber-500/10 text-amber-500 border-amber-500/30")} onClick={() => onUpdate({ ...selected, locked: !selected.locked })}>
+              <LockIcon size={13} />
+            </Button>
+          </TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">{selected.locked ? "Unlock" : "Lock"}</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild>
+            <Button variant="outline" size="icon" className={cn("size-7", selected.hidden && "bg-muted text-muted-foreground")} onClick={() => onUpdate({ ...selected, hidden: !selected.hidden })}>
+              <EyeIcon size={13} />
+            </Button>
+          </TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">{selected.hidden ? "Show" : "Hide"}</TooltipContent></Tooltip>
           {selected.type !== "__body" && (
             <Tooltip><TooltipTrigger asChild><Button variant="outline" size="icon" className="size-7 hover:bg-destructive/10 hover:text-destructive hover:border-destructive" onClick={() => dispatch({ type: "DELETE_ELEMENT", payload: { id: selected.id } })}><Trash2 size={13} /></Button></TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">Delete</TooltipContent></Tooltip>
           )}

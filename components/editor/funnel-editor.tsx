@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, type CSSProperties } from "react";
 import { EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { upsertFunnelPage, upsertFunnel } from "@/lib/queries";
 import type { El, EditorProps } from "./types";
-import { cloneEl, findParentId, getAncestorPath } from "./tree-helpers";
+import { cloneEl, findParentId, getAncestorPath, findEl as findElInTree } from "./tree-helpers";
 import { cn } from "@/lib/utils";
 import Recursive from "./recursive";
 import { EditorProvider, useEditor } from "./editor-provider";
@@ -30,6 +30,7 @@ function EditorInner() {
 
   const [dirty, setDirty] = useState(false);
   const [clipboard, setClipboard] = useState<El | null>(null);
+  const [styleClipboard, setStyleClipboard] = useState<CSSProperties | null>(null);
   const [pageTitle, setPageTitle] = useState(pageName);
   const [zoom, setZoom] = useState(100);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -96,8 +97,16 @@ function EditorInner() {
       const parentId = findParentId(elements, selected.id);
       if (parentId) { dispatch({ type: "DUPLICATE_ELEMENT", payload: { elId: selected.id, containerId: parentId } }); setDirty(true); }
     }
-    if (mod && e.key === "c" && selected && selected.type !== "__body") { e.preventDefault(); setClipboard(selected); toast.success("Copied"); }
-    if (mod && e.key === "v" && clipboard) {
+    if (mod && e.key === "c" && !e.altKey && selected && selected.type !== "__body") { e.preventDefault(); setClipboard(selected); toast.success("Copied"); }
+    // Style copy: Cmd+Alt+C
+    if (mod && e.altKey && e.key === "c" && selected) { e.preventDefault(); setStyleClipboard(selected.styles); toast.success("Styles copied"); }
+    // Style paste: Cmd+Alt+V
+    if (mod && e.altKey && e.key === "v" && selected && styleClipboard) {
+      e.preventDefault();
+      dispatch({ type: "UPDATE_ELEMENT", payload: { element: { ...selected, styles: { ...selected.styles, ...styleClipboard } } } });
+      setDirty(true); toast.success("Styles pasted");
+    }
+    if (mod && !e.altKey && e.key === "v" && clipboard) {
       e.preventDefault();
       const target = selected && Array.isArray(selected.content) ? selected.id : "__body";
       dispatch({ type: "ADD_ELEMENT", payload: { containerId: target, element: cloneEl(clipboard) } });
@@ -107,7 +116,20 @@ function EditorInner() {
       if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
       dispatch({ type: "DELETE_ELEMENT", payload: { id: selected.id } }); setDirty(true);
     }
-    if (e.key === "Escape") dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } });
+    if (e.key === "Escape") {
+      if (selected && selected.type !== "__body") {
+        // Walk up: select parent instead of deselecting
+        const parentId = findParentId(elements, selected.id);
+        if (parentId && parentId !== "__body") {
+          const parent = elements[0] && findElInTree(elements, parentId);
+          dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: parent } });
+        } else {
+          dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } });
+        }
+      } else {
+        dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } });
+      }
+    }
     if (mod && e.key === "ArrowUp" && selected && selected.type !== "__body") { e.preventDefault(); dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "up" } }); setDirty(true); }
     if (mod && e.key === "ArrowDown" && selected && selected.type !== "__body") { e.preventDefault(); dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "down" } }); setDirty(true); }
     if (mod && e.key === "=") { e.preventDefault(); setZoom((z) => Math.min(200, z + 10)); }

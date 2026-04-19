@@ -1,7 +1,7 @@
 'use client';
 
 import type { CSSProperties, ReactNode } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Lock } from 'lucide-react';
 import { useEditor } from './editor-provider';
 import { cn } from '@/lib/utils';
 import type { El, Device } from './types';
@@ -23,8 +23,20 @@ export default function ElementWrapper({ element, children, className, style, is
   const isSel = selected?.id === element.id;
   const isHov = hovered === element.id && !isSel;
   const isDrop = dropTarget === element.id && isContainer;
+  const isLocked = element.locked;
+  const isHidden = element.hidden;
 
   const resolved = style ?? resolveStyles(element, device);
+
+  // Hidden elements: invisible in editor, gone in preview
+  if (isHidden && preview) return null;
+  if (isHidden && !preview) {
+    return (
+      <div className="relative opacity-20 pointer-events-none" style={resolved}>
+        {children}
+      </div>
+    );
+  }
 
   if (preview) {
     return <div style={resolved} className={className}>{children}</div>;
@@ -43,8 +55,8 @@ export default function ElementWrapper({ element, children, className, style, is
       )}
       style={resolved}
       onClick={(e) => { e.stopPropagation(); dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: { element } }); }}
-      draggable={!isBody}
-      onDragStart={(e) => { if (isBody) return; e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); }}
+      draggable={!isBody && !isLocked}
+      onDragStart={(e) => { if (isBody || isLocked) return; e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); }}
       onDragOver={(e) => { e.preventDefault(); }}
       onMouseEnter={() => dispatch({ type: 'SET_HOVERED', payload: { id: element.id } })}
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
@@ -52,6 +64,7 @@ export default function ElementWrapper({ element, children, className, style, is
       {/* Select badge: name + delete */}
       {isSel && !isBody && (
         <span className="absolute -top-5 left-1 flex items-center gap-1 text-[9px] leading-none px-1.5 py-0.5 rounded-sm bg-primary text-primary-foreground z-10">
+          {isLocked && <Lock className="size-2" />}
           <span className="pointer-events-none">{element.name}</span>
           <button
             className="ml-0.5 hover:text-destructive"
