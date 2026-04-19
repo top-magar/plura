@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
-import FileUpload from "@/components/global/file-upload";
+import { FileUpload } from "@/components/global/file-upload";
 import { upsertFunnel, upsertFunnelPage, saveActivityLogsNotification } from "@/lib/queries";
 import { useModal } from "@/providers/modal-provider";
 
@@ -98,7 +98,7 @@ export default function FunnelForm({ subAccountId, defaultData }: Props) {
 
       <div className="space-y-1.5">
         <label className="text-[13px] font-medium">Favicon</label>
-        <FileUpload value={watch("favicon") || ""} onChange={(url) => setValue("favicon", url)} />
+        <FileUpload value={watch("favicon") || ""} onChange={(url: string | undefined) => setValue("favicon", url || "")} />
       </div>
 
       <Button type="submit" disabled={isSubmitting} className="w-full">
