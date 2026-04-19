@@ -19,7 +19,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    dispatch({ type: "SET_DROP_TARGET", payload: { id: element.id } });
+    if (dropTarget !== element.id) dispatch({ type: "SET_DROP_TARGET", payload: { id: element.id } });
   }
 
   function handleDragLeave(e: React.DragEvent) {

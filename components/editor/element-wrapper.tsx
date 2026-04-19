@@ -42,6 +42,7 @@ export default function ElementWrapper({ element, children, className, style, is
       onClick={(e) => { e.stopPropagation(); dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: { element } }); }}
       draggable={!isBody}
       onDragStart={(e) => { if (isBody) return; e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); }}
+      onDragOver={(e) => { e.preventDefault(); }}
       onMouseEnter={() => dispatch({ type: 'SET_HOVERED', payload: { id: element.id } })}
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
     >
