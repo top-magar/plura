@@ -524,10 +524,11 @@ export async function upsertFunnel(funnel: {
   subAccountId: string;
   favicon?: string;
   liveProducts?: string;
+  published?: boolean;
 }) {
   return db.funnel.upsert({
     where: { id: funnel.id || "" },
-    update: { name: funnel.name, description: funnel.description, subDomainName: funnel.subDomainName, favicon: funnel.favicon, liveProducts: funnel.liveProducts },
+    update: { name: funnel.name, description: funnel.description, subDomainName: funnel.subDomainName, favicon: funnel.favicon, liveProducts: funnel.liveProducts, published: funnel.published },
     create: { name: funnel.name, description: funnel.description, subDomainName: funnel.subDomainName, subAccountId: funnel.subAccountId, favicon: funnel.favicon, liveProducts: funnel.liveProducts },
   });
 }

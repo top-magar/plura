@@ -48,8 +48,8 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
 
   const handlePublishToggle = async (published: boolean) => {
     try {
-      await upsertFunnel({ id: funnel.id, name: funnel.name, subAccountId, subDomainName: subdomain || undefined });
-      toast.success(published ? "Published" : "Unpublished");
+      await upsertFunnel({ id: funnel.id, name: funnel.name, subAccountId, subDomainName: subdomain || undefined, published });
+      toast.success(published ? "Funnel published" : "Funnel unpublished");
       router.refresh();
     } catch { toast.error("Could not update"); }
   };
