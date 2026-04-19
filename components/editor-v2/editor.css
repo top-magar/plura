@@ -174,3 +174,9 @@
   cursor: pointer;
   font-size: 13px;
 }
+
+/* Hide Sheet close button in editor sidebar */
+.fixed.z-\[80\] [data-slot="sheet-close"],
+.fixed.z-\[40\] [data-slot="sheet-close"] {
+  display: none;
+}

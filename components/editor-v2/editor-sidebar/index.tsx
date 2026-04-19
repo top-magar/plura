@@ -3,7 +3,8 @@
 import React from 'react';
 import { useEditor } from '../editor-provider';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Database, Plus, SettingsIcon, Layers, SquareStackIcon } from 'lucide-react';
 import ComponentsTab from './components-tab';
 import LayersTab from './layers-tab';
 import SettingsTab from './settings-tab';
@@ -13,28 +14,53 @@ export default function EditorSidebar() {
 
   return (
     <Sheet open={true} modal={false}>
-      <SheetContent
-        side="right"
-        className={`z-[40] w-[380px] shadow-none p-0 transition-all ${state.editor.previewMode ? 'hidden' : ''}`}
-      >
-        <SheetTitle className="sr-only">Editor Sidebar</SheetTitle>
-        <Tabs defaultValue="components" className="h-full flex flex-col">
-          <TabsList className="w-full grid grid-cols-3 rounded-none h-10 bg-transparent border-b">
-            <TabsTrigger value="components" className="text-xs rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary">Components</TabsTrigger>
-            <TabsTrigger value="layers" className="text-xs rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary">Layers</TabsTrigger>
-            <TabsTrigger value="settings" className="text-xs rounded-none data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary">Settings</TabsTrigger>
+      <Tabs className="w-full" defaultValue="Settings">
+        <SheetContent
+          
+          side="right"
+          className={`mt-[97px] w-16 z-[80] shadow-none p-0 focus:border-none transition-all overflow-hidden ${state.editor.previewMode ? 'hidden' : ''}`}
+        >
+          <SheetTitle className="sr-only">Editor Sidebar</SheetTitle>
+          <TabsList className="flex flex-col items-center gap-4 bg-transparent w-full h-fit py-4">
+            <TabsTrigger value="Settings" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
+              <SettingsIcon size={16} />
+            </TabsTrigger>
+            <TabsTrigger value="Components" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
+              <Plus size={16} />
+            </TabsTrigger>
+            <TabsTrigger value="Layers" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
+              <Layers size={16} />
+            </TabsTrigger>
+            <TabsTrigger value="Media" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
+              <Database size={16} />
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="components" className="flex-1 overflow-auto mt-0 p-0">
-            <ComponentsTab />
-          </TabsContent>
-          <TabsContent value="layers" className="flex-1 overflow-auto mt-0 p-0">
-            <LayersTab />
-          </TabsContent>
-          <TabsContent value="settings" className="flex-1 overflow-auto mt-0 p-0">
-            <SettingsTab />
-          </TabsContent>
-        </Tabs>
-      </SheetContent>
+        </SheetContent>
+
+        <SheetContent
+          
+          side="right"
+          className={`mt-[97px] w-80 z-[40] mr-16 shadow-none p-0 focus:border-none transition-all overflow-hidden ${state.editor.previewMode ? 'hidden' : ''}`}
+        >
+          <SheetTitle className="sr-only">Sidebar Content</SheetTitle>
+          <div className="h-full overflow-auto px-4 py-4">
+            <TabsContent value="Settings" className="mt-0">
+              <SettingsTab />
+            </TabsContent>
+            <TabsContent value="Components" className="mt-0">
+              <ComponentsTab />
+            </TabsContent>
+            <TabsContent value="Layers" className="mt-0">
+              <LayersTab />
+            </TabsContent>
+            <TabsContent value="Media" className="mt-0">
+              <div className="text-sm text-muted-foreground text-center py-8">
+                Media bucket coming soon
+              </div>
+            </TabsContent>
+          </div>
+        </SheetContent>
+      </Tabs>
     </Sheet>
   );
 }
