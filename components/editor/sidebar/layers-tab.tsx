@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 import {
-  ChevronRight, ChevronDown,
+  ChevronRight, ChevronDown, Search,
   Type, Link2, Image, Video, Layout, Columns2, Minus, Square,
   Quote, Star, Code, List, MapPin, Timer, Navigation,
   PanelBottom, Share2, CodeXml, ImageIcon, CreditCard, Contact,
   Heading1, CheckSquare, Rows3, Globe,
 } from "lucide-react";
-import type { El } from "./types";
-import { useEditor } from "./editor-provider";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import type { El } from "../types";
+import { useEditor } from "../editor-provider";
 
-// Color + icon per element type
 const typeConfig: Record<string, { icon: React.ComponentType<{ size?: number; className?: string }>; color: string; label: string }> = {
   __body:       { icon: Globe,       color: "#6366f1", label: "Body" },
   container:    { icon: Square,      color: "#8b5cf6", label: "Container" },
@@ -47,15 +48,15 @@ const fallback = { icon: Square, color: "#64748b", label: "Element" };
 
 function matchesChild(el: El, filter: string): boolean {
   if (!filter) return true;
-  if (el.name.toLowerCase().includes(filter.toLowerCase()) || el.type.toLowerCase().includes(filter.toLowerCase())) return true;
+  const lf = filter.toLowerCase();
+  if (el.name.toLowerCase().includes(lf) || el.type.toLowerCase().includes(lf)) return true;
   if (Array.isArray(el.content)) return el.content.some((c) => matchesChild(c, filter));
   return false;
 }
 
-export function LayerTree({ el, depth, filter = "" }: { el: El; depth: number; filter?: string }) {
+function LayerNode({ el, depth, filter }: { el: El; depth: number; filter: string }) {
   const { state, dispatch } = useEditor();
   const selected = state.editor.selected;
-  const onSelect = (el: El) => dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: { element: el } });
   const children = Array.isArray(el.content) ? el.content : [];
   const hasChildren = children.length > 0;
   const matchesFilter = !filter || el.name.toLowerCase().includes(filter.toLowerCase()) || el.type.toLowerCase().includes(filter.toLowerCase());
@@ -70,38 +71,50 @@ export function LayerTree({ el, depth, filter = "" }: { el: El; depth: number; f
   return (
     <div>
       <button
-        onClick={() => onSelect(el)}
-        className={`editor-layer-btn ${isSel ? "active" : ""}`}
+        onClick={() => dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: el } })}
+        className={cn(
+          "flex w-full items-center gap-1.5 rounded-sm px-1 py-0.5 text-xs hover:bg-sidebar-accent",
+          isSel && "bg-primary/10 text-primary"
+        )}
         style={{ paddingLeft: depth * 14 + 4 }}
       >
-        {/* Expand/collapse toggle */}
         {hasChildren ? (
-          <span
-            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-            className="layer-chevron"
-          >
+          <span onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }} className="flex size-4 shrink-0 items-center justify-center">
             {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
           </span>
         ) : (
-          <span className="layer-chevron-spacer" />
+          <span className="size-4 shrink-0" />
         )}
-
-        {/* Colored type icon */}
-        <span style={{ color: config.color, display: "flex", flexShrink: 0 }}><Icon size={12} /></span>
-
-        {/* Name */}
-        <span className="layer-name">{el.name}</span>
-
-        {/* Child count badge */}
-        {hasChildren && (
-          <span className="layer-count">{children.length}</span>
-        )}
+        <span style={{ color: config.color }} className="flex shrink-0"><Icon size={12} /></span>
+        <span className="truncate">{el.name}</span>
+        {hasChildren && <span className="ml-auto shrink-0 text-[9px] text-muted-foreground">{children.length}</span>}
       </button>
+      {expanded && children.map((c) => <LayerNode key={c.id} el={c} depth={depth + 1} filter={filter} />)}
+    </div>
+  );
+}
 
-      {/* Children */}
-      {expanded && children.map((c) => (
-        <LayerTree key={c.id} el={c} depth={depth + 1} filter={filter} />
-      ))}
+export default function LayersTab() {
+  const { state } = useEditor();
+  const [search, setSearch] = useState("");
+  const body = state.editor.elements[0];
+
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="p-2 pb-1">
+        <div className="relative">
+          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search layers..."
+            className="h-7 pl-7 text-xs"
+          />
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-2 py-1">
+        {body && <LayerNode el={body} depth={0} filter={search} />}
+      </div>
     </div>
   );
 }

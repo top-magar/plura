@@ -1,25 +1,17 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Layout, Layers, Bookmark, ZoomIn, ZoomOut, Globe2, Search, FileCode } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { upsertFunnelPage, savePageTemplate, getPageTemplates, deletePageTemplate, upsertFunnel } from "@/lib/queries";
-import type { El, Device, EditorProps } from "./types";
+import { upsertFunnelPage, upsertFunnel } from "@/lib/queries";
+import type { El, EditorProps } from "./types";
 import { cloneEl, findParentId } from "./tree-helpers";
-import { makeEl, componentGroups } from "./element-factory";
-import { ElementRenderer } from "./element-renderers";
+import { cn } from "@/lib/utils";
+import Recursive from "./recursive";
 import { EditorProvider, useEditor } from "./editor-provider";
-import { DesignPanel } from "./design-panel";
-import { LayerTree } from "./layers-panel";
-import "./editor.css";
+import EditorNavigation from "./editor-navigation";
+import { LeftPanel, RightPanel } from "./sidebar";
 
-/* ─── Wrapper: provides context ─────────────────────────── */
 
 export default function FunnelEditor(props: EditorProps) {
   return (
@@ -29,12 +21,8 @@ export default function FunnelEditor(props: EditorProps) {
   );
 }
 
-/* ─── Inner: all editor UI ──────────────────────────────── */
-
 function EditorInner() {
-  const { state, dispatch, pageId, pageName, funnelId, subAccountId, agencyId } = useEditor();
-  const router = useRouter();
-
+  const { state, dispatch, pageId, pageName, funnelId, subAccountId } = useEditor();
   const elements = state.editor.elements;
   const selected = state.editor.selected;
   const device = state.editor.device;
@@ -42,16 +30,11 @@ function EditorInner() {
 
   const [dirty, setDirty] = useState(false);
   const [clipboard, setClipboard] = useState<El | null>(null);
-  const [sidebarTab, setSidebarTab] = useState<"components" | "layers" | "templates">("components");
-  const [propsTab, setPropsTab] = useState<"design" | "content">("design");
   const [pageTitle, setPageTitle] = useState(pageName);
-  const [templates, setTemplates] = useState<{ id: string; name: string; content: string; category: string }[]>([]);
-  const [templatesLoaded, setTemplatesLoaded] = useState(false);
   const [zoom, setZoom] = useState(100);
-  const [layerSearch, setLayerSearch] = useState("");
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auto-save: debounce 5s after changes
+  // Auto-save
   useEffect(() => {
     if (!dirty) return;
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
@@ -63,40 +46,6 @@ function EditorInner() {
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
   }, [dirty, elements, pageTitle, pageId, funnelId]);
 
-  const undo = () => dispatch({ type: "UNDO" });
-  const redo = () => dispatch({ type: "REDO" });
-
-  const doAdd = (containerId: string, type: string) => {
-    const el = makeEl(type);
-    if (!el) return;
-    dispatch({ type: "ADD_ELEMENT", payload: { containerId, element: el } });
-    setDirty(true);
-  };
-
-  const doUpdate = (updated: El) => {
-    dispatch({ type: "UPDATE_ELEMENT", payload: { element: updated } });
-    setDirty(true);
-  };
-
-  const doDelete = (id: string) => {
-    dispatch({ type: "DELETE_ELEMENT", payload: { id } });
-    setDirty(true);
-  };
-
-  const doMove = (elId: string, targetId: string) => {
-    if (elId === targetId) return;
-    dispatch({ type: "MOVE_ELEMENT", payload: { elId, targetContainerId: targetId } });
-    setDirty(true);
-  };
-
-  const doDuplicate = () => {
-    if (!selected || selected.type === "__body") return;
-    const parentId = findParentId(elements, selected.id);
-    if (!parentId) return;
-    dispatch({ type: "DUPLICATE_ELEMENT", payload: { elId: selected.id, containerId: parentId } });
-    setDirty(true);
-  };
-
   const handleSave = async () => {
     try {
       await upsertFunnelPage({ id: pageId, name: pageTitle, funnelId, order: 0, content: JSON.stringify(elements) });
@@ -105,40 +54,7 @@ function EditorInner() {
     } catch { toast.error("Could not save"); }
   };
 
-  const loadTemplates = async () => {
-    if (templatesLoaded) return;
-    const t = await getPageTemplates(agencyId);
-    setTemplates(t.map((x) => ({ id: x.id, name: x.name, content: x.content, category: x.category })));
-    setTemplatesLoaded(true);
-  };
-
-  const handleSaveTemplate = async () => {
-    const name = prompt("Template name:");
-    if (!name) return;
-    await savePageTemplate({ name, content: JSON.stringify(elements), agencyId });
-    setTemplatesLoaded(false);
-    toast.success("Template saved");
-  };
-
-  const handleLoadTemplate = (content: string) => {
-    try {
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed) && parsed.length) {
-        dispatch({ type: "SET_ELEMENTS", payload: { elements: parsed } });
-        dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } });
-        setDirty(true);
-        toast.success("Template loaded");
-      }
-    } catch { toast.error("Invalid template"); }
-  };
-
-  const handleDeleteTemplate = async (id: string) => {
-    await deletePageTemplate(id);
-    setTemplates((t) => t.filter((x) => x.id !== id));
-    toast.success("Template deleted");
-  };
-
-  const handlePublishToggle = async () => {
+  const handlePublish = async () => {
     try {
       await upsertFunnelPage({ id: pageId, name: pageTitle, funnelId, order: 0, content: JSON.stringify(elements) });
       setDirty(false);
@@ -148,6 +64,7 @@ function EditorInner() {
   };
 
   const handleExportHTML = () => {
+    const body = elements[0];
     const renderEl = (el: El): string => {
       const style = Object.entries(el.styles).map(([k, v]) => `${k.replace(/([A-Z])/g, "-$1").toLowerCase()}:${v}`).join(";");
       const c = el.content as Record<string, string>;
@@ -171,180 +88,66 @@ function EditorInner() {
   };
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
-    if ((e.metaKey || e.ctrlKey) && e.key === "s") { e.preventDefault(); handleSave(); }
-    if ((e.metaKey || e.ctrlKey) && e.key === "d") { e.preventDefault(); doDuplicate(); }
-    if ((e.metaKey || e.ctrlKey) && e.key === "c" && selected && selected.type !== "__body") { e.preventDefault(); setClipboard(selected); toast.success("Copied"); }
-    if ((e.metaKey || e.ctrlKey) && e.key === "v" && clipboard) {
+    const mod = e.metaKey || e.ctrlKey;
+    if (mod && e.key === "z") { e.preventDefault(); e.shiftKey ? dispatch({ type: "REDO" }) : dispatch({ type: "UNDO" }); }
+    if (mod && e.key === "s") { e.preventDefault(); handleSave(); }
+    if (mod && e.key === "d" && selected && selected.type !== "__body") {
+      e.preventDefault();
+      const parentId = findParentId(elements, selected.id);
+      if (parentId) { dispatch({ type: "DUPLICATE_ELEMENT", payload: { elId: selected.id, containerId: parentId } }); setDirty(true); }
+    }
+    if (mod && e.key === "c" && selected && selected.type !== "__body") { e.preventDefault(); setClipboard(selected); toast.success("Copied"); }
+    if (mod && e.key === "v" && clipboard) {
       e.preventDefault();
       const target = selected && Array.isArray(selected.content) ? selected.id : "__body";
-      const clone = cloneEl(clipboard);
-      dispatch({ type: "ADD_ELEMENT", payload: { containerId: target, element: clone } });
+      dispatch({ type: "ADD_ELEMENT", payload: { containerId: target, element: cloneEl(clipboard) } });
       setDirty(true);
     }
     if ((e.key === "Delete" || e.key === "Backspace") && selected && selected.type !== "__body") {
       if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
-      doDelete(selected.id);
+      dispatch({ type: "DELETE_ELEMENT", payload: { id: selected.id } }); setDirty(true);
     }
     if (e.key === "Escape") dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } });
-    if (e.key === "ArrowUp" && (e.metaKey || e.ctrlKey) && selected && selected.type !== "__body") {
-      e.preventDefault();
-      dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "up" } });
-      setDirty(true);
-    }
-    if (e.key === "ArrowDown" && (e.metaKey || e.ctrlKey) && selected && selected.type !== "__body") {
-      e.preventDefault();
-      dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "down" } });
-      setDirty(true);
-    }
-    if ((e.metaKey || e.ctrlKey) && e.key === "=") { e.preventDefault(); setZoom((z) => Math.min(200, z + 10)); }
-    if ((e.metaKey || e.ctrlKey) && e.key === "-") { e.preventDefault(); setZoom((z) => Math.max(50, z - 10)); }
-    if ((e.metaKey || e.ctrlKey) && e.key === "0") { e.preventDefault(); setZoom(100); }
+    if (mod && e.key === "ArrowUp" && selected && selected.type !== "__body") { e.preventDefault(); dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "up" } }); setDirty(true); }
+    if (mod && e.key === "ArrowDown" && selected && selected.type !== "__body") { e.preventDefault(); dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "down" } }); setDirty(true); }
+    if (mod && e.key === "=") { e.preventDefault(); setZoom((z) => Math.min(200, z + 10)); }
+    if (mod && e.key === "-") { e.preventDefault(); setZoom((z) => Math.max(50, z - 10)); }
+    if (mod && e.key === "0") { e.preventDefault(); setZoom(100); }
   }, [selected, clipboard, elements]);
 
   const body = elements[0];
   const deviceWidth = device === "Desktop" ? "100%" : device === "Tablet" ? 768 : 420;
-  const canUndo = state.history.currentIndex > 0;
-  const canRedo = state.history.currentIndex < state.history.history.length - 1;
 
   return (
-    <div className="editor-root" onKeyDown={handleKeyDown} tabIndex={0}>
+    <div className="fixed inset-0 z-20 flex flex-col bg-background text-foreground text-sm leading-snug outline-none antialiased" onKeyDown={handleKeyDown} tabIndex={0}>
       {!preview && (
-        <div className="editor-toolbar">
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Button asChild variant="ghost" size="icon-xs"><Link href={`/sub-account/${subAccountId}/funnels/${funnelId}`}><ArrowLeft /></Link></Button>
-            <input className="editor-props-name-input" value={pageTitle} onChange={(e) => { setPageTitle(e.target.value); setDirty(true); }} style={{ width: 140 }} />
-          </div>
-          <div className="editor-device-toggle">
-            {([["Desktop", Laptop], ["Tablet", Tablet], ["Mobile", Smartphone]] as const).map(([d, Icon]) => (
-              <button key={d} onClick={() => dispatch({ type: "CHANGE_DEVICE", payload: { device: d as Device } })} className={`editor-device-btn ${device === d ? "active" : ""}`}>
-                <Icon size={14} />
-              </button>
-            ))}
-          </div>
-          <TooltipProvider delayDuration={300}>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={() => dispatch({ type: "TOGGLE_PREVIEW" })}><Eye /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Preview</TooltipContent></Tooltip>
-            <Separator orientation="vertical" className="h-5" />
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={() => setZoom((z) => Math.max(50, z - 10))}><ZoomOut size={14} /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Zoom Out (Cmd+-)</TooltipContent></Tooltip>
-            <span style={{ fontSize: 10, width: 32, textAlign: "center", color: "var(--muted-foreground)" }}>{zoom}%</span>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={() => setZoom((z) => Math.min(200, z + 10))}><ZoomIn size={14} /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Zoom In (Cmd+=)</TooltipContent></Tooltip>
-            <Separator orientation="vertical" className="h-5" />
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={undo} disabled={!canUndo}><Undo2 /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Undo (Cmd+Z)</TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={redo} disabled={!canRedo}><Redo2 /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Redo (Cmd+Shift+Z)</TooltipContent></Tooltip>
-            <Separator orientation="vertical" className="h-5" />
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={handleExportHTML}><FileCode size={14} /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Export HTML</TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={handlePublishToggle}><Globe2 size={14} /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Publish</TooltipContent></Tooltip>
-            <Separator orientation="vertical" className="h-5" />
-            <Button size="sm" onClick={handleSave} className="gap-1 text-[12px] relative">
-              <Save className="h-3.5 w-3.5" /> Save
-              {dirty && <span className="editor-dirty-dot" />}
-            </Button>
-          </div>
-          </TooltipProvider>
-        </div>
+        <EditorNavigation
+          pageTitle={pageTitle}
+          onPageTitleChange={(v) => { setPageTitle(v); setDirty(true); }}
+          dirty={dirty}
+          zoom={zoom}
+          onZoomIn={() => setZoom((z) => Math.min(200, z + 10))}
+          onZoomOut={() => setZoom((z) => Math.max(50, z - 10))}
+          onSave={handleSave}
+          onExportHTML={handleExportHTML}
+          onPublish={handlePublish}
+        />
       )}
 
-      <div className="editor-body">
-        {!preview && (
-          <div className="editor-sidebar">
-            <div className="editor-sidebar-tabs">
-              <button className={`editor-sidebar-tab ${sidebarTab === "components" ? "active" : ""}`} onClick={() => setSidebarTab("components")}><Layout size={12} /> Components</button>
-              <button className={`editor-sidebar-tab ${sidebarTab === "layers" ? "active" : ""}`} onClick={() => setSidebarTab("layers")}><Layers size={12} /> Layers</button>
-              <button className={`editor-sidebar-tab ${sidebarTab === "templates" ? "active" : ""}`} onClick={() => { setSidebarTab("templates"); loadTemplates(); }}><Bookmark size={12} /> Templates</button>
-            </div>
+      <div className="flex flex-1 overflow-hidden min-h-0">
+        {!preview && <LeftPanel />}
 
-            {sidebarTab === "components" && (
-              <div className="editor-scroll-panel">
-                {componentGroups.map((group) => (
-                  <div key={group.label} className="editor-component-group">
-                    <div className="editor-component-group-label">{group.label}</div>
-                    <div className="editor-component-grid">
-                      {group.items.map(({ type, label, icon: Icon, color }) => (
-                        <div key={type} draggable onDragStart={(e) => e.dataTransfer.setData("componentType", type)} className="editor-component-card">
-                          <span style={{ color }}><Icon size={16} /></span> {label}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {sidebarTab === "layers" && (
-              <div className="editor-scroll-panel">
-                <div style={{ padding: "8px 8px 4px" }}>
-                  <div style={{ position: "relative" }}>
-                    <Search size={12} style={{ position: "absolute", left: 8, top: 7, color: "var(--muted-foreground)" }} />
-                    <Input value={layerSearch} onChange={(e) => setLayerSearch(e.target.value)} placeholder="Search layers..." className="h-7 text-[11px] pl-7" />
-                  </div>
-                </div>
-                <div style={{ padding: "4px 8px" }}>
-                  {body && <LayerTree el={body} depth={0} filter={layerSearch} />}
-                </div>
-              </div>
-            )}
-
-            {sidebarTab === "templates" && (
-              <div className="editor-scroll-panel">
-                <div style={{ padding: 8 }}>
-                  <button onClick={handleSaveTemplate} className="editor-component-item" style={{ width: "100%", marginBottom: 8, justifyContent: "center", cursor: "pointer" }}>
-                    <Bookmark size={14} /> Save Current Page
-                  </button>
-                  {templates.length === 0 && <div className="editor-empty-state">No saved templates yet.</div>}
-                  {templates.map((t) => (
-                    <div key={t.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 8, marginBottom: 4, fontSize: 12, border: "1px solid var(--border)" }}>
-                      <button onClick={() => handleLoadTemplate(t.content)} style={{ background: "none", border: 0, color: "inherit", cursor: "pointer", textAlign: "left", flex: 1, fontSize: 12 }}>
-                        <div style={{ fontWeight: 500 }}>{t.name}</div>
-                        <div style={{ fontSize: 10, color: "var(--muted-foreground)" }}>{t.category}</div>
-                      </button>
-                      <button onClick={() => handleDeleteTemplate(t.id)} style={{ background: "none", border: 0, color: "hsl(var(--destructive))", cursor: "pointer", padding: 4 }}>
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Canvas */}
-        <div className={`editor-canvas ${preview ? "preview" : ""}`} onClick={() => !preview && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
-          <div className="editor-canvas-inner" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
-            {body && <ElementRenderer el={body} />}
+        <div className={cn("flex-1 overflow-auto p-4 min-h-0", preview ? "p-0 bg-background" : "bg-muted")} style={!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)) 0.5px, transparent 0.5px)", backgroundSize: "16px 16px" } : undefined} onClick={() => !preview && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
+          <div className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
+            {body && <Recursive element={body} />}
           </div>
         </div>
 
-        {/* Properties */}
-        {!preview && !selected && (
-          <div className="editor-props">
-            <div className="editor-props-section" style={{ paddingTop: 24 }}>
-              <div className="editor-empty-state">
-                <p style={{ marginBottom: 16 }}>Select an element to edit its properties.</p>
-                <div style={{ fontSize: 11, lineHeight: 2 }}>
-                  <div><kbd>Cmd+S</kbd> Save</div>
-                  <div><kbd>Cmd+Z</kbd> Undo</div>
-                  <div><kbd>Cmd+D</kbd> Duplicate</div>
-                  <div><kbd>Cmd+C/V</kbd> Copy / Paste</div>
-                  <div><kbd>Cmd+Up/Down</kbd> Reorder</div>
-                  <div><kbd>Cmd++/-</kbd> Zoom In/Out</div>
-                  <div><kbd>Cmd+0</kbd> Reset Zoom</div>
-                  <div><kbd>Delete</kbd> Remove element</div>
-                  <div><kbd>Escape</kbd> Deselect</div>
-                  <div style={{ marginTop: 8, fontSize: 10, color: "var(--muted-foreground)" }}>Auto-saves 5s after changes</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {!preview && selected && (
-          <DesignPanel propsTab={propsTab} setPropsTab={setPropsTab} />
-        )}
+        {!preview && <RightPanel />}
       </div>
 
       {preview && (
-        <button onClick={() => dispatch({ type: "TOGGLE_PREVIEW" })} className="editor-preview-exit">
+        <button onClick={() => dispatch({ type: "TOGGLE_PREVIEW" })} className="fixed left-4 top-4 z-[100] flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90">
           <EyeOff size={14} /> Exit Preview
         </button>
       )}
