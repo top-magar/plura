@@ -8,41 +8,54 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 import { upsertFunnel, upsertFunnelPage, saveActivityLogsNotification } from "@/lib/queries";
 import { useModal } from "@/providers/modal-provider";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  subDomainName: z.string().optional(),
+  favicon: z.string().optional(),
 });
+
+type FormValues = z.infer<typeof schema>;
 
 type Props = {
   subAccountId: string;
-  defaultData?: { id: string; name: string; description?: string | null; subDomainName?: string | null };
+  defaultData?: { id: string; name: string; description?: string | null; subDomainName?: string | null; favicon?: string | null };
 };
 
 export default function FunnelForm({ subAccountId, defaultData }: Props) {
   const router = useRouter();
   const { setClose } = useModal();
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: defaultData?.name ?? "" },
+    defaultValues: {
+      name: defaultData?.name ?? "",
+      description: defaultData?.description ?? "",
+      subDomainName: defaultData?.subDomainName ?? "",
+      favicon: defaultData?.favicon ?? "",
+    },
   });
 
-  const onSubmit = async (v: { name: string }) => {
+  const subdomain = watch("subDomainName");
+
+  const onSubmit = async (v: FormValues) => {
     try {
-      const funnel = await upsertFunnel({ id: defaultData?.id, name: v.name, subAccountId });
+      const funnel = await upsertFunnel({
+        id: defaultData?.id,
+        name: v.name,
+        description: v.description || undefined,
+        subDomainName: v.subDomainName || undefined,
+        subAccountId,
+      });
       if (!funnel) throw new Error("Failed");
 
-      // Auto-create first page for new funnels
       if (!defaultData) {
-        await upsertFunnelPage({
-          name: "Home",
-          pathName: "",
-          funnelId: funnel.id,
-          order: 0,
-        });
+        await upsertFunnelPage({ name: "Home", pathName: "", funnelId: funnel.id, order: 0 });
       }
 
       await saveActivityLogsNotification({
@@ -60,15 +73,36 @@ export default function FunnelForm({ subAccountId, defaultData }: Props) {
   };
 
   return (
-    // @ts-expect-error zod compat
-    <form onSubmit={handleSubmit(onSubmit as never)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-1.5">
         <label className="text-[13px] font-medium">Funnel name</label>
         <Input placeholder="My Website" {...register("name")} disabled={isSubmitting} autoFocus />
         {errors.name && <p className="text-[12px] text-destructive">{errors.name.message}</p>}
       </div>
+
+      <div className="space-y-1.5">
+        <label className="text-[13px] font-medium">Description</label>
+        <Textarea placeholder="What is this funnel for?" {...register("description")} disabled={isSubmitting} rows={2} className="resize-none text-[13px]" />
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-[13px] font-medium">Subdomain</label>
+        <Input placeholder="my-site" {...register("subDomainName")} disabled={isSubmitting} />
+        {subdomain && (
+          <p className="text-[11px] text-muted-foreground">
+            Your funnel will be available at <span className="font-medium">{subdomain}.{process.env.NEXT_PUBLIC_DOMAIN}</span>
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-[13px] font-medium">Favicon URL</label>
+        <Input placeholder="https://example.com/favicon.ico" {...register("favicon")} disabled={isSubmitting} />
+        <p className="text-[11px] text-muted-foreground">Optional. Paste a URL to an icon image.</p>
+      </div>
+
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? <><Spinner /> Creating...</> : defaultData ? "Save" : "Create funnel"}
+        {isSubmitting ? <><Spinner /> {defaultData ? "Saving..." : "Creating..."}</> : defaultData ? "Save changes" : "Create funnel"}
       </Button>
     </form>
   );
