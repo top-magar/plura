@@ -10,9 +10,9 @@ export default function AccordionElement({ element }: { element: El }): ReactNod
   return (
     <ElementWrapper element={element} style={element.styles}>
       {items.map((item, i) => (
-        <details key={i} style={{ borderBottom: "1px solid var(--ed-border-subtle)", padding: "12px 0" }}>
-          <summary style={{ cursor: "pointer", fontWeight: 500, fontSize: 14 }}>{item.title}</summary>
-          <p style={{ marginTop: 8, fontSize: 13, opacity: 0.7 }}>{item.body}</p>
+        <details key={i} className="border-b border-border py-3">
+          <summary className="cursor-pointer text-sm font-medium">{item.title}</summary>
+          <p className="mt-2 text-xs text-muted-foreground">{item.body}</p>
         </details>
       ))}
     </ElementWrapper>

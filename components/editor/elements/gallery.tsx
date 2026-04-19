@@ -10,7 +10,7 @@ export default function GalleryElement({ element }: { element: El }): ReactNode 
   return (
     <ElementWrapper element={element} style={element.styles}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      {imgs.map((src, i) => <img key={i} src={src.trim()} alt={`Gallery ${i + 1}`} style={{ width: "100%", display: "block" }} />)}
+      {imgs.map((src, i) => <img key={i} src={src.trim()} alt={`Gallery ${i + 1}`} className="aspect-square w-full object-cover" />)}
     </ElementWrapper>
   );
 }

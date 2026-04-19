@@ -8,7 +8,9 @@ export default function SocialIconsElement({ element }: { element: El }): ReactN
   const c = element.content as Record<string, string>;
   return (
     <ElementWrapper element={element} style={element.styles}>
-      {(c.platforms || "").split(",").map((p, i) => <span key={i} style={{ opacity: 0.6 }}>{p.trim()}</span>)}
+      {(c.platforms || "").split(",").filter(Boolean).map((p, i) => (
+        <span key={i} className="rounded-md bg-muted px-2 py-1 text-xs">{p.trim()}</span>
+      ))}
     </ElementWrapper>
   );
 }

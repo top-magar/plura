@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import ElementWrapper from "../element-wrapper";
 import type { El } from "../types";
 
 function CountdownDisplay({ content }: { content: Record<string, string> }) {
   const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
   const target = new Date(content.targetDate || Date.now()).getTime();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useState(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); });
   const diff = Math.max(0, target - now);
   const d = Math.floor(diff / 86400000);
   const h = Math.floor((diff % 86400000) / 3600000);
@@ -16,11 +18,11 @@ function CountdownDisplay({ content }: { content: Record<string, string> }) {
   const s = Math.floor((diff % 60000) / 1000);
   const units = [["Days", d], ["Hours", h], ["Min", m], ["Sec", s]] as const;
   return (
-    <div style={{ display: "flex", justifyContent: "center", gap: 16 }}>
+    <div className="flex justify-center gap-4">
       {units.map(([label, val]) => (
-        <div key={label} style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "inherit", fontWeight: "inherit" }}>{String(val).padStart(2, "0")}</div>
-          <div style={{ fontSize: 10, opacity: 0.5, marginTop: 4 }}>{label}</div>
+        <div key={label} className="text-center">
+          <div className="text-[inherit] font-[inherit]">{String(val).padStart(2, "0")}</div>
+          <div className="mt-1 text-[10px] opacity-50">{label}</div>
         </div>
       ))}
     </div>

@@ -8,14 +8,14 @@ function TabsDisplay({ items }: { items: { title: string; body: string }[] }) {
   const [active, setActive] = useState(0);
   return (
     <div>
-      <div style={{ display: "flex", borderBottom: "1px solid var(--ed-border-subtle)" }}>
+      <div className="flex border-b border-border">
         {items.map((item, i) => (
-          <button key={i} onClick={(e) => { e.stopPropagation(); setActive(i); }} style={{ padding: "8px 16px", border: 0, borderBottom: active === i ? "2px solid var(--ed-interactive)" : "2px solid transparent", background: "transparent", color: active === i ? "var(--ed-interactive)" : "inherit", cursor: "pointer", fontSize: 13, fontWeight: 500 }}>
+          <button key={i} onClick={(e) => { e.stopPropagation(); setActive(i); }} className={`bg-transparent border-0 border-b-2 px-4 py-2 text-[13px] font-medium cursor-pointer ${active === i ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}>
             {item.title}
           </button>
         ))}
       </div>
-      <div style={{ padding: 16, fontSize: 14 }}>{items[active]?.body}</div>
+      <div className="p-4 text-sm">{items[active]?.body}</div>
     </div>
   );
 }
