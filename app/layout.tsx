@@ -4,6 +4,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { Toaster } from "@/components/ui/sonner";
 import { ModalProvider } from "@/providers/modal-provider";
+import Script from "next/script";
 import "./globals.css";
 
 const font = Inter({ subsets: ["latin"] });
@@ -23,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <Script id="theme-init" strategy="beforeInteractive">{themeScript}</Script>
       </head>
       <body className={`${font.className} antialiased`}>
         <ClerkProvider appearance={{ baseTheme: dark }}>
