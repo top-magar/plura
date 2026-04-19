@@ -2,170 +2,338 @@
 
 import React from 'react';
 import { useEditor } from '../editor-provider';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
-type StyleKey = keyof React.CSSProperties;
-
-const groups: { label: string; fields: { key: StyleKey; label: string; type?: string }[] }[] = [
-  {
-    label: 'Typography',
-    fields: [
-      { key: 'fontFamily', label: 'Font' },
-      { key: 'fontSize', label: 'Size' },
-      { key: 'fontWeight', label: 'Weight' },
-      { key: 'lineHeight', label: 'Line Height' },
-      { key: 'letterSpacing', label: 'Spacing' },
-      { key: 'textAlign', label: 'Align' },
-      { key: 'color', label: 'Color', type: 'color' },
-    ],
-  },
-  {
-    label: 'Spacing',
-    fields: [
-      { key: 'padding', label: 'Padding' },
-      { key: 'margin', label: 'Margin' },
-      { key: 'gap', label: 'Gap' },
-    ],
-  },
-  {
-    label: 'Size',
-    fields: [
-      { key: 'width', label: 'Width' },
-      { key: 'height', label: 'Height' },
-      { key: 'minHeight', label: 'Min H' },
-      { key: 'maxWidth', label: 'Max W' },
-    ],
-  },
-  {
-    label: 'Background',
-    fields: [
-      { key: 'backgroundColor', label: 'BG Color', type: 'color' },
-      { key: 'backgroundImage', label: 'BG Image' },
-    ],
-  },
-  {
-    label: 'Border',
-    fields: [
-      { key: 'border', label: 'Border' },
-      { key: 'borderRadius', label: 'Radius' },
-    ],
-  },
-  {
-    label: 'Layout',
-    fields: [
-      { key: 'display', label: 'Display' },
-      { key: 'flexDirection', label: 'Direction' },
-      { key: 'justifyContent', label: 'Justify' },
-      { key: 'alignItems', label: 'Align' },
-    ],
-  },
-  {
-    label: 'Effects',
-    fields: [
-      { key: 'opacity', label: 'Opacity' },
-      { key: 'boxShadow', label: 'Shadow' },
-    ],
-  },
-];
+import { Slider } from '@/components/ui/slider';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlignHorizontalJustifyCenter,
+  AlignHorizontalJustifyEnd,
+  AlignHorizontalJustifyStart,
+  AlignHorizontalSpaceAround,
+  AlignHorizontalSpaceBetween,
+} from 'lucide-react';
 
 export default function SettingsTab() {
   const { state, dispatch } = useEditor();
-  const selected = state.editor.selectedElement;
 
-  if (!selected) {
-    return (
-      <div className="editor-scroll-panel" style={{ padding: '16px', color: 'var(--muted-foreground)', fontSize: '13px' }}>
-        Select an element to edit its properties
-      </div>
-    );
-  }
+  const handleChangeCustomValues = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const settingProperty = e.target.id;
+    const value = e.target.value;
+    const styleObject = { [settingProperty]: value };
 
-  function handleChange(key: StyleKey, value: string) {
-    if (!selected) return;
     dispatch({
       type: 'UPDATE_ELEMENT',
       payload: {
         elementDetails: {
-          ...selected,
-          styles: { ...selected.styles, [key]: value },
+          ...state.editor.selectedElement,
+          content: {
+            ...(!Array.isArray(state.editor.selectedElement.content)
+              ? state.editor.selectedElement.content
+              : {}),
+            ...styleObject,
+          },
         },
       },
     });
-  }
+  };
 
-  function handleContentChange(key: string, value: string) {
-    if (!selected || Array.isArray(selected.content)) return;
+  const handleOnChanges = (e: { target: { id: string; value: string } }) => {
+    const styleSettings = e.target.id;
+    const value = e.target.value;
+    const styleObject = { [styleSettings]: value };
+
     dispatch({
       type: 'UPDATE_ELEMENT',
       payload: {
         elementDetails: {
-          ...selected,
-          content: { ...selected.content, [key]: value },
+          ...state.editor.selectedElement,
+          styles: {
+            ...state.editor.selectedElement.styles,
+            ...styleObject,
+          },
         },
       },
     });
-  }
-
-  const content = !Array.isArray(selected.content) ? selected.content : null;
+  };
 
   return (
-    <div className="editor-scroll-panel" style={{ padding: '12px' }}>
-      {/* Element name */}
-      <div style={{ marginBottom: '12px' }}>
-        <Label style={{ fontSize: '11px' }}>Name</Label>
-        <Input
-          value={selected.name}
-          onChange={(e) =>
-            dispatch({
-              type: 'UPDATE_ELEMENT',
-              payload: { elementDetails: { ...selected, name: e.target.value } },
-            })
-          }
-          style={{ height: '28px', fontSize: '13px' }}
-        />
-      </div>
-
-      {/* Content fields */}
-      {content && Object.keys(content).length > 0 && (
-        <div style={{ marginBottom: '12px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: '6px' }}>
-            Content
-          </p>
-          {Object.entries(content).map(([key, val]) => (
-            <div key={key} style={{ marginBottom: '6px' }}>
-              <Label style={{ fontSize: '11px' }}>{key}</Label>
-              <Input
-                value={val}
-                onChange={(e) => handleContentChange(key, e.target.value)}
-                style={{ height: '28px', fontSize: '13px' }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Style groups */}
-      {groups.map((group) => (
-        <div key={group.label} style={{ marginBottom: '12px' }}>
-          <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: '6px' }}>
-            {group.label}
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-            {group.fields.map((field) => (
-              <div key={field.key}>
-                <Label style={{ fontSize: '10px' }}>{field.label}</Label>
+    <Accordion
+      type="multiple"
+      className="w-full"
+      defaultValue={['Custom', 'Typography', 'Dimensions', 'Decorations', 'Flexbox']}
+    >
+      {/* Custom */}
+      <AccordionItem value="Custom" className="px-6 py-0">
+        <AccordionTrigger className="!no-underline">Custom</AccordionTrigger>
+        <AccordionContent>
+          {state.editor.selectedElement.type === 'link' &&
+            !Array.isArray(state.editor.selectedElement.content) && (
+              <div className="flex flex-col gap-2">
+                <p className="text-muted-foreground">Link Path</p>
                 <Input
-                  type={field.type || 'text'}
-                  value={(selected.styles[field.key] as string) ?? ''}
-                  onChange={(e) => handleChange(field.key, e.target.value)}
-                  style={{ height: '28px', fontSize: '12px' }}
+                  id="href"
+                  placeholder="https://domain.example.com/pathname"
+                  onChange={handleChangeCustomValues}
+                  value={
+                    (!Array.isArray(state.editor.selectedElement.content)
+                      ? state.editor.selectedElement.content.href
+                      : '') ?? ''
+                  }
                 />
               </div>
-            ))}
+            )}
+        </AccordionContent>
+      </AccordionItem>
+
+      {/* Typography */}
+      <AccordionItem value="Typography" className="px-6 py-0 border-y-[1px]">
+        <AccordionTrigger className="!no-underline">Typography</AccordionTrigger>
+        <AccordionContent className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
+            <p className="text-muted-foreground">Color</p>
+            <Input
+              id="color"
+              onChange={handleOnChanges}
+              value={state.editor.selectedElement.styles.color ?? ''}
+            />
           </div>
-        </div>
-      ))}
-    </div>
+          <div className="flex flex-col gap-2">
+            <p className="text-muted-foreground">Font Size</p>
+            <Input
+              id="fontSize"
+              onChange={handleOnChanges}
+              value={state.editor.selectedElement.styles.fontSize ?? ''}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <p className="text-muted-foreground">Font Weight</p>
+            <Input
+              id="fontWeight"
+              onChange={handleOnChanges}
+              value={state.editor.selectedElement.styles.fontWeight ?? ''}
+            />
+          </div>
+          {/* Opacity */}
+          <div>
+            <Label className="text-muted-foreground">Opacity</Label>
+            <div className="flex items-center justify-end">
+              <small className="p-2">
+                {typeof state.editor.selectedElement.styles?.opacity === 'number'
+                  ? state.editor.selectedElement.styles?.opacity
+                  : parseFloat(
+                      (
+                        (state.editor.selectedElement.styles?.opacity as string) || '0'
+                      ).replace('%', '')
+                    ) || 0}
+                %
+              </small>
+            </div>
+            <Slider
+              onValueChange={(e) => {
+                handleOnChanges({
+                  target: {
+                    id: 'opacity',
+                    value: `${e[0]}%`,
+                  },
+                });
+              }}
+              defaultValue={[
+                typeof state.editor.selectedElement.styles?.opacity === 'number'
+                  ? state.editor.selectedElement.styles?.opacity
+                  : parseFloat(
+                      (
+                        (state.editor.selectedElement.styles?.opacity as string) || '0'
+                      ).replace('%', '')
+                    ) || 0,
+              ]}
+              max={100}
+              step={1}
+            />
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+
+      {/* Dimensions */}
+      <AccordionItem value="Dimensions" className="px-6 py-0">
+        <AccordionTrigger className="!no-underline">Dimensions</AccordionTrigger>
+        <AccordionContent className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-2 flex-1">
+                <p className="text-muted-foreground">Height</p>
+                <Input
+                  id="height"
+                  placeholder="px"
+                  onChange={handleOnChanges}
+                  value={state.editor.selectedElement.styles.height ?? ''}
+                />
+              </div>
+              <div className="flex flex-col gap-2 flex-1">
+                <p className="text-muted-foreground">Width</p>
+                <Input
+                  id="width"
+                  placeholder="px"
+                  onChange={handleOnChanges}
+                  value={state.editor.selectedElement.styles.width ?? ''}
+                />
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-2 flex-1">
+                <p className="text-muted-foreground">Margin</p>
+                <Input
+                  id="margin"
+                  placeholder="px"
+                  onChange={handleOnChanges}
+                  value={state.editor.selectedElement.styles.margin ?? ''}
+                />
+              </div>
+              <div className="flex flex-col gap-2 flex-1">
+                <p className="text-muted-foreground">Padding</p>
+                <Input
+                  id="padding"
+                  placeholder="px"
+                  onChange={handleOnChanges}
+                  value={state.editor.selectedElement.styles.padding ?? ''}
+                />
+              </div>
+            </div>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+
+      {/* Decorations */}
+      <AccordionItem value="Decorations" className="px-6 py-0">
+        <AccordionTrigger className="!no-underline">Decorations</AccordionTrigger>
+        <AccordionContent className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
+            <Label className="text-muted-foreground">Border Radius</Label>
+            <Input
+              id="borderRadius"
+              placeholder="px"
+              onChange={handleOnChanges}
+              value={state.editor.selectedElement.styles.borderRadius ?? ''}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label className="text-muted-foreground">Background Color</Label>
+            <div className="flex border-[1px] rounded-md overflow-clip">
+              <div
+                className="w-12"
+                style={{
+                  backgroundColor:
+                    state.editor.selectedElement.styles.backgroundColor,
+                }}
+              />
+              <Input
+                placeholder="#HEX"
+                className="!border-y-0 rounded-none !border-r-0 mr-2"
+                id="backgroundColor"
+                onChange={handleOnChanges}
+                value={
+                  state.editor.selectedElement.styles.backgroundColor ?? ''
+                }
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label className="text-muted-foreground">Background Image</Label>
+            <div className="flex border-[1px] rounded-md overflow-clip">
+              <div
+                className="w-12"
+                style={{
+                  backgroundImage:
+                    state.editor.selectedElement.styles.backgroundImage,
+                }}
+              />
+              <Input
+                placeholder="url()"
+                className="!border-y-0 rounded-none !border-r-0 mr-2"
+                id="backgroundImage"
+                onChange={handleOnChanges}
+                value={
+                  state.editor.selectedElement.styles.backgroundImage ?? ''
+                }
+              />
+            </div>
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+
+      {/* Flexbox */}
+      <AccordionItem value="Flexbox" className="px-6 py-0">
+        <AccordionTrigger className="!no-underline">Flexbox</AccordionTrigger>
+        <AccordionContent>
+          <Label className="text-muted-foreground">Justify Content</Label>
+          <Tabs
+            onValueChange={(e) =>
+              handleOnChanges({
+                target: {
+                  id: 'justifyContent',
+                  value: e,
+                },
+              })
+            }
+            value={state.editor.selectedElement.styles.justifyContent}
+          >
+            <TabsList className="flex items-center flex-row justify-between border-[1px] rounded-md bg-transparent h-fit gap-4">
+              <TabsTrigger
+                value="space-between"
+                className="w-10 h-10 p-0 data-[state=active]:bg-muted"
+              >
+                <AlignHorizontalSpaceBetween size={18} />
+              </TabsTrigger>
+              <TabsTrigger
+                value="space-evenly"
+                className="w-10 h-10 p-0 data-[state=active]:bg-muted"
+              >
+                <AlignHorizontalSpaceAround size={18} />
+              </TabsTrigger>
+              <TabsTrigger
+                value="center"
+                className="w-10 h-10 p-0 data-[state=active]:bg-muted"
+              >
+                <AlignHorizontalJustifyCenter size={18} />
+              </TabsTrigger>
+              <TabsTrigger
+                value="start"
+                className="w-10 h-10 p-0 data-[state=active]:bg-muted"
+              >
+                <AlignHorizontalJustifyStart size={18} />
+              </TabsTrigger>
+              <TabsTrigger
+                value="end"
+                className="w-10 h-10 p-0 data-[state=active]:bg-muted"
+              >
+                <AlignHorizontalJustifyEnd size={18} />
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="flex flex-col gap-2 mt-4">
+            <Label className="text-muted-foreground">Align Items</Label>
+            <Input
+              id="alignItems"
+              onChange={handleOnChanges}
+              value={state.editor.selectedElement.styles.alignItems ?? ''}
+            />
+          </div>
+          <div className="flex flex-col gap-2 mt-2">
+            <Label className="text-muted-foreground">Display</Label>
+            <Input
+              id="display"
+              onChange={handleOnChanges}
+              value={state.editor.selectedElement.styles.display ?? ''}
+            />
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }
