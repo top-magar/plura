@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { upsertFunnelPage, savePageTemplate, getPageTemplates, deletePageTemplate } from "@/lib/queries";
+import { upsertFunnelPage, savePageTemplate, getPageTemplates, deletePageTemplate, upsertFunnel } from "@/lib/queries";
 import type { El, Device, EditorProps } from "./types";
 import { addEl, updateEl, deleteEl, moveEl, reorderEl, cloneEl, defaultBody } from "./tree-helpers";
 import { makeEl, componentGroups } from "./element-factory";
@@ -94,9 +94,12 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
 
   const handlePublishToggle = async () => {
     try {
-      const page = await upsertFunnelPage({ id: pageId, name: pageTitle, funnelId, order: 0, content: JSON.stringify(elements) });
+      // Save page first
+      await upsertFunnelPage({ id: pageId, name: pageTitle, funnelId, order: 0, content: JSON.stringify(elements) });
       setDirty(false);
-      toast.success("Published");
+      // Toggle funnel published
+      await upsertFunnel({ id: funnelId, name: pageTitle, subAccountId, published: true });
+      toast.success("Saved and published");
     } catch { toast.error("Could not publish"); }
   };
 

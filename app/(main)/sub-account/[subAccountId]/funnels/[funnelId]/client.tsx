@@ -47,6 +47,10 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
   const totalVisits = funnel.FunnelPages.reduce((s, p) => s + p.visits, 0);
 
   const handlePublishToggle = async (published: boolean) => {
+    if (published && !funnel.subDomainName && !subdomain) {
+      toast.error("Set a subdomain in Settings before publishing");
+      return;
+    }
     try {
       await upsertFunnel({ id: funnel.id, name: funnel.name, subAccountId, subDomainName: subdomain || undefined, published });
       toast.success(published ? "Funnel published" : "Funnel unpublished");
