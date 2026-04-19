@@ -2,46 +2,58 @@
 
 import React, { useState } from 'react';
 import { useEditor } from '../editor-provider';
-import { SettingsIcon, X } from 'lucide-react';
+import { PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import SettingsTab from './settings-tab';
 
 export default function RightPanel() {
   const { state } = useEditor();
   const [open, setOpen] = useState(true);
+  const el = state.editor.selectedElement;
+  const hasSelection = el.id !== '';
 
   if (!open) {
     return (
-      <button
-        className="w-12 shrink-0 h-full border-l border-border bg-background flex items-start justify-center pt-4 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
-        onClick={() => setOpen(true)}
-        title="Open properties"
-      >
-        <SettingsIcon size={18} />
-      </button>
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              className="w-12 shrink-0 h-full border-l flex items-start justify-center pt-3 bg-background text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              onClick={() => setOpen(true)}
+            >
+              <PanelRightOpen size={18} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="left">Open properties</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
 
-  const hasSelection = state.editor.selectedElement.id !== '';
-
   return (
-    <div className="w-80 shrink-0 h-full border-l border-border bg-background overflow-y-auto overflow-x-hidden">
-      <div className="flex items-center justify-between p-4 pb-2">
-        <div>
-          <h3 className="font-medium text-sm">
-            {hasSelection ? state.editor.selectedElement.name || 'Element' : 'Styles'}
+    <div className="w-80 shrink-0 h-full border-l bg-background flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
+        <div className="min-w-0">
+          <h3 className="font-medium text-sm truncate">
+            {hasSelection ? el.name || el.type : 'Properties'}
           </h3>
-          <p className="text-xs text-muted-foreground">
-            {hasSelection ? state.editor.selectedElement.type : 'Select an element to edit'}
+          <p className="text-xs text-muted-foreground truncate">
+            {hasSelection ? el.type : 'Select an element'}
           </p>
         </div>
         <button
           onClick={() => setOpen(false)}
-          className="p-1 rounded hover:bg-muted text-muted-foreground"
+          className="p-1 rounded-md hover:bg-accent text-muted-foreground shrink-0"
         >
-          <X size={14} />
+          <PanelRightClose size={16} />
         </button>
       </div>
-      <SettingsTab />
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto">
+        <SettingsTab />
+      </div>
     </div>
   );
 }

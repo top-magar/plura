@@ -10,8 +10,7 @@ import EditorNavigation from './editor-navigation';
 import { LeftPanel, RightPanel } from './editor-sidebar';
 import Recursive from './recursive';
 
-
-const deviceWidths = { Desktop: '100%', Tablet: '768px', Mobile: '420px' } as const;
+const DEVICE_WIDTHS = { Desktop: '100%', Tablet: '768px', Mobile: '420px' } as const;
 
 export default function Editor() {
   const { state, dispatch, funnelId, pageDetails } = useEditor();
@@ -34,31 +33,33 @@ export default function Editor() {
   }, [elements, pageDetails, funnelId]);
 
   useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      const meta = e.metaKey || e.ctrlKey;
-      if (meta && e.key === 'z' && !e.shiftKey) { e.preventDefault(); dispatch({ type: 'UNDO' }); }
-      if (meta && e.key === 'z' && e.shiftKey) { e.preventDefault(); dispatch({ type: 'REDO' }); }
-      if (meta && e.key === 's') { e.preventDefault(); handleSave(); }
-      if (e.key === 'Escape') { dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: {} }); }
+    function onKeyDown(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey;
+      if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); dispatch({ type: 'UNDO' }); }
+      if (mod && e.key === 'z' && e.shiftKey) { e.preventDefault(); dispatch({ type: 'REDO' }); }
+      if (mod && e.key === 's') { e.preventDefault(); handleSave(); }
+      if (e.key === 'Escape') dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: {} });
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement.id && selectedElement.type !== '__body') {
         const t = e.target as HTMLElement;
         if (t.isContentEditable || t.tagName === 'INPUT' || t.tagName === 'TEXTAREA') return;
         dispatch({ type: 'DELETE_ELEMENT', payload: { elementDetails: selectedElement } });
       }
     }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [dispatch, handleSave, selectedElement]);
 
+  const deselect = () => dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: {} });
+
   return (
-    <div className="fixed inset-0 z-[20] bg-background flex flex-col">
+    <div className="fixed inset-0 z-20 bg-background flex flex-col">
       <EditorNavigation />
 
       {previewMode && (
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-[100] bg-background border shadow-md"
+          className="fixed top-4 left-4 z-[100] bg-background/80 backdrop-blur border shadow-sm"
           onClick={() => dispatch({ type: 'TOGGLE_PREVIEW_MODE' })}
         >
           <EyeOff size={16} />
@@ -66,24 +67,25 @@ export default function Editor() {
       )}
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left panel */}
         {!previewMode && <LeftPanel />}
 
         {/* Canvas */}
         <div
-          className="bg-muted p-6 flex-1 overflow-auto"
-          style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px)', backgroundSize: '20px 20px' }}
-          onClick={() => dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: {} })}
+          className="flex-1 overflow-auto bg-muted/50 p-6"
+          style={{
+            backgroundImage: 'radial-gradient(circle, hsl(var(--border) / 0.5) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+          onClick={deselect}
         >
           <div
-            className="bg-background border border-border min-h-full transition-[width] duration-200 overflow-auto mx-auto"
-            style={{ width: previewMode ? '100%' : deviceWidths[device] }}
+            className="bg-background border rounded-sm min-h-full mx-auto transition-[width] duration-200 shadow-sm overflow-auto"
+            style={{ width: previewMode ? '100%' : DEVICE_WIDTHS[device] }}
           >
             {body && <Recursive element={body} />}
           </div>
         </div>
 
-        {/* Right panel */}
         {!previewMode && <RightPanel />}
       </div>
     </div>

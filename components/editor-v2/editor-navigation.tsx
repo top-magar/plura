@@ -2,28 +2,36 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Monitor, Tablet, Smartphone, Eye, Undo2, Redo2, Save, Globe } from 'lucide-react';
+import { ArrowLeft, Monitor, Tablet, Smartphone, Eye, Undo2, Redo2, Save } from 'lucide-react';
 import { useEditor } from './editor-provider';
 import { upsertFunnelPage, upsertFunnel } from '@/lib/queries';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 import type { DeviceType } from './types';
+
+const iconBtn = 'flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer';
+
+const devices: { value: DeviceType; icon: React.ElementType; label: string }[] = [
+  { value: 'Desktop', icon: Monitor, label: 'Desktop' },
+  { value: 'Tablet', icon: Tablet, label: 'Tablet' },
+  { value: 'Mobile', icon: Smartphone, label: 'Mobile' },
+];
 
 export default function EditorNavigation() {
   const { state, dispatch, funnelId, subaccountId, pageDetails } = useEditor();
-  const { device, previewMode, liveMode } = state.editor;
+  const { device, previewMode } = state.editor;
   const [published, setPublished] = React.useState(pageDetails.published ?? false);
 
   async function handleSave() {
     try {
-      const content = JSON.stringify(state.editor.elements);
       await upsertFunnelPage({
         id: pageDetails.id,
         name: pageDetails.name,
         funnelId,
         order: pageDetails.order,
-        content,
+        content: JSON.stringify(state.editor.elements),
       });
       toast.success('Saved');
     } catch {
@@ -33,10 +41,7 @@ export default function EditorNavigation() {
 
   async function handlePublishToggle(value: boolean) {
     try {
-      // Save page content first
-      const content = JSON.stringify(state.editor.elements);
-      await upsertFunnelPage({ id: pageDetails.id, name: pageDetails.name, funnelId, order: pageDetails.order, content });
-      // Toggle funnel published
+      await upsertFunnelPage({ id: pageDetails.id, name: pageDetails.name, funnelId, order: pageDetails.order, content: JSON.stringify(state.editor.elements) });
       await upsertFunnel({ id: funnelId, name: pageDetails.name, subAccountId: subaccountId, published: value });
       setPublished(value);
       toast.success(value ? 'Published' : 'Unpublished');
@@ -47,33 +52,36 @@ export default function EditorNavigation() {
 
   if (previewMode) return null;
 
-  const devices: { value: DeviceType; icon: React.ElementType; label: string }[] = [
-    { value: 'Desktop', icon: Monitor, label: 'Desktop' },
-    { value: 'Tablet', icon: Tablet, label: 'Tablet' },
-    { value: 'Mobile', icon: Smartphone, label: 'Mobile' },
+  const actions = [
+    { icon: Eye, label: 'Preview', onClick: () => dispatch({ type: 'TOGGLE_PREVIEW_MODE' }) },
+    { icon: Undo2, label: 'Undo', onClick: () => dispatch({ type: 'UNDO' }) },
+    { icon: Redo2, label: 'Redo', onClick: () => dispatch({ type: 'REDO' }) },
+    { icon: Save, label: 'Save', onClick: handleSave },
   ];
 
   return (
     <TooltipProvider delayDuration={200}>
-      <nav className="flex items-center justify-between h-12 px-3 border-b border-border bg-card shrink-0">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <nav className="flex items-center justify-between h-12 px-3 border-b bg-card shrink-0">
+        {/* Left: back + page name */}
+        <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link href={`/sub-account/${pageDetails.funnelId}`} style={{ display: 'flex', alignItems: 'center' }}>
+              <Link href={`/sub-account/${pageDetails.funnelId}`} className={iconBtn}>
                 <ArrowLeft size={18} />
               </Link>
             </TooltipTrigger>
             <TooltipContent>Back</TooltipContent>
           </Tooltip>
-          <span style={{ fontSize: '14px', fontWeight: 500 }}>{pageDetails.name}</span>
+          <span className="text-sm font-medium truncate max-w-[200px]">{pageDetails.name}</span>
         </div>
 
+        {/* Center: device toggle */}
         <div className="flex gap-0.5">
           {devices.map((d) => (
             <Tooltip key={d.value}>
               <TooltipTrigger asChild>
                 <button
-                  className={`flex items-center justify-center w-8 h-8 border border-transparent bg-transparent cursor-pointer text-muted-foreground transition-colors hover:text-foreground hover:bg-accent ${device === d.value ? 'text-foreground bg-accent border-border' : ''}`}
+                  className={cn(iconBtn, device === d.value && 'text-foreground bg-accent')}
                   onClick={() => dispatch({ type: 'CHANGE_DEVICE', payload: { device: d.value } })}
                 >
                   <d.icon size={16} />
@@ -84,44 +92,23 @@ export default function EditorNavigation() {
           ))}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="flex items-center justify-center w-8 h-8 border border-transparent bg-transparent cursor-pointer text-muted-foreground transition-colors hover:text-foreground hover:bg-accent" onClick={() => dispatch({ type: 'TOGGLE_PREVIEW_MODE' })}>
-                <Eye size={16} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Preview</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="flex items-center justify-center w-8 h-8 border border-transparent bg-transparent cursor-pointer text-muted-foreground transition-colors hover:text-foreground hover:bg-accent" onClick={() => dispatch({ type: 'UNDO' })}>
-                <Undo2 size={16} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Undo</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="flex items-center justify-center w-8 h-8 border border-transparent bg-transparent cursor-pointer text-muted-foreground transition-colors hover:text-foreground hover:bg-accent" onClick={() => dispatch({ type: 'REDO' })}>
-                <Redo2 size={16} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Redo</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="flex items-center justify-center w-8 h-8 border border-transparent bg-transparent cursor-pointer text-muted-foreground transition-colors hover:text-foreground hover:bg-accent" onClick={handleSave}>
-                <Save size={16} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Save</TooltipContent>
-          </Tooltip>
+        {/* Right: actions + publish */}
+        <div className="flex items-center gap-0.5">
+          {actions.map((a) => (
+            <Tooltip key={a.label}>
+              <TooltipTrigger asChild>
+                <button className={iconBtn} onClick={a.onClick}>
+                  <a.icon size={16} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{a.label}</TooltipContent>
+            </Tooltip>
+          ))}
 
-          <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 4px' }} />
+          <div className="w-px h-5 bg-border mx-1" />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{published ? 'Live' : 'Draft'}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] text-muted-foreground">{published ? 'Live' : 'Draft'}</span>
             <Switch checked={published} onCheckedChange={handlePublishToggle} />
           </div>
         </div>
