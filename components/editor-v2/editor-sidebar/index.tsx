@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useEditor } from '../editor-provider';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Database, Plus, SettingsIcon, SquareStackIcon } from 'lucide-react';
 import ComponentsTab from './components-tab';
@@ -12,78 +11,66 @@ import SettingsTab from './settings-tab';
 export default function EditorSidebar() {
   const { state } = useEditor();
 
-  return (
-    <Sheet open={true} modal={false}>
-      <Tabs className="w-full" defaultValue="Settings">
-        <SheetContent
-          showCloseButton={false}
-          showOverlay={false}
-          side="right"
-          className={`mt-[97px] !w-16 !max-w-[64px] z-[80] shadow-none p-0 focus:border-none transition-all overflow-hidden border-l-0 !gap-0 ${state.editor.previewMode ? 'hidden' : ''}`}
-        >
-          <SheetTitle className="sr-only">Editor Sidebar</SheetTitle>
-          <TabsList className="flex items-center flex-col justify-evenly w-full bg-transparent h-fit gap-4">
-            <TabsTrigger value="Settings" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
-              <SettingsIcon />
-            </TabsTrigger>
-            <TabsTrigger value="Components" className="data-[state=active]:bg-muted w-10 h-10 p-0">
-              <Plus />
-            </TabsTrigger>
-            <TabsTrigger value="Layers" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
-              <SquareStackIcon />
-            </TabsTrigger>
-            <TabsTrigger value="Media" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
-              <Database />
-            </TabsTrigger>
-          </TabsList>
-        </SheetContent>
+  if (state.editor.previewMode) return null;
 
-        <SheetContent
-          showCloseButton={false}
-          showOverlay={false}
-          side="right"
-          className={`mt-[97px] !w-80 !max-w-[320px] z-[40] shadow-none p-0 mr-16 bg-background h-full transition-all overflow-hidden !gap-0 ${state.editor.previewMode ? 'hidden' : ''}`}
-        >
-          <SheetTitle className="sr-only">Sidebar Content</SheetTitle>
-          <div className="grid gap-4 h-full pb-36 overflow-scroll">
-            <TabsContent value="Settings">
-              <SheetHeader className="text-left p-6">
-                <SheetTitle>Styles</SheetTitle>
-                <SheetDescription>
-                  Show your creativity! You can customize every component as you like.
-                </SheetDescription>
-              </SheetHeader>
-              <SettingsTab />
-            </TabsContent>
-            <TabsContent value="Components">
-              <SheetHeader className="text-left p-6">
-                <SheetTitle>Components</SheetTitle>
-                <SheetDescription>
-                  Drag and drop components onto the canvas.
-                </SheetDescription>
-              </SheetHeader>
-              <ComponentsTab />
-            </TabsContent>
-            <TabsContent value="Layers">
-              <SheetHeader className="text-left p-6">
-                <SheetTitle>Layers</SheetTitle>
-                <SheetDescription>
-                  View the editor layers.
-                </SheetDescription>
-              </SheetHeader>
-              <LayersTab />
-            </TabsContent>
-            <TabsContent value="Media">
-              <SheetHeader className="text-left p-6">
-                <SheetTitle>Media</SheetTitle>
-                <SheetDescription>
-                  Media bucket coming soon.
-                </SheetDescription>
-              </SheetHeader>
-            </TabsContent>
+  return (
+    <Tabs defaultValue="Settings" className="editor-sidebar-root">
+      {/* Icon strip */}
+      <div className="editor-sidebar-icons">
+        <TabsList className="flex flex-col items-center bg-transparent w-full h-auto gap-4 p-0">
+          <TabsTrigger value="Settings" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
+            <SettingsIcon size={18} />
+          </TabsTrigger>
+          <TabsTrigger value="Components" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
+            <Plus size={18} />
+          </TabsTrigger>
+          <TabsTrigger value="Layers" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
+            <SquareStackIcon size={18} />
+          </TabsTrigger>
+          <TabsTrigger value="Media" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
+            <Database size={18} />
+          </TabsTrigger>
+        </TabsList>
+      </div>
+
+      {/* Content panel */}
+      <div className="editor-sidebar-content">
+        <TabsContent value="Settings" className="mt-0 h-full">
+          <div className="p-6 pb-2">
+            <h3 className="font-medium">Styles</h3>
+            <p className="text-sm text-muted-foreground">
+              Show your creativity! You can customize every component as you like.
+            </p>
           </div>
-        </SheetContent>
-      </Tabs>
-    </Sheet>
+          <SettingsTab />
+        </TabsContent>
+        <TabsContent value="Components" className="mt-0 h-full">
+          <div className="p-6 pb-2">
+            <h3 className="font-medium">Components</h3>
+            <p className="text-sm text-muted-foreground">
+              Drag and drop components onto the canvas.
+            </p>
+          </div>
+          <ComponentsTab />
+        </TabsContent>
+        <TabsContent value="Layers" className="mt-0 h-full">
+          <div className="p-6 pb-2">
+            <h3 className="font-medium">Layers</h3>
+            <p className="text-sm text-muted-foreground">
+              View the editor layers.
+            </p>
+          </div>
+          <LayersTab />
+        </TabsContent>
+        <TabsContent value="Media" className="mt-0 h-full">
+          <div className="p-6 pb-2">
+            <h3 className="font-medium">Media</h3>
+            <p className="text-sm text-muted-foreground">
+              Media bucket coming soon.
+            </p>
+          </div>
+        </TabsContent>
+      </div>
+    </Tabs>
   );
 }

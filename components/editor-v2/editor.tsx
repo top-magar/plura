@@ -15,7 +15,7 @@ const deviceWidths = { Desktop: '100%', Tablet: '768px', Mobile: '420px' } as co
 
 export default function Editor() {
   const { state, dispatch, funnelId, pageDetails } = useEditor();
-  const { elements, device, previewMode, liveMode, selectedElement } = state.editor;
+  const { elements, device, previewMode, selectedElement } = state.editor;
   const body = elements[0];
 
   const handleSave = useCallback(async () => {
@@ -51,8 +51,9 @@ export default function Editor() {
   }, [dispatch, handleSave, selectedElement]);
 
   return (
-    <div className="fixed top-0 bottom-0 left-0 right-0 z-[20] bg-background overflow-hidden">
+    <div className="fixed inset-0 z-[20] bg-background flex flex-col">
       <EditorNavigation />
+
       {previewMode && (
         <Button
           variant="ghost"
@@ -63,18 +64,24 @@ export default function Editor() {
           <EyeOff size={16} />
         </Button>
       )}
-      <div
-        className={`h-full overflow-auto transition-all ${previewMode ? '' : 'mr-[384px]'}`}
-        onClick={() => dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: {} })}
-      >
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Canvas */}
         <div
-          className="editor-canvas-inner mx-auto transition-all"
-          style={{ width: previewMode ? '100%' : deviceWidths[device] }}
+          className="editor-canvas flex-1 overflow-auto"
+          onClick={() => dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: {} })}
         >
-          {body && <Recursive element={body} />}
+          <div
+            className="editor-canvas-inner mx-auto"
+            style={{ width: previewMode ? '100%' : deviceWidths[device] }}
+          >
+            {body && <Recursive element={body} />}
+          </div>
         </div>
+
+        {/* Sidebar */}
+        {!previewMode && <EditorSidebar />}
       </div>
-      <EditorSidebar />
     </div>
   );
 }

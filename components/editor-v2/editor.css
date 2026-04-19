@@ -1,13 +1,4 @@
-.editor-root {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  background: var(--background);
-  color: var(--foreground);
-}
-
+/* ── Toolbar ── */
 .editor-toolbar {
   display: flex;
   align-items: center;
@@ -19,31 +10,41 @@
   flex-shrink: 0;
 }
 
-.editor-main {
+.editor-device-toggle {
   display: flex;
-  flex: 1;
-  overflow: hidden;
+  gap: 2px;
 }
 
-.editor-sidebar {
-  width: 280px;
-  border-right: 1px solid var(--border);
-  background: var(--card);
-  flex-shrink: 0;
-  overflow: hidden;
+.editor-device-btn {
   display: flex;
-  flex-direction: column;
-}
-
-.editor-canvas {
-  flex: 1;
-  overflow: auto;
-  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 24px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  transition: color 0.1s, background 0.1s;
+}
+
+.editor-device-btn:hover {
+  color: var(--foreground);
+  background: var(--accent);
+}
+
+.editor-device-btn.active {
+  color: var(--foreground);
+  background: var(--accent);
+  border-color: var(--border);
+}
+
+/* ── Canvas ── */
+.editor-canvas {
   background-color: var(--muted);
   background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
   background-size: 20px 20px;
+  padding: 24px;
 }
 
 .editor-canvas-inner {
@@ -54,6 +55,35 @@
   overflow: auto;
 }
 
+/* ── Sidebar ── */
+.editor-sidebar-root {
+  display: flex;
+  flex-shrink: 0;
+  height: 100%;
+  border-left: 1px solid var(--border);
+  background: var(--background);
+}
+
+.editor-sidebar-icons {
+  width: 64px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  order: 1; /* icons on the right */
+}
+
+.editor-sidebar-content {
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  order: 0; /* content on the left */
+}
+
+/* ── Elements ── */
 .editor-body {
   min-height: 100%;
   padding: 16px;
@@ -110,12 +140,6 @@
   font-size: 12px;
 }
 
-.editor-scroll-panel {
-  padding: 12px;
-  overflow-y: auto;
-  flex: 1;
-}
-
 .editor-component-card {
   display: flex;
   flex-direction: column;
@@ -132,47 +156,3 @@
 .editor-component-card:hover {
   background: var(--accent);
 }
-
-.editor-device-toggle {
-  display: flex;
-  gap: 2px;
-}
-
-.editor-device-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  color: var(--muted-foreground);
-  transition: color 0.1s, background 0.1s;
-}
-
-.editor-device-btn:hover {
-  color: var(--foreground);
-  background: var(--accent);
-}
-
-.editor-device-btn.active {
-  color: var(--foreground);
-  background: var(--accent);
-  border-color: var(--border);
-}
-
-.editor-preview-exit {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 100;
-  padding: 8px 16px;
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border: none;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-/* Editor sidebar uses Sheet with showOverlay={false} */
