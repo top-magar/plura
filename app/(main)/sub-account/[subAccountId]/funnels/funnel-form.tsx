@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
+import FileUpload from "@/components/global/file-upload";
 import { upsertFunnel, upsertFunnelPage, saveActivityLogsNotification } from "@/lib/queries";
 import { useModal } from "@/providers/modal-provider";
 
@@ -31,7 +32,7 @@ export default function FunnelForm({ subAccountId, defaultData }: Props) {
   const router = useRouter();
   const { setClose } = useModal();
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: defaultData?.name ?? "",
@@ -96,9 +97,8 @@ export default function FunnelForm({ subAccountId, defaultData }: Props) {
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-[13px] font-medium">Favicon URL</label>
-        <Input placeholder="https://example.com/favicon.ico" {...register("favicon")} disabled={isSubmitting} />
-        <p className="text-[11px] text-muted-foreground">Optional. Paste a URL to an icon image.</p>
+        <label className="text-[13px] font-medium">Favicon</label>
+        <FileUpload value={watch("favicon") || ""} onChange={(url) => setValue("favicon", url)} />
       </div>
 
       <Button type="submit" disabled={isSubmitting} className="w-full">
