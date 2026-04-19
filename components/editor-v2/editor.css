@@ -1,0 +1,176 @@
+.editor-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  flex-shrink: 0;
+}
+
+.editor-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.editor-sidebar {
+  width: 280px;
+  border-right: 1px solid var(--border);
+  background: var(--card);
+  flex-shrink: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-canvas {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  background-color: var(--muted);
+  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.editor-canvas-inner {
+  background: var(--background);
+  border: 1px solid var(--border);
+  min-height: 100%;
+  transition: width 0.2s ease;
+  overflow: auto;
+}
+
+.editor-body {
+  min-height: 100%;
+  padding: 16px;
+}
+
+.editor-el {
+  position: relative;
+  outline: 1px dashed transparent;
+  transition: outline-color 0.1s;
+}
+
+.editor-el:hover {
+  outline-color: var(--primary);
+}
+
+.editor-el.is-selected {
+  outline: 2px solid var(--primary);
+}
+
+.editor-badge-select {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  font-size: 10px;
+  padding: 1px 6px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  z-index: 10;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.editor-el-delete {
+  position: absolute;
+  top: -20px;
+  right: 0;
+  background: var(--destructive);
+  color: white;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+
+.editor-dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  border: 2px dashed var(--border);
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.editor-scroll-panel {
+  padding: 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.editor-component-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 1px solid var(--border);
+  cursor: grab;
+  background: var(--background);
+  transition: background 0.1s;
+}
+
+.editor-component-card:hover {
+  background: var(--accent);
+}
+
+.editor-device-toggle {
+  display: flex;
+  gap: 2px;
+}
+
+.editor-device-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  transition: color 0.1s, background 0.1s;
+}
+
+.editor-device-btn:hover {
+  color: var(--foreground);
+  background: var(--accent);
+}
+
+.editor-device-btn.active {
+  color: var(--foreground);
+  background: var(--accent);
+  border-color: var(--border);
+}
+
+.editor-preview-exit {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 100;
+  padding: 8px 16px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+}
