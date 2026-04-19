@@ -32,7 +32,8 @@ export default function FunnelForm({ subAccountId, defaultData }: Props) {
   const router = useRouter();
   const { setClose } = useModal();
 
-  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { register, handleSubmit, watch, setValue, formState: { errors, isSubmitting, isValid } } = useForm<FormValues>({
+    mode: "onChange",
     resolver: zodResolver(schema),
     defaultValues: {
       name: defaultData?.name ?? "",
@@ -101,7 +102,7 @@ export default function FunnelForm({ subAccountId, defaultData }: Props) {
         <FileUpload value={watch("favicon") || ""} onChange={(url: string | undefined) => setValue("favicon", url || "")} />
       </div>
 
-      <Button type="submit" disabled={isSubmitting} className="w-full">
+      <Button type="submit" disabled={isSubmitting || !isValid} className="w-full">
         {isSubmitting ? <><Spinner /> {defaultData ? "Saving..." : "Creating..."}</> : defaultData ? "Save changes" : "Create funnel"}
       </Button>
     </form>
