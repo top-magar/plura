@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, type ReactNode } from "react";
 import { useEditor } from "../editor-provider";
 import ElementWrapper from "../element-wrapper";
-import { makeEl } from "../element-factory";
+import { makeElInContext } from "../element-factory";
 import { cn } from "@/lib/utils";
 import type { El } from "../types";
 import { resolveStyles } from "../types";
@@ -59,7 +59,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
     const moveId = e.dataTransfer.getData("moveElementId");
 
     if (type) {
-      const newEl = makeEl(type);
+      const newEl = makeElInContext(type, element);
       if (newEl) dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, element: newEl, index: idx } });
     } else if (moveId && moveId !== element.id) {
       dispatch({ type: "MOVE_ELEMENT", payload: { elId: moveId, targetContainerId: element.id, index: idx } });

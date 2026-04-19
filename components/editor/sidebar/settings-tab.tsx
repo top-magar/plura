@@ -321,6 +321,23 @@ export default function SettingsTab() {
           {/* Dimensions */}
           <Section title="Dimensions" icon={Scan}>
             <div className="space-y-2.5">
+              {/* Sizing Mode */}
+              <div>
+                <label className="mb-1 block text-[10px] text-sidebar-foreground/50">Width Sizing</label>
+                <IconToggle
+                  value={get("width") === "fit-content" ? "hug" : get("width") === "100%" || get("flex") === "1" ? "fill" : "fixed"}
+                  options={[
+                    { value: "hug", label: "Hug Content", icon: <ArrowRight size={14} className="-mx-0.5" /> },
+                    { value: "fill", label: "Fill Container", icon: <ChevronsLeftRight size={14} /> },
+                    { value: "fixed", label: "Fixed Width", icon: <Minus size={14} /> },
+                  ]}
+                  onChange={(v) => {
+                    if (v === "hug") { set("width", "fit-content"); set("flex", ""); }
+                    else if (v === "fill") { set("width", "100%"); set("flex", ""); }
+                    else { set("width", "auto"); set("flex", ""); }
+                  }}
+                />
+              </div>
               {/* W × H */}
               <div className="flex gap-1.5">
                 <div className="flex-1">

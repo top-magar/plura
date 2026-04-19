@@ -14,8 +14,8 @@ export function makeEl(type: string): El | null {
     heading: () => ({ id, type: "text", name: "Heading", styles: { fontSize: "36px", fontWeight: "700", lineHeight: "1.2", width: "100%" }, content: { innerText: "Heading" } }),
     subheading: () => ({ id, type: "text", name: "Subheading", styles: { fontSize: "20px", fontWeight: "500", opacity: "0.7", width: "100%" }, content: { innerText: "Subheading text goes here" } }),
     link: () => ({ id, type: "link", name: "Link", styles: { color: "#6366f1", textDecoration: "underline" }, content: { innerText: "Click here", href: "#" } }),
-    button: () => ({ id, type: "button", name: "Button", styles: { padding: "12px 24px", backgroundColor: "#6366f1", color: "#ffffff", fontSize: "14px", fontWeight: "600", textAlign: "center", cursor: "pointer" }, content: { innerText: "Click Me", href: "#" } }),
-    image: () => ({ id, type: "image", name: "Image", styles: { width: "100%" }, content: { src: "", alt: "Image" } }),
+    button: () => ({ id, type: "button", name: "Button", styles: { padding: "12px 24px", backgroundColor: "#6366f1", color: "#ffffff", fontSize: "14px", fontWeight: "600", textAlign: "center", cursor: "pointer", width: "fit-content", borderRadius: "6px" }, content: { innerText: "Click Me", href: "#" } }),
+    image: () => ({ id, type: "image", name: "Image", styles: { width: "100%", objectFit: "cover" }, content: { src: "", alt: "Image" } }),
     video: () => ({ id, type: "video", name: "Video", styles: { width: "100%" }, content: { src: "https://www.youtube.com/embed/dQw4w9WgXcQ" } }),
     container: () => ({ id, type: "container", name: "Container", styles: { display: "flex", flexDirection: "column", gap: "8px", padding: "16px", width: "100%" }, content: [] }),
     row: () => ({ id, type: "container", name: "Row", styles: { display: "flex", flexDirection: "row", gap: "16px", width: "100%", alignItems: "center" }, content: [] }),
@@ -112,6 +112,48 @@ export function makeEl(type: string): El | null {
     ] as El[] }),
   };
   return m[type]?.() ?? null;
+}
+
+// Hug-by-default element types — these shouldn't stretch full width
+const hugTypes = new Set(["button", "badge", "link", "icon", "socialIcons"]);
+
+/** Create an element with styles adapted to its parent context */
+export function makeElInContext(type: string, parent: El): El | null {
+  const el = makeEl(type);
+  if (!el) return el;
+
+  const parentIsRow = parent.styles.flexDirection === "row" || parent.styles.flexDirection === "row-reverse";
+  const parentIsFlex = parent.styles.display === "flex" || parent.styles.display === "inline-flex";
+
+  // Hug elements: don't stretch
+  if (hugTypes.has(type)) {
+    el.styles.width = "fit-content";
+    if (parentIsFlex) el.styles.alignSelf = "flex-start";
+    return el;
+  }
+
+  // In a row parent: use flex:1 instead of width:100%
+  if (parentIsRow && parentIsFlex) {
+    delete el.styles.width;
+    el.styles.flex = "1";
+    if (type === "image") el.styles.objectFit = "cover";
+  }
+
+  // Navbar: always full width + sticky
+  if (type === "navbar") {
+    el.styles.width = "100%";
+    el.styles.position = "sticky";
+    el.styles.top = "0";
+    el.styles.zIndex = "10";
+  }
+
+  // Footer: push to bottom
+  if (type === "footer") {
+    el.styles.width = "100%";
+    el.styles.marginTop = "auto";
+  }
+
+  return el;
 }
 
 export const componentGroups = [
