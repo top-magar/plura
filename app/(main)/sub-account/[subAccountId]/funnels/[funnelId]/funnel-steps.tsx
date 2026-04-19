@@ -189,34 +189,13 @@ export default function FunnelSteps({ pages: propPages, funnelId, subAccountId }
                   <Link href={`/editor/${selected.id}`}><Pencil size={12} /> Edit page</Link>
                 </Button>
               </div>
-              <div className="flex-1 flex items-center justify-center p-6">
-                {selected.content ? (
-                  <div className="text-center space-y-3">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10">
-                      <FileText className="h-8 w-8 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-[13px] font-medium">Page has content</p>
-                      <p className="text-[11px] text-muted-foreground">Open the editor to view and modify</p>
-                    </div>
-                    <Button asChild variant="outline" size="sm" className="gap-1 text-[11px]">
-                      <Link href={`/editor/${selected.id}`}><Eye size={12} /> Open editor</Link>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-3">
-                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-muted">
-                      <FileText className="h-8 w-8 text-muted-foreground/30" />
-                    </div>
-                    <div>
-                      <p className="text-[13px] font-medium">Empty page</p>
-                      <p className="text-[11px] text-muted-foreground">Start building in the editor</p>
-                    </div>
-                    <Button asChild size="sm" className="gap-1 text-[11px]">
-                      <Link href={`/editor/${selected.id}`}><Pencil size={12} /> Start editing</Link>
-                    </Button>
-                  </div>
-                )}
+              <div className="flex-1 relative bg-muted/30" style={{ minHeight: 350 }}>
+                <iframe
+                  key={selected.id}
+                  src={`/api/preview?pageId=${selected.id}`}
+                  className="absolute inset-0 w-full h-full border-0"
+                  style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%", height: "200%" }}
+                />
               </div>
             </div>
           ) : (
