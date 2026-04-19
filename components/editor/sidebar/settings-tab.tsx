@@ -4,8 +4,12 @@ import { useState, type CSSProperties, type ReactNode } from "react";
 import {
   Type, ChevronRight, ChevronDown,
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
+  AlignHorizontalJustifyCenter, AlignHorizontalJustifyEnd,
+  AlignHorizontalJustifyStart, AlignHorizontalSpaceBetween, AlignHorizontalSpaceAround,
+  AlignVerticalJustifyCenter, AlignVerticalJustifyStart, AlignVerticalJustifyEnd,
+  ChevronsLeftRight,
   ArrowRight, ArrowDown, ArrowLeft, ArrowUp,
-  MoveHorizontal, MoveVertical, WrapText,
+  WrapText,
   Italic, Underline, Strikethrough,
   CaseUpper, CaseLower, CaseSensitive,
   Minus, Minus as MinusIcon, SeparatorHorizontal,
@@ -165,16 +169,17 @@ const textTransOpts: IconOpt[] = [
   { value: "capitalize", label: "Cap", icon: <CaseSensitive size={14} /> },
 ];
 const justifyOpts: IconOpt[] = [
-  { value: "flex-start", label: "Start", icon: <AlignLeft size={14} /> },
-  { value: "center", label: "Center", icon: <AlignCenter size={14} /> },
-  { value: "flex-end", label: "End", icon: <AlignRight size={14} /> },
-  { value: "space-between", label: "Between", icon: <MoveHorizontal size={14} /> },
+  { value: "flex-start", label: "Start", icon: <AlignHorizontalJustifyStart size={14} /> },
+  { value: "center", label: "Center", icon: <AlignHorizontalJustifyCenter size={14} /> },
+  { value: "flex-end", label: "End", icon: <AlignHorizontalJustifyEnd size={14} /> },
+  { value: "space-between", label: "Between", icon: <AlignHorizontalSpaceBetween size={14} /> },
+  { value: "space-around", label: "Around", icon: <AlignHorizontalSpaceAround size={14} /> },
 ];
 const alignOpts: IconOpt[] = [
-  { value: "flex-start", label: "Start", icon: <ArrowUp size={14} /> },
-  { value: "center", label: "Center", icon: <Minus size={14} /> },
-  { value: "flex-end", label: "End", icon: <ArrowDown size={14} /> },
-  { value: "stretch", label: "Stretch", icon: <MoveVertical size={14} /> },
+  { value: "flex-start", label: "Start", icon: <AlignVerticalJustifyStart size={14} /> },
+  { value: "center", label: "Center", icon: <AlignVerticalJustifyCenter size={14} /> },
+  { value: "flex-end", label: "End", icon: <AlignVerticalJustifyEnd size={14} /> },
+  { value: "stretch", label: "Stretch", icon: <ChevronsLeftRight size={14} className="rotate-90" /> },
 ];
 const directionOpts: IconOpt[] = [
   { value: "row", label: "Row", icon: <ArrowRight size={14} /> },
