@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { FileUpload } from "@/components/global/file-upload";
@@ -325,7 +326,7 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
                       <CardDescription>Products available for checkout in this funnel</CardDescription>
                     </div>
                     {liveProducts.length > 0 && (
-                      <Badge variant="secondary" className="text-[10px]">{liveProducts.length} selected</Badge>
+                      <Badge variant="secondary" className="text-[10px]">{liveProducts.length} of {products.length} selected</Badge>
                     )}
                   </div>
                 </CardHeader>
@@ -341,26 +342,52 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
                       <p className="text-[11px] text-muted-foreground mt-1">Connect Stripe and create products in your Stripe dashboard</p>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      {products.map((p) => {
-                        const isSelected = liveProducts.includes(p.id);
-                        return (
-                          <label key={p.id} className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${isSelected ? "border-primary/30 bg-primary/[0.03]" : "hover:bg-muted/30"}`}>
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={(checked) => setLiveProducts((prev) => checked ? [...prev, p.id] : prev.filter((id) => id !== p.id))}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[13px] font-medium">{p.name}</p>
-                              {p.description && <p className="text-[11px] text-muted-foreground line-clamp-1">{p.description}</p>}
-                            </div>
-                            <div className="text-right shrink-0">
-                              <p className="text-[13px] font-semibold">${(p.amount / 100).toFixed(2)}</p>
-                              {p.recurring && <p className="text-[10px] text-muted-foreground">per {p.recurring}</p>}
-                            </div>
-                          </label>
-                        );
-                      })}
+                    <div className="rounded-lg border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-10">
+                              <Checkbox
+                                checked={liveProducts.length === products.length}
+                                onCheckedChange={(checked) => setLiveProducts(checked ? products.map((p) => p.id) : [])}
+                              />
+                            </TableHead>
+                            <TableHead className="text-[12px]">Product</TableHead>
+                            <TableHead className="text-[12px]">Price</TableHead>
+                            <TableHead className="text-[12px]">Type</TableHead>
+                            <TableHead className="text-[12px] w-20">Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {products.map((p) => {
+                            const isSelected = liveProducts.includes(p.id);
+                            return (
+                              <TableRow key={p.id} className={`cursor-pointer ${isSelected ? "bg-primary/[0.03]" : ""}`} onClick={() => setLiveProducts((prev) => prev.includes(p.id) ? prev.filter((id) => id !== p.id) : [...prev, p.id])}>
+                                <TableCell>
+                                  <Checkbox checked={isSelected} onCheckedChange={(checked) => setLiveProducts((prev) => checked ? [...prev, p.id] : prev.filter((id) => id !== p.id))} />
+                                </TableCell>
+                                <TableCell>
+                                  <div>
+                                    <p className="text-[13px] font-medium">{p.name}</p>
+                                    {p.description && <p className="text-[11px] text-muted-foreground line-clamp-1 max-w-[200px]">{p.description}</p>}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-[13px] font-semibold">${(p.amount / 100).toFixed(2)}</TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className="text-[10px]">{p.recurring ? `${p.recurring}ly` : "One-time"}</Badge>
+                                </TableCell>
+                                <TableCell>
+                                  {isSelected ? (
+                                    <Badge className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20" variant="outline">Active</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="text-[10px] text-muted-foreground">Inactive</Badge>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
                     </div>
                   )}
                 </CardContent>
