@@ -11,9 +11,18 @@ const defaultBody: EditorElement = {
   content: [],
 };
 
+
+const emptyElement: EditorElement = {
+  id: '',
+  type: '',
+  name: '',
+  styles: {},
+  content: [],
+};
+
 const initialEditorState: EditorState = {
   elements: [defaultBody],
-  selectedElement: null,
+  selectedElement: emptyElement,
   device: 'Desktop',
   previewMode: false,
   liveMode: false,
@@ -94,7 +103,7 @@ function editorReducer(state: Editor, action: EditorAction): Editor {
     }
     case 'DELETE_ELEMENT': {
       const newElements = deleteElement(state.editor.elements, action.payload.elementDetails.id);
-      const newEditor: EditorState = { ...state.editor, elements: newElements, selectedElement: null };
+      const newEditor: EditorState = { ...state.editor, elements: newElements, selectedElement: emptyElement };
       const newHistory = state.history.history.slice(0, state.history.currentIndex + 1);
       return {
         editor: newEditor,
@@ -104,7 +113,7 @@ function editorReducer(state: Editor, action: EditorAction): Editor {
     case 'CHANGE_CLICKED_ELEMENT': {
       return {
         ...state,
-        editor: { ...state.editor, selectedElement: action.payload.elementDetails ?? null },
+        editor: { ...state.editor, selectedElement: action.payload.elementDetails ?? emptyElement },
       };
     }
     case 'CHANGE_DEVICE': {

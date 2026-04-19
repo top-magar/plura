@@ -23,7 +23,7 @@ export type EditorAction =
 
 export type EditorState = {
   elements: EditorElement[];
-  selectedElement: EditorElement | null;
+  selectedElement: EditorElement;
   device: DeviceType;
   previewMode: boolean;
   liveMode: boolean;
