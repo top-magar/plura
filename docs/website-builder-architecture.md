@@ -8,6 +8,8 @@
 
 The editor is a full-screen page builder that uses **no external packages for drag and drop** — only native HTML5 Drag and Drop API.
 
+![Editor Overview](./images/editor.png)
+
 ### Layout Structure
 
 ```
@@ -46,6 +48,8 @@ The editor is a full-screen page builder that uses **no external packages for dr
 ## 2. Types of Elements
 
 There are exactly **two categories** of elements in the builder:
+
+![Types of Elements](./images/types-of-elements.png)
 
 ### Custom Static Elements (Leaf Nodes)
 
@@ -101,6 +105,10 @@ Elements that **can have other elements inside them**. They create the nesting s
 ## 3. Master Recursive Element
 
 The **Master Recursive Element** is the single wrapper component that decides which element to render based on the element's `type` property.
+
+![Master Recursive Element](./images/masterRecursiveElements.png)
+
+![Based on What Components](./images/basedOnWhatComponents.png)
 
 ```
 Custom Static Elements + Recursive Elements
@@ -170,6 +178,12 @@ Recursive receives element
 ## 4. EditorElement Data Model
 
 Every element in the builder shares the same base structure:
+
+![Editor Element - Standard Properties](./images/editorElements-1.png)
+
+![Editor Element - Content Property](./images/editorElements-2.png)
+
+![Editor Element - Content Branches](./images/editorElements-3.png)
 
 ### Standard Properties
 
@@ -256,6 +270,8 @@ type EditorElement = {
 
 ### Example: Custom (Static) Element — Video
 
+![Example Custom Element](./images/example-of-custom-element.png)
+
 ```typescript
 {
   content: {
@@ -273,6 +289,8 @@ type EditorElement = {
 - The renderer reads `content.src` and renders an `<iframe>`
 
 ### Example: Editor (Recursive) Element — Two Columns
+
+![Example Editor Element](./images/example-of-editor-element.png)
 
 ```typescript
 {
@@ -363,6 +381,8 @@ The editor maintains a **history stack** — an array of complete editor state s
 
 ### Initial State — History Stack [3]
 
+![History Stack](./images/history-stack.png)
+
 ```
 History: [Editor₁] [Editor₂] [Editor₃]
                               ↑
@@ -372,6 +392,8 @@ History: [Editor₁] [Editor₂] [Editor₃]
 3 snapshots. Pointer at the end (latest state).
 
 ### Add an Element — History Stack [4]
+
+![Add an Element](./images/add-an-element.png)
 
 ```
 History: [Editor₁] [Editor₂] [Editor₃] [Editor₄]
@@ -383,6 +405,8 @@ Every mutation (add, update, delete) pushes a new snapshot. Pointer moves forwar
 
 ### Undo — History Stack [2]
 
+![Undo](./images/undo.png)
+
 ```
 History: [Editor₁] [Editor₂] [Editor₃]
                     ↑
@@ -392,6 +416,8 @@ History: [Editor₁] [Editor₂] [Editor₃]
 Undo moves the pointer **back by 1**. Loads the previous state. The stack stays intact — Editor₃ is still there for redo.
 
 ### Redo — History Stack [3]
+
+![Redo](./images/redo.png)
 
 ```
 History: [Editor₁] [Editor₂] [Editor₃]
