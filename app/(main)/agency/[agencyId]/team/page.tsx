@@ -14,6 +14,9 @@ export default async function TeamPage({
     where: { id: agencyId },
     include: { SubAccount: { select: { id: true, name: true } } },
   });
+  const pendingInvitations = await db.invitation.findMany({
+    where: { agencyId, status: "PENDING" },
+  });
 
   if (!agency) return null;
 
@@ -22,6 +25,7 @@ export default async function TeamPage({
       teamMembers={teamMembers}
       agencyId={agencyId}
       subAccounts={agency.SubAccount}
+      pendingInvitations={pendingInvitations.map((i) => ({ id: i.id, email: i.email, role: i.role, status: i.status }))}
     />
   );
 }

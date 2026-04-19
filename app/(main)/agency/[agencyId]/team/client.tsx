@@ -26,9 +26,9 @@ type Member = {
   Permissions: { id: string; access: boolean; SubAccount: { id: string; name: string } }[];
 };
 
-type Props = { teamMembers: Member[]; agencyId: string; subAccounts: { id: string; name: string }[] };
+type Props = { teamMembers: Member[]; agencyId: string; subAccounts: { id: string; name: string }[]; pendingInvitations: { id: string; email: string; role: string; status: string }[] };
 
-export default function TeamClient({ teamMembers, agencyId, subAccounts }: Props) {
+export default function TeamClient({ teamMembers, agencyId, subAccounts, pendingInvitations }: Props) {
   const router = useRouter();
   const { setOpen } = useModal();
   const [search, setSearch] = useState("");
@@ -162,6 +162,36 @@ export default function TeamClient({ teamMembers, agencyId, subAccounts }: Props
             </TableBody>
           </Table>
         </div>
+
+        {pendingInvitations.length > 0 && (
+          <div className="space-y-2">
+            <h2 className="text-sm font-medium text-muted-foreground">Pending Invitations ({pendingInvitations.length})</h2>
+            <div className="rounded-lg border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingInvitations.map((inv) => (
+                    <TableRow key={inv.id}>
+                      <TableCell className="text-[13px]">{inv.email}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-[11px] capitalize">{inv.role.replace(/_/g, " ").toLowerCase()}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-[11px]">Pending</Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
       </div>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
