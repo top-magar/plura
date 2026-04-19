@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -40,6 +41,16 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
   const [products, setProducts] = useState<{ id: string; name: string; description: string | null; amount: number; currency: string; recurring: string | null }[]>([]);
   const [liveProducts, setLiveProducts] = useState<string[]>(() => { try { return JSON.parse(funnel.liveProducts || "[]"); } catch { return []; } });
   const [productsLoaded, setProductsLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Auto-load products when settings tab is viewed
+  useEffect(() => {
+    if (productsLoaded) return;
+    fetch(`/api/stripe/products?subAccountId=${subAccountId}`)
+      .then((r) => r.json())
+      .then((d) => { setProducts(d.products || []); setProductsLoaded(true); })
+      .catch(() => setProductsLoaded(true));
+  }, [productsLoaded, subAccountId]);
 
   const selectedPage = pages.find((p) => p.id === selectedPageId);
   const totalVisits = pages.reduce((s, p) => s + p.visits, 0);
@@ -98,11 +109,13 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
   };
 
   const handleSaveSettings = async () => {
+    setSaving(true);
     try {
       await upsertFunnel({ id: funnel.id, name: funnelName, description, subDomainName: subdomain || undefined, subAccountId, liveProducts: JSON.stringify(liveProducts) });
       toast.success("Settings saved");
       router.refresh();
     } catch { toast.error("Could not save"); }
+    setSaving(false);
   };
 
   const handleDeleteFunnel = async () => {
@@ -255,119 +268,128 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="mt-4">
-            <div className="mx-auto max-w-lg space-y-8">
+            <div className="mx-auto max-w-2xl space-y-6">
+
               {/* General */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-[14px] font-semibold">General</h3>
-                  <p className="text-[12px] text-muted-foreground">Basic funnel information</p>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-medium">Funnel name</label>
-                  <Input value={funnelName} onChange={(e) => setFunnelName(e.target.value)} />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-medium">Description</label>
-                  <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this funnel for?" rows={3} className="resize-none text-[13px]" />
-                </div>
-              </div>
-
-              <div className="border-t" />
-
-              {/* Domain */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-[14px] font-semibold">Domain</h3>
-                  <p className="text-[12px] text-muted-foreground">Configure your custom subdomain</p>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-medium">Subdomain</label>
-                  <div className="flex items-center gap-2">
-                    <Input value={subdomain} onChange={(e) => setSubdomain(e.target.value)} placeholder="my-site" className="flex-1" />
-                    <span className="text-[12px] text-muted-foreground shrink-0">.{process.env.NEXT_PUBLIC_DOMAIN}</span>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-[15px]">General</CardTitle>
+                  <CardDescription>Basic funnel information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-medium">Funnel name</label>
+                      <Input value={funnelName} onChange={(e) => setFunnelName(e.target.value)} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[13px] font-medium">Subdomain</label>
+                      <div className="flex">
+                        <Input value={subdomain} onChange={(e) => setSubdomain(e.target.value)} placeholder="my-site" className="rounded-r-none" />
+                        <div className="flex items-center rounded-r-md border border-l-0 bg-muted px-3 text-[12px] text-muted-foreground">.{process.env.NEXT_PUBLIC_DOMAIN}</div>
+                      </div>
+                      {subdomain && (
+                        <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                          <Globe size={10} /> {subdomain}.{process.env.NEXT_PUBLIC_DOMAIN}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  {subdomain && (
-                    <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-                      <Globe size={10} /> {subdomain}.{process.env.NEXT_PUBLIC_DOMAIN}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="border-t" />
-
-              {/* Branding */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-[14px] font-semibold">Branding</h3>
-                  <p className="text-[12px] text-muted-foreground">Customize the look of your funnel</p>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-medium">Favicon</label>
-                  <FileUpload value={favicon} onChange={(url: string | undefined) => setFavicon(url || "")} />
-                </div>
-              </div>
-
-              <Button onClick={handleSaveSettings} className="gap-1.5">Save settings</Button>
-
-              <div className="border-t" />
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-medium">Description</label>
+                    <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this funnel for?" rows={3} className="resize-none text-[13px]" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-medium">Favicon</label>
+                    <div className="flex items-start gap-4">
+                      {favicon && (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg border bg-muted">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={favicon} alt="Favicon" className="h-8 w-8 object-contain" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <FileUpload value={favicon} onChange={(url: string | undefined) => setFavicon(url || "")} />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Live Products */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-[14px] font-semibold">Live Products</h3>
-                  <p className="text-[12px] text-muted-foreground">Select products available for checkout in this funnel</p>
-                </div>
-                {!productsLoaded ? (
-                  <Button variant="outline" size="sm" onClick={async () => {
-                    const res = await fetch(`/api/stripe/products?subAccountId=${subAccountId}`);
-                    const data = await res.json();
-                    setProducts(data.products || []);
-                    setProductsLoaded(true);
-                  }}>Load products from Stripe</Button>
-                ) : products.length === 0 ? (
-                  <p className="text-[12px] text-muted-foreground">No products found. Connect Stripe and create products first.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {products.map((p) => (
-                      <label key={p.id} className="flex items-center gap-3 rounded-lg border p-3 cursor-pointer hover:bg-muted/30 transition-colors">
-                        <Checkbox
-                          checked={liveProducts.includes(p.id)}
-                          onCheckedChange={(checked) => {
-                            setLiveProducts((prev) => checked ? [...prev, p.id] : prev.filter((id) => id !== p.id));
-                          }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-medium">{p.name}</p>
-                          {p.description && <p className="text-[11px] text-muted-foreground line-clamp-1">{p.description}</p>}
-                        </div>
-                        <span className="text-[13px] font-semibold shrink-0">
-                          ${(p.amount / 100).toFixed(2)}
-                          {p.recurring && <span className="text-[10px] text-muted-foreground font-normal">/{p.recurring}</span>}
-                        </span>
-                      </label>
-                    ))}
-                    <p className="text-[11px] text-muted-foreground">{liveProducts.length} product{liveProducts.length !== 1 ? "s" : ""} selected</p>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-[15px]">Live Products</CardTitle>
+                      <CardDescription>Products available for checkout in this funnel</CardDescription>
+                    </div>
+                    {liveProducts.length > 0 && (
+                      <Badge variant="secondary" className="text-[10px]">{liveProducts.length} selected</Badge>
+                    )}
                   </div>
-                )}
-              </div>
+                </CardHeader>
+                <CardContent>
+                  {!productsLoaded ? (
+                    <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      Loading products...
+                    </div>
+                  ) : products.length === 0 ? (
+                    <div className="rounded-lg border border-dashed py-8 text-center">
+                      <p className="text-[13px] text-muted-foreground">No products found</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">Connect Stripe and create products in your Stripe dashboard</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {products.map((p) => {
+                        const isSelected = liveProducts.includes(p.id);
+                        return (
+                          <label key={p.id} className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${isSelected ? "border-primary/30 bg-primary/[0.03]" : "hover:bg-muted/30"}`}>
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => setLiveProducts((prev) => checked ? [...prev, p.id] : prev.filter((id) => id !== p.id))}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[13px] font-medium">{p.name}</p>
+                              {p.description && <p className="text-[11px] text-muted-foreground line-clamp-1">{p.description}</p>}
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-[13px] font-semibold">${(p.amount / 100).toFixed(2)}</p>
+                              {p.recurring && <p className="text-[10px] text-muted-foreground">per {p.recurring}</p>}
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-              <div className="border-t" />
+              {/* Save */}
+              <div className="flex justify-end">
+                <Button onClick={handleSaveSettings} disabled={saving} className="gap-1.5 min-w-[120px]">
+                  {saving ? <><div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" /> Saving...</> : "Save settings"}
+                </Button>
+              </div>
 
               {/* Danger Zone */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-[14px] font-semibold text-destructive">Danger Zone</h3>
-                  <p className="text-[12px] text-muted-foreground">Irreversible actions</p>
-                </div>
-                <div className="flex items-center justify-between rounded-lg border border-destructive/20 p-4">
-                  <div>
-                    <p className="text-[13px] font-medium">Delete this funnel</p>
-                    <p className="text-[11px] text-muted-foreground">All pages and content will be permanently removed.</p>
+              <Card className="border-destructive/20">
+                <CardHeader>
+                  <CardTitle className="text-[15px] text-destructive">Danger Zone</CardTitle>
+                  <CardDescription>These actions are irreversible</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[13px] font-medium">Delete this funnel</p>
+                      <p className="text-[11px] text-muted-foreground">Permanently remove &quot;{funnel.name}&quot; and all its pages</p>
+                    </div>
+                    <Button variant="destructive" size="sm" onClick={() => setDeleteFunnelOpen(true)}>Delete</Button>
                   </div>
-                  <Button variant="destructive" size="sm" onClick={() => setDeleteFunnelOpen(true)}>Delete funnel</Button>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
+
             </div>
           </TabsContent>
         </Tabs>
