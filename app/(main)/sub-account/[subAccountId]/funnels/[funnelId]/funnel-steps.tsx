@@ -27,6 +27,8 @@ export default function FunnelSteps({ pages: propPages, funnelId, subAccountId }
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [renameId, setRenameId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   // Auto-select first page
   useEffect(() => { if (!selectedId && pages.length) setSelectedId(pages[0].id); }, [pages, selectedId]);
@@ -74,6 +76,18 @@ export default function FunnelSteps({ pages: propPages, funnelId, subAccountId }
     setDeleteId(null);
   };
 
+  const handleRename = async (pageId: string) => {
+    if (!renameValue.trim()) { setRenameId(null); return; }
+    const page = pages.find((p) => p.id === pageId);
+    if (!page) return;
+    setPages((prev) => prev.map((p) => p.id === pageId ? { ...p, name: renameValue } : p));
+    setRenameId(null);
+    try {
+      await upsertFunnelPage({ id: pageId, name: renameValue, pathName: page.pathName, funnelId, order: page.order });
+      toast.success("Renamed");
+    } catch { toast.error("Could not rename"); }
+  };
+
   const handleDuplicate = async (page: FunnelPage) => {
     try {
       const dup = await upsertFunnelPage({ name: `${page.name} (copy)`, pathName: `${page.pathName}-copy`, funnelId, order: pages.length, content: page.content ?? undefined });
@@ -115,7 +129,19 @@ export default function FunnelSteps({ pages: propPages, funnelId, subAccountId }
                           <div {...prov.dragHandleProps} className="cursor-grab"><GripVertical size={14} className="text-muted-foreground/40" /></div>
                           <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10 text-[10px] font-semibold text-primary shrink-0">{i + 1}</div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[12px] font-medium truncate">{page.name}</p>
+                            {renameId === page.id ? (
+                              <Input
+                                value={renameValue}
+                                onChange={(e) => setRenameValue(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter") handleRename(page.id); if (e.key === "Escape") setRenameId(null); }}
+                                onBlur={() => handleRename(page.id)}
+                                onClick={(e) => e.stopPropagation()}
+                                autoFocus
+                                className="h-6 text-[12px] px-1"
+                              />
+                            ) : (
+                              <p className="text-[12px] font-medium truncate" onDoubleClick={(e) => { e.stopPropagation(); setRenameId(page.id); setRenameValue(page.name); }}>{page.name}</p>
+                            )}
                             <p className="text-[10px] text-muted-foreground truncate">/{page.pathName || "(root)"}</p>
                           </div>
                           {page.visits > 0 && <Badge variant="secondary" className="text-[9px] h-4 px-1">{page.visits}</Badge>}
@@ -125,6 +151,7 @@ export default function FunnelSteps({ pages: propPages, funnelId, subAccountId }
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem asChild><Link href={`/editor/${page.id}`}><Pencil /> Edit in editor</Link></DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setRenameId(page.id); setRenameValue(page.name); }}><Pencil /> Rename</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleDuplicate(page)}><Copy /> Duplicate</DropdownMenuItem>
                               <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(page.id)}><Trash2 /> Delete</DropdownMenuItem>
                             </DropdownMenuContent>
