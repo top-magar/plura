@@ -7,7 +7,7 @@ import { upsertFunnelPage } from '@/lib/queries';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import EditorNavigation from './editor-navigation';
-import EditorSidebar from './editor-sidebar';
+import { LeftPanel, RightPanel } from './editor-sidebar';
 import Recursive from './recursive';
 import './editor.css';
 
@@ -66,6 +66,9 @@ export default function Editor() {
       )}
 
       <div className="flex flex-1 overflow-hidden">
+        {/* Left panel */}
+        {!previewMode && <LeftPanel />}
+
         {/* Canvas */}
         <div
           className="editor-canvas flex-1 overflow-auto"
@@ -79,8 +82,8 @@ export default function Editor() {
           </div>
         </div>
 
-        {/* Sidebar */}
-        {!previewMode && <EditorSidebar />}
+        {/* Right panel */}
+        {!previewMode && <RightPanel />}
       </div>
     </div>
   );
