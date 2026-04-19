@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink, Globe, LayoutTemplate, MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ExternalLink, Globe, LayoutTemplate, MoreHorizontal, Pencil, Plus, Search, Trash2, LayoutGrid, TableIcon, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
+import { useReactTable, getCoreRowModel, getSortedRowModel, flexRender, type SortingState, type ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useModal } from "@/providers/modal-provider";
@@ -38,10 +40,41 @@ export default function FunnelsClient({ funnels, subAccountId }: Props) {
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [tab, setTab] = useState<"all" | "live" | "draft">("all");
+  const [view, setView] = useState<"grid" | "table">("grid");
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const filtered = funnels
     .filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))
     .filter((f) => tab === "all" ? true : tab === "live" ? f.published : !f.published);
+
+  const columns: ColumnDef<Funnel>[] = [
+    { accessorKey: "name", header: ({ column }) => <Button variant="ghost" size="sm" className="h-7 -ml-2 text-[12px]" onClick={() => column.toggleSorting()}>Name <ArrowUpDown className="ml-1 h-3 w-3" /></Button>,
+      cell: ({ row }) => (
+        <Link href={`/sub-account/${subAccountId}/funnels/${row.original.id}`} className="hover:underline">
+          <p className="text-[13px] font-medium">{row.original.name}</p>
+          {row.original.description && <p className="text-[11px] text-muted-foreground line-clamp-1">{row.original.description}</p>}
+        </Link>
+      ),
+    },
+    { id: "status", header: "Status", cell: ({ row }) => <Badge variant="outline" className={`text-[10px] ${row.original.published ? "border-emerald-500/30 text-emerald-600" : ""}`}>{row.original.published ? "Live" : "Draft"}</Badge> },
+    { id: "pages", header: "Pages", cell: ({ row }) => <span className="text-[13px]">{row.original.FunnelPages.length}</span> },
+    { id: "domain", header: "Domain", cell: ({ row }) => row.original.subDomainName ? <span className="flex items-center gap-1 text-[12px] text-muted-foreground"><Globe className="h-3 w-3" />{row.original.subDomainName}</span> : <span className="text-[12px] text-muted-foreground">—</span> },
+    { accessorKey: "updatedAt", header: ({ column }) => <Button variant="ghost" size="sm" className="h-7 -ml-2 text-[12px]" onClick={() => column.toggleSorting()}>Updated <ArrowUpDown className="ml-1 h-3 w-3" /></Button>,
+      cell: ({ row }) => <span className="text-[12px] text-muted-foreground">{new Date(row.original.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>,
+    },
+    { id: "actions", header: "", size: 60, cell: ({ row }) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon-xs"><MoreHorizontal /></Button></DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild><Link href={`/sub-account/${subAccountId}/funnels/${row.original.id}`}><Pencil /> Edit</Link></DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(row.original.id)}><Trash2 /> Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )},
+  ];
+
+  const table = useReactTable({ data: filtered, columns, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel() });
 
   const liveCount = funnels.filter((f) => f.published).length;
   const draftCount = funnels.filter((f) => !f.published).length;
@@ -95,10 +128,15 @@ export default function FunnelsClient({ funnels, subAccountId }: Props) {
             <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search funnels..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
           </div>
+          <div className="flex gap-1 border rounded-lg p-0.5">
+            <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon-xs" onClick={() => setView("grid")}><LayoutGrid size={14} /></Button>
+            <Button variant={view === "table" ? "secondary" : "ghost"} size="icon-xs" onClick={() => setView("table")}><TableIcon size={14} /></Button>
+          </div>
         </div>
 
-        {/* Grid */}
+        {/* Content */}
         {filtered.length > 0 ? (
+          view === "grid" ? (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {filtered.map((funnel) => (
               <div key={funnel.id} className="group relative overflow-hidden rounded-xl border bg-card transition-all hover:shadow-md hover:border-primary/20">
@@ -166,6 +204,30 @@ export default function FunnelsClient({ funnels, subAccountId }: Props) {
               </div>
             ))}
           </div>
+          ) : (
+          <div className="rounded-lg border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((hg) => (
+                  <TableRow key={hg.id}>
+                    {hg.headers.map((h) => (
+                      <TableHead key={h.id}>{h.isPlaceholder ? null : flexRender(h.column.columnDef.header, h.getContext())}</TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          )
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
