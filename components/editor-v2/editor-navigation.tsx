@@ -55,7 +55,7 @@ export default function EditorNavigation() {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <nav className="editor-toolbar">
+      <nav className="flex items-center justify-between h-12 px-3 border-b border-border bg-card shrink-0">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -68,12 +68,12 @@ export default function EditorNavigation() {
           <span style={{ fontSize: '14px', fontWeight: 500 }}>{pageDetails.name}</span>
         </div>
 
-        <div className="editor-device-toggle">
+        <div className="flex gap-0.5">
           {devices.map((d) => (
             <Tooltip key={d.value}>
               <TooltipTrigger asChild>
                 <button
-                  className={`editor-device-btn ${device === d.value ? 'active' : ''}`}
+                  className={`flex items-center justify-center w-8 h-8 border border-transparent bg-transparent cursor-pointer text-muted-foreground transition-colors hover:text-foreground hover:bg-accent ${device === d.value ? 'text-foreground bg-accent border-border' : ''}`}
                   onClick={() => dispatch({ type: 'CHANGE_DEVICE', payload: { device: d.value } })}
                 >
                   <d.icon size={16} />
@@ -87,7 +87,7 @@ export default function EditorNavigation() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="editor-device-btn" onClick={() => dispatch({ type: 'TOGGLE_PREVIEW_MODE' })}>
+              <button className="flex items-center justify-center w-8 h-8 border border-transparent bg-transparent cursor-pointer text-muted-foreground transition-colors hover:text-foreground hover:bg-accent" onClick={() => dispatch({ type: 'TOGGLE_PREVIEW_MODE' })}>
                 <Eye size={16} />
               </button>
             </TooltipTrigger>
@@ -95,7 +95,7 @@ export default function EditorNavigation() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="editor-device-btn" onClick={() => dispatch({ type: 'UNDO' })}>
+              <button className="flex items-center justify-center w-8 h-8 border border-transparent bg-transparent cursor-pointer text-muted-foreground transition-colors hover:text-foreground hover:bg-accent" onClick={() => dispatch({ type: 'UNDO' })}>
                 <Undo2 size={16} />
               </button>
             </TooltipTrigger>
@@ -103,7 +103,7 @@ export default function EditorNavigation() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="editor-device-btn" onClick={() => dispatch({ type: 'REDO' })}>
+              <button className="flex items-center justify-center w-8 h-8 border border-transparent bg-transparent cursor-pointer text-muted-foreground transition-colors hover:text-foreground hover:bg-accent" onClick={() => dispatch({ type: 'REDO' })}>
                 <Redo2 size={16} />
               </button>
             </TooltipTrigger>
@@ -111,7 +111,7 @@ export default function EditorNavigation() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="editor-device-btn" onClick={handleSave}>
+              <button className="flex items-center justify-center w-8 h-8 border border-transparent bg-transparent cursor-pointer text-muted-foreground transition-colors hover:text-foreground hover:bg-accent" onClick={handleSave}>
                 <Save size={16} />
               </button>
             </TooltipTrigger>

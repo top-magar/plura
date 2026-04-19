@@ -26,12 +26,12 @@ export default function VideoComponent({ element }: { element: EditorElement }) 
 
   return (
     <div
-      className={`editor-el ${isSelected ? 'is-selected' : ''}`}
+      className={`relative outline-1 outline-dashed outline-transparent transition-[outline-color] duration-100 hover:outline-primary ${isSelected ? 'outline-2 outline-solid outline-primary' : ''}`}
       onClick={handleClick}
       draggable
       onDragStart={handleDragStart}
     >
-      {isSelected && <span className="editor-badge-select">{element.name}</span>}
+      {isSelected && <span className="absolute -top-5 left-0 text-[10px] px-1.5 py-px bg-primary text-primary-foreground z-10 pointer-events-none whitespace-nowrap">{element.name}</span>}
       <iframe
         src={content.src}
         style={{ ...element.styles, pointerEvents: 'none' }}
@@ -39,7 +39,7 @@ export default function VideoComponent({ element }: { element: EditorElement }) 
       />
       {isSelected && (
         <button
-          className="editor-el-delete"
+          className="absolute -top-5 right-0 bg-destructive text-white border-none py-0.5 px-1 cursor-pointer flex items-center z-10"
           onClick={(e) => {
             e.stopPropagation();
             dispatch({ type: 'DELETE_ELEMENT', payload: { elementDetails: element } });

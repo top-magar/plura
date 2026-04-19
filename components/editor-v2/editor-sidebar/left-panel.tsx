@@ -14,9 +14,9 @@ export default function LeftPanel() {
   }
 
   return (
-    <Tabs value={activeTab ?? ''} className="editor-left-panel">
+    <Tabs value={activeTab ?? ''} className="flex shrink-0 h-full bg-background">
       {/* Icon rail */}
-      <div className="editor-left-icons">
+      <div className="w-12 shrink-0 border-r border-border pt-3 flex flex-col items-center">
         <TabsList className="flex flex-col items-center bg-transparent w-full h-auto gap-4 p-0">
           <TabsTrigger
             value="Components"
@@ -36,7 +36,7 @@ export default function LeftPanel() {
       </div>
 
       {/* Flyout content */}
-      <div className="editor-left-content" style={{ width: activeTab ? 280 : 0 }}>
+      <div className="shrink-0 overflow-y-auto overflow-x-hidden border-r border-border transition-[width] duration-200" style={{ width: activeTab ? 280 : 0 }}>
         {activeTab === 'Components' && (
           <TabsContent value="Components" className="mt-0" forceMount>
             <div className="p-4 pb-2">

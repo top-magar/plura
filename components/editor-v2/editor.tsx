@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import EditorNavigation from './editor-navigation';
 import { LeftPanel, RightPanel } from './editor-sidebar';
 import Recursive from './recursive';
-import './editor.css';
+
 
 const deviceWidths = { Desktop: '100%', Tablet: '768px', Mobile: '420px' } as const;
 
@@ -71,11 +71,12 @@ export default function Editor() {
 
         {/* Canvas */}
         <div
-          className="editor-canvas flex-1 overflow-auto"
+          className="bg-muted p-6 flex-1 overflow-auto"
+          style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--border)) 1px, transparent 1px)', backgroundSize: '20px 20px' }}
           onClick={() => dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: {} })}
         >
           <div
-            className="editor-canvas-inner mx-auto"
+            className="bg-background border border-border min-h-full transition-[width] duration-200 overflow-auto mx-auto"
             style={{ width: previewMode ? '100%' : deviceWidths[device] }}
           >
             {body && <Recursive element={body} />}

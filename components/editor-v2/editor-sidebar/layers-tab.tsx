@@ -69,7 +69,7 @@ export default function LayersTab() {
   if (!body) return null;
 
   return (
-    <div className="editor-scroll-panel">
+    <div className="p-3 overflow-y-auto flex-1">
       <LayerNode element={body} depth={0} />
     </div>
   );

@@ -12,7 +12,7 @@ export default function RightPanel() {
   if (!open) {
     return (
       <button
-        className="editor-right-toggle"
+        className="w-12 shrink-0 h-full border-l border-border bg-background flex items-start justify-center pt-4 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
         onClick={() => setOpen(true)}
         title="Open properties"
       >
@@ -24,7 +24,7 @@ export default function RightPanel() {
   const hasSelection = state.editor.selectedElement.id !== '';
 
   return (
-    <div className="editor-right-panel">
+    <div className="w-80 shrink-0 h-full border-l border-border bg-background overflow-y-auto overflow-x-hidden">
       <div className="flex items-center justify-between p-4 pb-2">
         <div>
           <h3 className="font-medium text-sm">

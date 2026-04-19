@@ -46,7 +46,7 @@ export default function ComponentsTab() {
   }
 
   return (
-    <div className="editor-scroll-panel">
+    <div className="p-3 overflow-y-auto flex-1">
       {groups.map((group) => (
         <div key={group.label} style={{ marginBottom: '16px' }}>
           <p style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', color: 'var(--muted-foreground)', marginBottom: '8px' }}>
@@ -56,7 +56,7 @@ export default function ComponentsTab() {
             {group.items.map((item) => (
               <div
                 key={item.type}
-                className="editor-component-card"
+                className="flex flex-col items-center justify-center gap-1 py-3 px-2 border border-border cursor-grab bg-background transition-colors hover:bg-accent"
                 draggable
                 onDragStart={(e) => handleDragStart(e, item.type)}
               >
