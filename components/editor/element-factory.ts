@@ -18,6 +18,8 @@ export function makeEl(type: string): El | null {
     image: () => ({ id, type: "image", name: "Image", styles: { width: "100%" }, content: { src: "", alt: "Image" } }),
     video: () => ({ id, type: "video", name: "Video", styles: { width: "100%" }, content: { src: "https://www.youtube.com/embed/dQw4w9WgXcQ" } }),
     container: () => ({ id, type: "container", name: "Container", styles: { display: "flex", flexDirection: "column", gap: "8px", padding: "16px", width: "100%" }, content: [] }),
+    row: () => ({ id, type: "container", name: "Row", styles: { display: "flex", flexDirection: "row", gap: "16px", width: "100%", alignItems: "center" }, content: [] }),
+    column: () => ({ id, type: "container", name: "Column", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] }),
     section: () => ({ id, type: "container", name: "Section", styles: { display: "flex", flexDirection: "column", gap: "16px", padding: "64px 24px", maxWidth: "1200px", margin: "0 auto", width: "100%" }, content: [] }),
     "2Col": () => ({ id, type: "2Col", name: "2 Columns", styles: { display: "flex", gap: "16px", width: "100%" }, content: [
       { id: v4(), type: "container", name: "Col 1", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
@@ -115,8 +117,10 @@ export function makeEl(type: string): El | null {
 export const componentGroups = [
   { label: "Layout", items: [
     { type: "container", label: "Container", icon: Square, color: "#8b5cf6" },
+    { type: "row", label: "Row", icon: Columns2, color: "#7c3aed" },
+    { type: "column", label: "Column", icon: Rows3, color: "#7c3aed" },
     { type: "section", label: "Section", icon: Layout, color: "#7c3aed" },
-    { type: "2Col", label: "2 Columns", icon: Columns2, color: "#7c3aed" },
+    { type: "2Col", label: "2 Columns", icon: Columns2, color: "#6d28d9" },
     { type: "3Col", label: "3 Columns", icon: Columns3, color: "#6d28d9" },
     { type: "4Col", label: "4 Columns", icon: GripVertical, color: "#5b21b6" },
     { type: "divider", label: "Divider", icon: Minus, color: "#94a3b8" },
