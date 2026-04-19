@@ -21,7 +21,7 @@ export default function RightPanel() {
               className="w-12 shrink-0 h-full border-l border-sidebar-border flex items-start justify-center pt-3 bg-sidebar text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors cursor-pointer"
               onClick={() => setOpen(true)}
             >
-              <PanelRightOpen size={18} />
+              <PanelRightOpen size={16} />
             </button>
           </TooltipTrigger>
           <TooltipContent side="left">Open properties</TooltipContent>
@@ -31,7 +31,7 @@ export default function RightPanel() {
   }
 
   return (
-    <div className="w-80 shrink-0 h-full border-l border-sidebar-border bg-sidebar flex flex-col overflow-hidden">
+    <div className="w-64 shrink-0 h-full border-l border-sidebar-border bg-sidebar flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-sidebar-border shrink-0">
         <div className="min-w-0">
