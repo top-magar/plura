@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { FileUpload } from "@/components/global/file-upload";
-import { deleteFunnelPage, upsertFunnel, upsertFunnelPage, saveActivityLogsNotification } from "@/lib/queries";
+import { deleteFunnel, deleteFunnelPage, upsertFunnel, upsertFunnelPage, saveActivityLogsNotification } from "@/lib/queries";
 
 type FunnelPage = { id: string; name: string; pathName: string; order: number; visits: number; content: string | null };
 type Funnel = { id: string; name: string; description: string | null; subDomainName: string | null; published: boolean; favicon: string | null; subAccountId: string; FunnelPages: FunnelPage[] };
@@ -34,6 +34,8 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
   const [subdomain, setSubdomain] = useState(funnel.subDomainName ?? "");
   const [description, setDescription] = useState(funnel.description ?? "");
   const [favicon, setFavicon] = useState(funnel.favicon ?? "");
+  const [funnelName, setFunnelName] = useState(funnel.name);
+  const [deleteFunnelOpen, setDeleteFunnelOpen] = useState(false);
 
   const selectedPage = pages.find((p) => p.id === selectedPageId);
   const totalVisits = pages.reduce((s, p) => s + p.visits, 0);
@@ -93,10 +95,19 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
 
   const handleSaveSettings = async () => {
     try {
-      await upsertFunnel({ id: funnel.id, name: funnel.name, description, subDomainName: subdomain || undefined, subAccountId });
+      await upsertFunnel({ id: funnel.id, name: funnelName, description, subDomainName: subdomain || undefined, subAccountId });
       toast.success("Settings saved");
       router.refresh();
     } catch { toast.error("Could not save"); }
+  };
+
+  const handleDeleteFunnel = async () => {
+    try {
+      await deleteFunnel(funnel.id);
+      await saveActivityLogsNotification({ description: `Deleted funnel | ${funnel.name}`, subAccountId });
+      toast.success("Funnel deleted");
+      router.push(`/sub-account/${subAccountId}/funnels`);
+    } catch { toast.error("Could not delete"); }
   };
 
   return (
@@ -240,21 +251,77 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="mt-4">
-            <div className="max-w-md space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-medium">Description</label>
-                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this funnel for?" rows={2} className="resize-none text-[13px]" />
+            <div className="max-w-lg space-y-8">
+              {/* General */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-[14px] font-semibold">General</h3>
+                  <p className="text-[12px] text-muted-foreground">Basic funnel information</p>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium">Funnel name</label>
+                  <Input value={funnelName} onChange={(e) => setFunnelName(e.target.value)} />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium">Description</label>
+                  <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this funnel for?" rows={3} className="resize-none text-[13px]" />
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-medium">Subdomain</label>
-                <Input value={subdomain} onChange={(e) => setSubdomain(e.target.value)} placeholder="my-site" />
-                <p className="text-[11px] text-muted-foreground">Available at {subdomain || "my-site"}.{process.env.NEXT_PUBLIC_DOMAIN}</p>
+
+              <div className="border-t" />
+
+              {/* Domain */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-[14px] font-semibold">Domain</h3>
+                  <p className="text-[12px] text-muted-foreground">Configure your custom subdomain</p>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium">Subdomain</label>
+                  <div className="flex items-center gap-2">
+                    <Input value={subdomain} onChange={(e) => setSubdomain(e.target.value)} placeholder="my-site" className="flex-1" />
+                    <span className="text-[12px] text-muted-foreground shrink-0">.{process.env.NEXT_PUBLIC_DOMAIN}</span>
+                  </div>
+                  {subdomain && (
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      <Globe size={10} /> {subdomain}.{process.env.NEXT_PUBLIC_DOMAIN}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[13px] font-medium">Favicon</label>
-                <FileUpload value={favicon} onChange={(url: string | undefined) => setFavicon(url || "")} />
+
+              <div className="border-t" />
+
+              {/* Branding */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-[14px] font-semibold">Branding</h3>
+                  <p className="text-[12px] text-muted-foreground">Customize the look of your funnel</p>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-medium">Favicon</label>
+                  <FileUpload value={favicon} onChange={(url: string | undefined) => setFavicon(url || "")} />
+                </div>
               </div>
-              <Button size="sm" onClick={handleSaveSettings}>Save settings</Button>
+
+              <Button onClick={handleSaveSettings} className="gap-1.5">Save settings</Button>
+
+              <div className="border-t" />
+
+              {/* Danger Zone */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-[14px] font-semibold text-destructive">Danger Zone</h3>
+                  <p className="text-[12px] text-muted-foreground">Irreversible actions</p>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border border-destructive/20 p-4">
+                  <div>
+                    <p className="text-[13px] font-medium">Delete this funnel</p>
+                    <p className="text-[11px] text-muted-foreground">All pages and content will be permanently removed.</p>
+                  </div>
+                  <Button variant="destructive" size="sm" onClick={() => setDeleteFunnelOpen(true)}>Delete funnel</Button>
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
@@ -269,6 +336,19 @@ export default function FunnelDetailClient({ funnel, subAccountId }: Props) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction className="bg-destructive" onClick={handleDeletePage}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteFunnelOpen} onOpenChange={setDeleteFunnelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete entire funnel?</AlertDialogTitle>
+            <AlertDialogDescription>This permanently deletes &quot;{funnel.name}&quot; and all its pages. This cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive" onClick={handleDeleteFunnel}>Delete funnel</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
