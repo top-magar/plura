@@ -4,7 +4,7 @@ import React from 'react';
 import { useEditor } from '../editor-provider';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Plus, SettingsIcon, Layers, SquareStackIcon } from 'lucide-react';
+import { Database, Plus, SettingsIcon, SquareStackIcon } from 'lucide-react';
 import ComponentsTab from './components-tab';
 import LayersTab from './layers-tab';
 import SettingsTab from './settings-tab';
@@ -21,18 +21,18 @@ export default function EditorSidebar() {
           className={`mt-[97px] w-16 z-[80] shadow-none p-0 focus:border-none transition-all overflow-hidden ${state.editor.previewMode ? 'hidden' : ''}`}
         >
           <SheetTitle className="sr-only">Editor Sidebar</SheetTitle>
-          <TabsList className="flex flex-col items-center gap-4 bg-transparent w-full h-fit py-4">
+          <TabsList className="flex items-center flex-col justify-evenly w-full bg-transparent h-fit gap-4">
             <TabsTrigger value="Settings" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
-              <SettingsIcon size={16} />
+              <SettingsIcon />
             </TabsTrigger>
-            <TabsTrigger value="Components" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
-              <Plus size={16} />
+            <TabsTrigger value="Components" className="data-[state=active]:bg-muted w-10 h-10 p-0">
+              <Plus />
             </TabsTrigger>
             <TabsTrigger value="Layers" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
-              <Layers size={16} />
+              <SquareStackIcon />
             </TabsTrigger>
             <TabsTrigger value="Media" className="w-10 h-10 p-0 data-[state=active]:bg-muted">
-              <Database size={16} />
+              <Database />
             </TabsTrigger>
           </TabsList>
         </SheetContent>
