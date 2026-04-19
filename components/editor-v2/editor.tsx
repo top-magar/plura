@@ -64,7 +64,7 @@ export default function Editor() {
         </Button>
       )}
       <div
-        className={`h-full overflow-auto transition-all ${previewMode ? '' : 'mr-[380px]'}`}
+        className={`h-full overflow-auto transition-all ${previewMode ? '' : 'mr-[384px]'}`}
         onClick={() => dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: {} })}
       >
         <div

@@ -18,7 +18,7 @@ export default function EditorSidebar() {
         <SheetContent
           
           side="right"
-          className={`mt-[97px] w-16 z-[80] shadow-none p-0 focus:border-none transition-all overflow-hidden ${state.editor.previewMode ? 'hidden' : ''}`}
+          className={`mt-[97px] !w-16 !max-w-[64px] z-[80] shadow-none p-0 focus:border-none transition-all overflow-hidden border-l-0 ${state.editor.previewMode ? 'hidden' : ''}`}
         >
           <SheetTitle className="sr-only">Editor Sidebar</SheetTitle>
           <TabsList className="flex items-center flex-col justify-evenly w-full bg-transparent h-fit gap-4">
@@ -40,7 +40,7 @@ export default function EditorSidebar() {
         <SheetContent
           
           side="right"
-          className={`mt-[97px] w-80 z-[40] shadow-none p-0 mr-16 bg-background h-full transition-all overflow-hidden ${state.editor.previewMode ? 'hidden' : ''}`}
+          className={`mt-[97px] !w-80 !max-w-[320px] z-[40] shadow-none p-0 mr-16 bg-background h-full transition-all overflow-auto ${state.editor.previewMode ? 'hidden' : ''}`}
         >
           <div className="grid gap-4 h-full pb-36 overflow-scroll">
             <TabsContent value="Settings">
