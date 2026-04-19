@@ -44,13 +44,24 @@ const typeConfig: Record<string, { icon: React.ComponentType<{ size?: number; cl
 
 const fallback = { icon: Square, color: "#64748b", label: "Element" };
 
-export function LayerTree({ el, depth, selected, onSelect }: { el: El; depth: number; selected: El | null; onSelect: (el: El) => void }) {
+function matchesChild(el: El, filter: string): boolean {
+  if (!filter) return true;
+  if (el.name.toLowerCase().includes(filter.toLowerCase()) || el.type.toLowerCase().includes(filter.toLowerCase())) return true;
+  if (Array.isArray(el.content)) return el.content.some((c) => matchesChild(c, filter));
+  return false;
+}
+
+export function LayerTree({ el, depth, selected, onSelect, filter = "" }: { el: El; depth: number; selected: El | null; onSelect: (el: El) => void; filter?: string }) {
   const children = Array.isArray(el.content) ? el.content : [];
   const hasChildren = children.length > 0;
-  const [expanded, setExpanded] = useState(depth < 2);
+  const matchesFilter = !filter || el.name.toLowerCase().includes(filter.toLowerCase()) || el.type.toLowerCase().includes(filter.toLowerCase());
+  const childrenMatch = children.some((c) => matchesChild(c, filter));
+  const [expanded, setExpanded] = useState(depth < 2 || !!filter);
   const isSel = selected?.id === el.id;
   const config = typeConfig[el.type] || fallback;
   const Icon = config.icon;
+
+  if (filter && !matchesFilter && !childrenMatch) return null;
 
   return (
     <div>
@@ -85,7 +96,7 @@ export function LayerTree({ el, depth, selected, onSelect }: { el: El; depth: nu
 
       {/* Children */}
       {expanded && children.map((c) => (
-        <LayerTree key={c.id} el={c} depth={depth + 1} selected={selected} onSelect={onSelect} />
+        <LayerTree key={c.id} el={c} depth={depth + 1} selected={selected} onSelect={onSelect} filter={filter} />
       ))}
     </div>
   );
