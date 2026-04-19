@@ -10,29 +10,29 @@ import {
 export function makeEl(type: string): El | null {
   const id = v4();
   const m: Record<string, () => El> = {
-    text: () => ({ id, type: "text", name: "Text", styles: { fontSize: "16px" }, content: { innerText: "Edit this text" } }),
-    heading: () => ({ id, type: "text", name: "Heading", styles: { fontSize: "36px", fontWeight: "700", lineHeight: "1.2" }, content: { innerText: "Heading" } }),
-    subheading: () => ({ id, type: "text", name: "Subheading", styles: { fontSize: "20px", fontWeight: "500", opacity: "0.7" }, content: { innerText: "Subheading text goes here" } }),
+    text: () => ({ id, type: "text", name: "Text", styles: { fontSize: "16px", width: "100%" }, content: { innerText: "Edit this text" } }),
+    heading: () => ({ id, type: "text", name: "Heading", styles: { fontSize: "36px", fontWeight: "700", lineHeight: "1.2", width: "100%" }, content: { innerText: "Heading" } }),
+    subheading: () => ({ id, type: "text", name: "Subheading", styles: { fontSize: "20px", fontWeight: "500", opacity: "0.7", width: "100%" }, content: { innerText: "Subheading text goes here" } }),
     link: () => ({ id, type: "link", name: "Link", styles: { color: "#6366f1", textDecoration: "underline" }, content: { innerText: "Click here", href: "#" } }),
     button: () => ({ id, type: "button", name: "Button", styles: { padding: "12px 24px", backgroundColor: "#6366f1", color: "#ffffff", fontSize: "14px", fontWeight: "600", textAlign: "center", cursor: "pointer" }, content: { innerText: "Click Me", href: "#" } }),
     image: () => ({ id, type: "image", name: "Image", styles: { width: "100%" }, content: { src: "", alt: "Image" } }),
     video: () => ({ id, type: "video", name: "Video", styles: { width: "100%" }, content: { src: "https://www.youtube.com/embed/dQw4w9WgXcQ" } }),
-    container: () => ({ id, type: "container", name: "Container", styles: { padding: "16px" }, content: [] }),
-    section: () => ({ id, type: "container", name: "Section", styles: { padding: "64px 24px", maxWidth: "1200px", margin: "0 auto" }, content: [] }),
-    "2Col": () => ({ id, type: "2Col", name: "2 Columns", styles: { display: "flex", gap: "16px" }, content: [
-      { id: v4(), type: "container", name: "Col 1", styles: { flex: "1", padding: "8px" }, content: [] },
-      { id: v4(), type: "container", name: "Col 2", styles: { flex: "1", padding: "8px" }, content: [] },
+    container: () => ({ id, type: "container", name: "Container", styles: { display: "flex", flexDirection: "column", gap: "8px", padding: "16px", width: "100%" }, content: [] }),
+    section: () => ({ id, type: "container", name: "Section", styles: { display: "flex", flexDirection: "column", gap: "16px", padding: "64px 24px", maxWidth: "1200px", margin: "0 auto", width: "100%" }, content: [] }),
+    "2Col": () => ({ id, type: "2Col", name: "2 Columns", styles: { display: "flex", gap: "16px", width: "100%" }, content: [
+      { id: v4(), type: "container", name: "Col 1", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
+      { id: v4(), type: "container", name: "Col 2", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
     ]}),
-    "3Col": () => ({ id, type: "3Col", name: "3 Columns", styles: { display: "flex", gap: "16px" }, content: [
-      { id: v4(), type: "container", name: "Col 1", styles: { flex: "1", padding: "8px" }, content: [] },
-      { id: v4(), type: "container", name: "Col 2", styles: { flex: "1", padding: "8px" }, content: [] },
-      { id: v4(), type: "container", name: "Col 3", styles: { flex: "1", padding: "8px" }, content: [] },
+    "3Col": () => ({ id, type: "3Col", name: "3 Columns", styles: { display: "flex", gap: "16px", width: "100%" }, content: [
+      { id: v4(), type: "container", name: "Col 1", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
+      { id: v4(), type: "container", name: "Col 2", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
+      { id: v4(), type: "container", name: "Col 3", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
     ]}),
-    "4Col": () => ({ id, type: "4Col", name: "4 Columns", styles: { display: "flex", gap: "16px" }, content: [
-      { id: v4(), type: "container", name: "Col 1", styles: { flex: "1", padding: "8px" }, content: [] },
-      { id: v4(), type: "container", name: "Col 2", styles: { flex: "1", padding: "8px" }, content: [] },
-      { id: v4(), type: "container", name: "Col 3", styles: { flex: "1", padding: "8px" }, content: [] },
-      { id: v4(), type: "container", name: "Col 4", styles: { flex: "1", padding: "8px" }, content: [] },
+    "4Col": () => ({ id, type: "4Col", name: "4 Columns", styles: { display: "flex", gap: "16px", width: "100%" }, content: [
+      { id: v4(), type: "container", name: "Col 1", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
+      { id: v4(), type: "container", name: "Col 2", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
+      { id: v4(), type: "container", name: "Col 3", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
+      { id: v4(), type: "container", name: "Col 4", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
     ]}),
     divider: () => ({ id, type: "divider", name: "Divider", styles: { borderTop: "1px solid #333", margin: "16px 0" }, content: {} }),
     spacer: () => ({ id, type: "spacer", name: "Spacer", styles: { height: "48px" }, content: {} }),
