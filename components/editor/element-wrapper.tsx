@@ -4,7 +4,8 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Trash2 } from 'lucide-react';
 import { useEditor } from './editor-provider';
 import { cn } from '@/lib/utils';
-import type { El } from './types';
+import type { El, Device } from './types';
+import { resolveStyles } from './types';
 
 type Props = {
   element: El;
@@ -16,15 +17,17 @@ type Props = {
 
 export default function ElementWrapper({ element, children, className, style, isContainer }: Props) {
   const { state, dispatch } = useEditor();
-  const { selected, preview, hovered, dropTarget } = state.editor;
+  const { selected, preview, hovered, dropTarget, device } = state.editor;
 
   const isBody = element.type === '__body';
   const isSel = selected?.id === element.id;
   const isHov = hovered === element.id && !isSel;
   const isDrop = dropTarget === element.id && isContainer;
 
+  const resolved = style ?? resolveStyles(element, device);
+
   if (preview) {
-    return <div style={style} className={className}>{children}</div>;
+    return <div style={resolved} className={className}>{children}</div>;
   }
 
   return (
@@ -38,7 +41,7 @@ export default function ElementWrapper({ element, children, className, style, is
         isBody && 'min-h-full p-3',
         className,
       )}
-      style={style}
+      style={resolved}
       onClick={(e) => { e.stopPropagation(); dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: { element } }); }}
       draggable={!isBody}
       onDragStart={(e) => { if (isBody) return; e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); }}

@@ -6,11 +6,13 @@ import ElementWrapper from "../element-wrapper";
 import { makeEl } from "../element-factory";
 import { cn } from "@/lib/utils";
 import type { El } from "../types";
+import { resolveStyles } from "../types";
 import Recursive from "../recursive";
 
 export default function ContainerElement({ element }: { element: El }): ReactNode {
   const { state, dispatch } = useEditor();
-  const { preview, dropTarget } = state.editor;
+  const { preview, dropTarget, device } = state.editor;
+  const resolved = resolveStyles(element, device);
   const children = Array.isArray(element.content) ? element.content : [];
   const isEmpty = children.length === 0;
   const isBody = element.type === "__body";
@@ -18,7 +20,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
   const [dropIdx, setDropIdx] = useState<number>(-1);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  const isRow = element.styles.flexDirection === "row" || element.styles.flexDirection === "row-reverse";
+  const isRow = resolved.flexDirection === "row" || resolved.flexDirection === "row-reverse";
 
   const calcDropIdx = useCallback((e: React.DragEvent) => {
     if (!wrapRef.current) return children.length;

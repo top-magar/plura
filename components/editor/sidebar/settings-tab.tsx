@@ -206,9 +206,18 @@ export default function SettingsTab() {
 
   if (!selected) return null;
 
-  const s = selected.styles as Record<string, unknown>;
+  const device = state.editor.device;
+  const resolved = device === "Desktop" ? selected.styles : { ...selected.styles, ...selected.responsiveStyles?.[device] };
+  const s = resolved as Record<string, unknown>;
   const get = (p: string) => String(s[p] ?? "");
-  const set = (p: string, v: string) => dispatch({ type: "UPDATE_ELEMENT", payload: { element: { ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties } } });
+  const set = (p: string, v: string) => {
+    if (device === "Desktop") {
+      dispatch({ type: "UPDATE_ELEMENT", payload: { element: { ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties } } });
+    } else {
+      const prev = selected.responsiveStyles ?? {};
+      dispatch({ type: "UPDATE_ELEMENT", payload: { element: { ...selected, responsiveStyles: { ...prev, [device]: { ...prev[device], [p]: v } } } } });
+    }
+  };
   const onUpdate = (el: El) => dispatch({ type: "UPDATE_ELEMENT", payload: { element: el } });
 
   const onDuplicate = () => {
@@ -225,6 +234,7 @@ export default function SettingsTab() {
         <Pencil size={11} className="shrink-0 text-sidebar-foreground/50" />
         <input className="h-7 min-w-0 flex-1 rounded-md border border-sidebar-border bg-transparent px-2 text-xs outline-none focus:border-primary" value={selected.name} onChange={(e) => onUpdate({ ...selected, name: e.target.value })} />
         <Badge variant="outline" className="shrink-0 px-1.5 py-0 text-[9px] h-4">{selected.type}</Badge>
+        {device !== "Desktop" && <Badge className="shrink-0 px-1.5 py-0 text-[9px] h-4 bg-primary/10 text-primary border-primary/20">{device}</Badge>}
       </div>
 
       {/* Actions */}
