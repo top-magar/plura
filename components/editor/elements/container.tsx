@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useEditor } from "../editor-provider";
 import ElementWrapper from "../element-wrapper";
 import { makeEl } from "../element-factory";
@@ -14,6 +14,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
   const children = Array.isArray(element.content) ? element.content : [];
   const isEmpty = children.length === 0;
   const isBody = element.type === "__body";
+  const isActive = dropTarget === element.id;
 
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault();
@@ -42,15 +43,16 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
     }
   }
 
-  const isActive = dropTarget === element.id;
-
   return (
     <ElementWrapper element={element} style={element.styles} isContainer>
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className="contents"
+        className={cn(
+          "min-h-[40px]",
+          isActive && !isEmpty && "outline-2 outline-dashed outline-primary/40 -outline-offset-2"
+        )}
       >
         {children.map((child) => (
           <Recursive key={child.id} element={child} />
