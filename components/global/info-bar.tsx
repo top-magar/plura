@@ -99,17 +99,17 @@ export default function InfoBar({ notifications, sidebarProps }: Props) {
           </Button>
         </SheetTrigger>
         <SheetContent side="right" className="flex w-[340px] flex-col sm:w-[400px]">
-          <SheetHeader className="flex-row items-center justify-between space-y-0 pr-6">
+          <SheetHeader>
             <SheetTitle className="text-base">Notifications</SheetTitle>
-            {unreadCount > 0 && (
-              <Button variant="ghost" size="sm" className="h-7 gap-1 text-[11px] text-muted-foreground" onClick={markAllRead}>
-                <Check size={12} /> Mark all read
-              </Button>
-            )}
           </SheetHeader>
 
           {unreadCount > 0 && (
-            <Badge variant="secondary" className="mx-4 w-fit text-[10px]">{unreadCount} unread</Badge>
+            <div className="flex items-center justify-between px-4">
+              <Badge variant="secondary" className="text-[10px]">{unreadCount} unread</Badge>
+              <Button variant="ghost" size="sm" className="h-7 gap-1 text-[11px] text-muted-foreground" onClick={markAllRead}>
+                <Check size={12} /> Mark all read
+              </Button>
+            </div>
           )}
 
           <div className="flex-1 overflow-y-auto px-4 pb-4">
