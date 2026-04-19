@@ -175,7 +175,4 @@
   font-size: 13px;
 }
 
-/* Hide Sheet overlay and close button in editor sidebar */
-[data-slot="sheet-overlay"] {
-  display: none !important;
-}
+/* Editor sidebar uses Sheet with showOverlay={false} */

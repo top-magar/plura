@@ -17,6 +17,7 @@ export default function EditorSidebar() {
       <Tabs className="w-full" defaultValue="Settings">
         <SheetContent
           showCloseButton={false}
+          showOverlay={false}
           side="right"
           className={`mt-[97px] !w-16 !max-w-[64px] z-[80] shadow-none p-0 focus:border-none transition-all overflow-hidden border-l-0 !gap-0 ${state.editor.previewMode ? 'hidden' : ''}`}
         >
@@ -39,6 +40,7 @@ export default function EditorSidebar() {
 
         <SheetContent
           showCloseButton={false}
+          showOverlay={false}
           side="right"
           className={`mt-[97px] !w-80 !max-w-[320px] z-[40] shadow-none p-0 mr-16 bg-background h-full transition-all overflow-hidden !gap-0 ${state.editor.previewMode ? 'hidden' : ''}`}
         >
