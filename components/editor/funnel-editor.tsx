@@ -5,7 +5,7 @@ import { EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { upsertFunnelPage, upsertFunnel } from "@/lib/queries";
 import type { El, EditorProps } from "./types";
-import { cloneEl, findParentId } from "./tree-helpers";
+import { cloneEl, findParentId, getAncestorPath } from "./tree-helpers";
 import { cn } from "@/lib/utils";
 import Recursive from "./recursive";
 import { EditorProvider, useEditor } from "./editor-provider";
@@ -145,6 +145,23 @@ function EditorInner() {
 
         {!preview && <RightPanel />}
       </div>
+
+      {/* Breadcrumb */}
+      {!preview && selected && (
+        <div className="flex items-center gap-0.5 h-7 px-3 border-t border-sidebar-border bg-sidebar text-[10px] text-sidebar-foreground/50 shrink-0 overflow-x-auto">
+          {getAncestorPath(elements, selected.id).map((el, i, arr) => (
+            <span key={el.id} className="flex items-center gap-0.5 shrink-0">
+              {i > 0 && <span className="text-sidebar-foreground/20">/</span>}
+              <button
+                className={cn("hover:text-sidebar-foreground transition-colors", i === arr.length - 1 && "text-sidebar-foreground font-medium")}
+                onClick={() => dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: el } })}
+              >
+                {el.name}
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
 
       {preview && (
         <button onClick={() => dispatch({ type: "TOGGLE_PREVIEW" })} className="fixed left-4 top-4 z-[100] flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90">

@@ -71,6 +71,18 @@ export function findParentId(tree: El[], id: string): string | null {
   return null;
 }
 
+/** Returns the path from root to the element with the given id */
+export function getAncestorPath(tree: El[], id: string): El[] {
+  for (const n of tree) {
+    if (n.id === id) return [n];
+    if (Array.isArray(n.content)) {
+      const sub = getAncestorPath(n.content, id);
+      if (sub.length) return [n, ...sub];
+    }
+  }
+  return [];
+}
+
 export function cloneEl(el: El): El {
   const id = v4();
   if (Array.isArray(el.content)) return { ...el, id, name: el.name + " copy", content: el.content.map(cloneEl) };
