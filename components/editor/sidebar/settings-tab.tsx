@@ -310,61 +310,78 @@ export default function SettingsTab() {
 
           {/* Dimensions */}
           <Section title="Dimensions" icon={Scan}>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {/* W × H */}
-              <div className="flex items-end gap-1.5">
+              <div className="flex gap-1.5">
                 <div className="flex-1">
-                  <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">W</label>
-                  <Input value={get("width")} onChange={(e) => set("width", e.target.value)} className="h-7 text-xs text-center" placeholder="auto" />
-                </div>
-                <span className="pb-1.5 text-[10px] text-sidebar-foreground/30">×</span>
-                <div className="flex-1">
-                  <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">H</label>
-                  <Input value={get("height")} onChange={(e) => set("height", e.target.value)} className="h-7 text-xs text-center" placeholder="auto" />
-                </div>
-              </div>
-
-              {/* Min / Max */}
-              <div className="grid grid-cols-4 gap-1">
-                {(["minWidth", "maxWidth", "minHeight", "maxHeight"] as const).map((p) => (
-                  <div key={p}>
-                    <label className="mb-0.5 block text-[8px] text-sidebar-foreground/40 truncate">{p.replace("min", "Min ").replace("max", "Max ").replace("Width", "W").replace("Height", "H")}</label>
-                    <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-6 text-[10px] text-center px-1" placeholder="—" />
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className="text-[9px] font-medium text-sidebar-foreground/40 w-3">W</span>
                   </div>
-                ))}
+                  <Input value={get("width")} onChange={(e) => set("width", e.target.value)} className="h-7 text-xs" placeholder="auto" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className="text-[9px] font-medium text-sidebar-foreground/40 w-3">H</span>
+                  </div>
+                  <Input value={get("height")} onChange={(e) => set("height", e.target.value)} className="h-7 text-xs" placeholder="auto" />
+                </div>
               </div>
 
-              {/* Visual Box Model: Margin → Padding → Element */}
-              <div className="relative rounded-md border border-dashed border-primary/30 bg-primary/[0.03] p-1">
-                <span className="absolute left-1.5 top-0.5 text-[7px] font-medium uppercase tracking-wider text-primary/40">margin</span>
-                <div className="grid grid-cols-[1fr_auto_1fr] items-center justify-items-center gap-px pt-3">
-                  <div />
-                  <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-primary" value={get("marginTop")} onChange={(e) => set("marginTop", e.target.value)} placeholder="0" />
-                  <div />
-                  <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-primary justify-self-end" value={get("marginLeft")} onChange={(e) => set("marginLeft", e.target.value)} placeholder="0" />
+              {/* Min / Max row */}
+              <div className="flex gap-1.5">
+                <div className="flex-1">
+                  <span className="text-[8px] text-sidebar-foreground/35 mb-0.5 block">Min W</span>
+                  <Input value={get("minWidth")} onChange={(e) => set("minWidth", e.target.value)} className="h-6 text-[10px]" placeholder="—" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-[8px] text-sidebar-foreground/35 mb-0.5 block">Max W</span>
+                  <Input value={get("maxWidth")} onChange={(e) => set("maxWidth", e.target.value)} className="h-6 text-[10px]" placeholder="—" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-[8px] text-sidebar-foreground/35 mb-0.5 block">Min H</span>
+                  <Input value={get("minHeight")} onChange={(e) => set("minHeight", e.target.value)} className="h-6 text-[10px]" placeholder="—" />
+                </div>
+                <div className="flex-1">
+                  <span className="text-[8px] text-sidebar-foreground/35 mb-0.5 block">Max H</span>
+                  <Input value={get("maxHeight")} onChange={(e) => set("maxHeight", e.target.value)} className="h-6 text-[10px]" placeholder="—" />
+                </div>
+              </div>
 
-                  {/* Padding box nested inside */}
-                  <div className="relative rounded border border-dashed border-emerald-500/30 bg-emerald-500/[0.03] p-1 w-full">
-                    <span className="absolute left-1 top-0 text-[7px] font-medium uppercase tracking-wider text-emerald-500/40">pad</span>
-                    <div className="grid grid-cols-[1fr_auto_1fr] items-center justify-items-center gap-px pt-2.5">
-                      <div />
-                      <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-emerald-500" value={get("paddingTop")} onChange={(e) => set("paddingTop", e.target.value)} placeholder="0" />
-                      <div />
-                      <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-emerald-500 justify-self-end" value={get("paddingLeft")} onChange={(e) => set("paddingLeft", e.target.value)} placeholder="0" />
-                      <div className="size-6 rounded-sm bg-sidebar-accent/50 border border-sidebar-border" />
-                      <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-emerald-500 justify-self-start" value={get("paddingRight")} onChange={(e) => set("paddingRight", e.target.value)} placeholder="0" />
-                      <div />
-                      <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-emerald-500" value={get("paddingBottom")} onChange={(e) => set("paddingBottom", e.target.value)} placeholder="0" />
-                      <div />
+              <div className="h-px bg-sidebar-border" />
+
+              {/* Padding — 4 inputs in a row */}
+              <div>
+                <div className="flex items-center gap-1 mb-1">
+                  <Space size={10} className="text-emerald-500/60" />
+                  <span className="text-[10px] text-sidebar-foreground/50">Padding</span>
+                </div>
+                <div className="flex gap-1">
+                  {(["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"] as const).map((p, i) => (
+                    <div key={p} className="flex-1 relative">
+                      <span className="absolute left-1 top-0.5 text-[7px] text-emerald-500/40 pointer-events-none">{"↑→↓←"[i]}</span>
+                      <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-7 text-[10px] text-center pt-2" placeholder="0" />
                     </div>
-                  </div>
-
-                  <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-primary justify-self-start" value={get("marginRight")} onChange={(e) => set("marginRight", e.target.value)} placeholder="0" />
-                  <div />
-                  <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-primary" value={get("marginBottom")} onChange={(e) => set("marginBottom", e.target.value)} placeholder="0" />
-                  <div />
+                  ))}
                 </div>
               </div>
+
+              {/* Margin — 4 inputs in a row */}
+              <div>
+                <div className="flex items-center gap-1 mb-1">
+                  <BoxSelect size={10} className="text-primary/60" />
+                  <span className="text-[10px] text-sidebar-foreground/50">Margin</span>
+                </div>
+                <div className="flex gap-1">
+                  {(["marginTop", "marginRight", "marginBottom", "marginLeft"] as const).map((p, i) => (
+                    <div key={p} className="flex-1 relative">
+                      <span className="absolute left-1 top-0.5 text-[7px] text-primary/40 pointer-events-none">{"↑→↓←"[i]}</span>
+                      <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-7 text-[10px] text-center pt-2" placeholder="0" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-px bg-sidebar-border" />
 
               {/* Overflow / Object Fit */}
               <div className="grid grid-cols-2 gap-1.5">
