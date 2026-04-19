@@ -310,13 +310,63 @@ export default function SettingsTab() {
 
           {/* Dimensions */}
           <Section title="Dimensions" icon={Scan}>
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-1.5">
-                <Field label="Width" value={get("width")} onChange={(v) => set("width", v)} placeholder="auto" />
-                <Field label="Height" value={get("height")} onChange={(v) => set("height", v)} placeholder="auto" />
+            <div className="space-y-3">
+              {/* W × H */}
+              <div className="flex items-end gap-1.5">
+                <div className="flex-1">
+                  <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">W</label>
+                  <Input value={get("width")} onChange={(e) => set("width", e.target.value)} className="h-7 text-xs text-center" placeholder="auto" />
+                </div>
+                <span className="pb-1.5 text-[10px] text-sidebar-foreground/30">×</span>
+                <div className="flex-1">
+                  <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">H</label>
+                  <Input value={get("height")} onChange={(e) => set("height", e.target.value)} className="h-7 text-xs text-center" placeholder="auto" />
+                </div>
               </div>
-              <FourSideInput label="Margin (px)" color="border-primary/20 bg-primary/[0.04]" props={["marginTop", "marginRight", "marginBottom", "marginLeft"]} get={get} set={set} icon={<BoxSelect size={10} className="text-primary/60" />} />
-              <FourSideInput label="Padding (px)" color="border-emerald-500/20 bg-emerald-500/[0.04]" props={["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"]} get={get} set={set} icon={<Space size={10} className="text-emerald-500/60" />} />
+
+              {/* Min / Max */}
+              <div className="grid grid-cols-4 gap-1">
+                {(["minWidth", "maxWidth", "minHeight", "maxHeight"] as const).map((p) => (
+                  <div key={p}>
+                    <label className="mb-0.5 block text-[8px] text-sidebar-foreground/40 truncate">{p.replace("min", "Min ").replace("max", "Max ").replace("Width", "W").replace("Height", "H")}</label>
+                    <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-6 text-[10px] text-center px-1" placeholder="—" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Visual Box Model: Margin → Padding → Element */}
+              <div className="relative rounded-md border border-dashed border-primary/30 bg-primary/[0.03] p-1">
+                <span className="absolute left-1.5 top-0.5 text-[7px] font-medium uppercase tracking-wider text-primary/40">margin</span>
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center justify-items-center gap-px pt-3">
+                  <div />
+                  <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-primary" value={get("marginTop")} onChange={(e) => set("marginTop", e.target.value)} placeholder="0" />
+                  <div />
+                  <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-primary justify-self-end" value={get("marginLeft")} onChange={(e) => set("marginLeft", e.target.value)} placeholder="0" />
+
+                  {/* Padding box nested inside */}
+                  <div className="relative rounded border border-dashed border-emerald-500/30 bg-emerald-500/[0.03] p-1 w-full">
+                    <span className="absolute left-1 top-0 text-[7px] font-medium uppercase tracking-wider text-emerald-500/40">pad</span>
+                    <div className="grid grid-cols-[1fr_auto_1fr] items-center justify-items-center gap-px pt-2.5">
+                      <div />
+                      <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-emerald-500" value={get("paddingTop")} onChange={(e) => set("paddingTop", e.target.value)} placeholder="0" />
+                      <div />
+                      <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-emerald-500 justify-self-end" value={get("paddingLeft")} onChange={(e) => set("paddingLeft", e.target.value)} placeholder="0" />
+                      <div className="size-6 rounded-sm bg-sidebar-accent/50 border border-sidebar-border" />
+                      <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-emerald-500 justify-self-start" value={get("paddingRight")} onChange={(e) => set("paddingRight", e.target.value)} placeholder="0" />
+                      <div />
+                      <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-emerald-500" value={get("paddingBottom")} onChange={(e) => set("paddingBottom", e.target.value)} placeholder="0" />
+                      <div />
+                    </div>
+                  </div>
+
+                  <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-primary justify-self-start" value={get("marginRight")} onChange={(e) => set("marginRight", e.target.value)} placeholder="0" />
+                  <div />
+                  <input className="h-5 w-10 rounded border border-sidebar-border bg-transparent text-center text-[9px] outline-none focus:border-primary" value={get("marginBottom")} onChange={(e) => set("marginBottom", e.target.value)} placeholder="0" />
+                  <div />
+                </div>
+              </div>
+
+              {/* Overflow / Object Fit */}
               <div className="grid grid-cols-2 gap-1.5">
                 <SelectField label="Overflow" value={get("overflow")} options={selectOptions.overflow} onChange={(v) => set("overflow", v)} />
                 <SelectField label="Object Fit" value={get("objectFit")} options={selectOptions.objectFit} onChange={(v) => set("objectFit", v)} />
