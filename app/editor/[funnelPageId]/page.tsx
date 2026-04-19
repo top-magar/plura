@@ -12,7 +12,7 @@ export default async function EditorPage({
 
   const page = await db.funnelPage.findUnique({
     where: { id: funnelPageId },
-    include: { Funnel: { select: { id: true, subAccountId: true } } },
+    include: { Funnel: { select: { id: true, subAccountId: true, published: true } } },
   });
   if (!page) return notFound();
 
@@ -26,6 +26,7 @@ export default async function EditorPage({
         order: page.order,
         content: page.content,
         funnelId: page.funnelId,
+        published: page.Funnel.published,
       }}
     >
       <Editor />

@@ -167,7 +167,7 @@ type EditorContextType = {
   dispatch: React.Dispatch<EditorAction>;
   subaccountId: string;
   funnelId: string;
-  pageDetails: { id: string; name: string; order: number; content: string | null; funnelId: string };
+  pageDetails: { id: string; name: string; order: number; content: string | null; funnelId: string; published?: boolean };
 };
 
 const EditorContext = createContext<EditorContextType | null>(null);
@@ -182,7 +182,7 @@ type EditorProviderProps = {
   children: React.ReactNode;
   subaccountId: string;
   funnelId: string;
-  pageDetails: { id: string; name: string; order: number; content: string | null; funnelId: string };
+  pageDetails: { id: string; name: string; order: number; content: string | null; funnelId: string; published?: boolean };
 };
 
 export function EditorProvider({ children, subaccountId, funnelId, pageDetails }: EditorProviderProps) {

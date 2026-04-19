@@ -2,16 +2,18 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Monitor, Tablet, Smartphone, Eye, Undo2, Redo2, Save } from 'lucide-react';
+import { ArrowLeft, Monitor, Tablet, Smartphone, Eye, Undo2, Redo2, Save, Globe } from 'lucide-react';
 import { useEditor } from './editor-provider';
-import { upsertFunnelPage } from '@/lib/queries';
+import { upsertFunnelPage, upsertFunnel } from '@/lib/queries';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
 import type { DeviceType } from './types';
 
 export default function EditorNavigation() {
-  const { state, dispatch, funnelId, pageDetails } = useEditor();
-  const { device, previewMode } = state.editor;
+  const { state, dispatch, funnelId, subaccountId, pageDetails } = useEditor();
+  const { device, previewMode, liveMode } = state.editor;
+  const [published, setPublished] = React.useState(pageDetails.published ?? false);
 
   async function handleSave() {
     try {
@@ -26,6 +28,20 @@ export default function EditorNavigation() {
       toast.success('Saved');
     } catch {
       toast.error('Failed to save');
+    }
+  }
+
+  async function handlePublishToggle(value: boolean) {
+    try {
+      // Save page content first
+      const content = JSON.stringify(state.editor.elements);
+      await upsertFunnelPage({ id: pageDetails.id, name: pageDetails.name, funnelId, order: pageDetails.order, content });
+      // Toggle funnel published
+      await upsertFunnel({ id: funnelId, name: pageDetails.name, subAccountId: subaccountId, published: value });
+      setPublished(value);
+      toast.success(value ? 'Published' : 'Unpublished');
+    } catch {
+      toast.error('Failed to update');
     }
   }
 
@@ -101,6 +117,13 @@ export default function EditorNavigation() {
             </TooltipTrigger>
             <TooltipContent>Save</TooltipContent>
           </Tooltip>
+
+          <div style={{ width: 1, height: 20, background: 'var(--border)', margin: '0 4px' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{published ? 'Live' : 'Draft'}</span>
+            <Switch checked={published} onCheckedChange={handlePublishToggle} />
+          </div>
         </div>
       </nav>
     </TooltipProvider>
