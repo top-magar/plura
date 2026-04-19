@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Layout, Layers, Bookmark, ZoomIn, ZoomOut, Globe2, Search, FileCode, Check } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Undo2, Redo2, Eye, EyeOff, Laptop, Tablet, Smartphone, Layout, Layers, Bookmark, ZoomIn, ZoomOut, Globe2, Search, FileCode } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,27 +11,36 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { upsertFunnelPage, savePageTemplate, getPageTemplates, deletePageTemplate, upsertFunnel } from "@/lib/queries";
 import type { El, Device, EditorProps } from "./types";
-import { addEl, updateEl, deleteEl, moveEl, reorderEl, cloneEl, defaultBody } from "./tree-helpers";
+import { cloneEl, findParentId } from "./tree-helpers";
 import { makeEl, componentGroups } from "./element-factory";
 import { ElementRenderer } from "./element-renderers";
+import { EditorProvider, useEditor } from "./editor-provider";
 import { DesignPanel } from "./design-panel";
 import { LayerTree } from "./layers-panel";
 import "./editor.css";
 
-export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId, agencyId, initialContent }: EditorProps) {
+/* ─── Wrapper: provides context ─────────────────────────── */
+
+export default function FunnelEditor(props: EditorProps) {
+  return (
+    <EditorProvider {...props}>
+      <EditorInner />
+    </EditorProvider>
+  );
+}
+
+/* ─── Inner: all editor UI ──────────────────────────────── */
+
+function EditorInner() {
+  const { state, dispatch, pageId, pageName, funnelId, subAccountId, agencyId } = useEditor();
   const router = useRouter();
-  const [elements, setElements] = useState<El[]>(() => {
-    if (initialContent) { try { const p = JSON.parse(initialContent); if (Array.isArray(p) && p.length) return p; } catch {} }
-    return [defaultBody];
-  });
-  const [selected, setSelected] = useState<El | null>(null);
-  const [device, setDevice] = useState<Device>("Desktop");
-  const [preview, setPreview] = useState(false);
-  const [history, setHistory] = useState<El[][]>([]);
-  const [historyIdx, setHistoryIdx] = useState(-1);
-  const [dropTarget, setDropTarget] = useState<string | null>(null);
+
+  const elements = state.editor.elements;
+  const selected = state.editor.selected;
+  const device = state.editor.device;
+  const preview = state.editor.preview;
+
   const [dirty, setDirty] = useState(false);
-  const [hovered, setHovered] = useState<string | null>(null);
   const [clipboard, setClipboard] = useState<El | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"components" | "layers" | "templates">("components");
   const [propsTab, setPropsTab] = useState<"design" | "content">("design");
@@ -52,52 +61,87 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         .catch(() => {});
     }, 5000);
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
-  }, [dirty, elements, pageTitle]);
+  }, [dirty, elements, pageTitle, pageId, funnelId]);
 
-  const pushHistory = useCallback((prev: El[]) => {
-    setHistory((h) => [...h.slice(0, historyIdx + 1), prev]);
-    setHistoryIdx((i) => i + 1);
-  }, [historyIdx]);
+  const undo = () => dispatch({ type: "UNDO" });
+  const redo = () => dispatch({ type: "REDO" });
 
-  const undo = () => { if (historyIdx < 0) return; setElements(history[historyIdx]); setHistoryIdx((i) => i - 1); setSelected(null); };
-  const redo = () => { if (historyIdx >= history.length - 1) return; const next = history[historyIdx + 2] || history[historyIdx + 1]; if (next) { setElements(next); setHistoryIdx((i) => i + 1); } };
-
-  const doAdd = (containerId: string, type: string) => { const el = makeEl(type); if (!el) return; pushHistory(elements); setElements((prev) => addEl(prev, containerId, el)); setDirty(true); };
-  const doUpdate = (updated: El) => { pushHistory(elements); setElements((prev) => updateEl(prev, updated)); if (selected?.id === updated.id) setSelected(updated); setDirty(true); };
-  const doDelete = (id: string) => { pushHistory(elements); setElements((prev) => deleteEl(prev, id)); setSelected(null); setDirty(true); };
-  const doMove = (elId: string, targetId: string) => { if (elId === targetId) return; pushHistory(elements); setElements((prev) => moveEl(prev, elId, targetId)); setDirty(true); };
-
-  const doDuplicate = () => {
-    if (!selected || selected.type === "__body") return;
-    const clone = cloneEl(selected);
-    pushHistory(elements);
-    setElements((prev) => {
-      const addToParent = (tree: El[]): El[] => tree.map((n) => {
-        if (Array.isArray(n.content)) {
-          const idx = n.content.findIndex((c) => c.id === selected.id);
-          if (idx >= 0) return { ...n, content: [...n.content.slice(0, idx + 1), clone, ...n.content.slice(idx + 1)] };
-          return { ...n, content: addToParent(n.content) };
-        }
-        return n;
-      });
-      return addToParent(prev);
-    });
-    setSelected(clone);
+  const doAdd = (containerId: string, type: string) => {
+    const el = makeEl(type);
+    if (!el) return;
+    dispatch({ type: "ADD_ELEMENT", payload: { containerId, element: el } });
     setDirty(true);
   };
 
-  const handleSave = async () => { try { await upsertFunnelPage({ id: pageId, name: pageTitle, funnelId, order: 0, content: JSON.stringify(elements) }); toast.success("Saved"); setDirty(false); } catch { toast.error("Could not save"); } };
-  const loadTemplates = async () => { if (templatesLoaded) return; const t = await getPageTemplates(agencyId); setTemplates(t.map((x) => ({ id: x.id, name: x.name, content: x.content, category: x.category }))); setTemplatesLoaded(true); };
-  const handleSaveTemplate = async () => { const name = prompt("Template name:"); if (!name) return; await savePageTemplate({ name, content: JSON.stringify(elements), agencyId }); setTemplatesLoaded(false); toast.success("Template saved"); };
-  const handleLoadTemplate = (content: string) => { try { const parsed = JSON.parse(content); if (Array.isArray(parsed) && parsed.length) { pushHistory(elements); setElements(parsed); setDirty(true); setSelected(null); toast.success("Template loaded"); } } catch { toast.error("Invalid template"); } };
-  const handleDeleteTemplate = async (id: string) => { await deletePageTemplate(id); setTemplates((t) => t.filter((x) => x.id !== id)); toast.success("Template deleted"); };
+  const doUpdate = (updated: El) => {
+    dispatch({ type: "UPDATE_ELEMENT", payload: { element: updated } });
+    setDirty(true);
+  };
+
+  const doDelete = (id: string) => {
+    dispatch({ type: "DELETE_ELEMENT", payload: { id } });
+    setDirty(true);
+  };
+
+  const doMove = (elId: string, targetId: string) => {
+    if (elId === targetId) return;
+    dispatch({ type: "MOVE_ELEMENT", payload: { elId, targetContainerId: targetId } });
+    setDirty(true);
+  };
+
+  const doDuplicate = () => {
+    if (!selected || selected.type === "__body") return;
+    const parentId = findParentId(elements, selected.id);
+    if (!parentId) return;
+    dispatch({ type: "DUPLICATE_ELEMENT", payload: { elId: selected.id, containerId: parentId } });
+    setDirty(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      await upsertFunnelPage({ id: pageId, name: pageTitle, funnelId, order: 0, content: JSON.stringify(elements) });
+      toast.success("Saved");
+      setDirty(false);
+    } catch { toast.error("Could not save"); }
+  };
+
+  const loadTemplates = async () => {
+    if (templatesLoaded) return;
+    const t = await getPageTemplates(agencyId);
+    setTemplates(t.map((x) => ({ id: x.id, name: x.name, content: x.content, category: x.category })));
+    setTemplatesLoaded(true);
+  };
+
+  const handleSaveTemplate = async () => {
+    const name = prompt("Template name:");
+    if (!name) return;
+    await savePageTemplate({ name, content: JSON.stringify(elements), agencyId });
+    setTemplatesLoaded(false);
+    toast.success("Template saved");
+  };
+
+  const handleLoadTemplate = (content: string) => {
+    try {
+      const parsed = JSON.parse(content);
+      if (Array.isArray(parsed) && parsed.length) {
+        dispatch({ type: "SET_ELEMENTS", payload: { elements: parsed } });
+        dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } });
+        setDirty(true);
+        toast.success("Template loaded");
+      }
+    } catch { toast.error("Invalid template"); }
+  };
+
+  const handleDeleteTemplate = async (id: string) => {
+    await deletePageTemplate(id);
+    setTemplates((t) => t.filter((x) => x.id !== id));
+    toast.success("Template deleted");
+  };
 
   const handlePublishToggle = async () => {
     try {
-      // Save page first
       await upsertFunnelPage({ id: pageId, name: pageTitle, funnelId, order: 0, content: JSON.stringify(elements) });
       setDirty(false);
-      // Toggle funnel published
       await upsertFunnel({ id: funnelId, name: pageTitle, subAccountId, published: true });
       toast.success("Saved and published");
     } catch { toast.error("Could not publish"); }
@@ -135,25 +179,33 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
       e.preventDefault();
       const target = selected && Array.isArray(selected.content) ? selected.id : "__body";
       const clone = cloneEl(clipboard);
-      pushHistory(elements);
-      setElements((prev) => addEl(prev, target, clone));
+      dispatch({ type: "ADD_ELEMENT", payload: { containerId: target, element: clone } });
       setDirty(true);
     }
     if ((e.key === "Delete" || e.key === "Backspace") && selected && selected.type !== "__body") {
       if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
       doDelete(selected.id);
     }
-    if (e.key === "Escape") setSelected(null);
-    if (e.key === "ArrowUp" && (e.metaKey || e.ctrlKey) && selected && selected.type !== "__body") { e.preventDefault(); pushHistory(elements); setElements((prev) => reorderEl(prev, selected.id, "up")); setDirty(true); }
-    if (e.key === "ArrowDown" && (e.metaKey || e.ctrlKey) && selected && selected.type !== "__body") { e.preventDefault(); pushHistory(elements); setElements((prev) => reorderEl(prev, selected.id, "down")); setDirty(true); }
+    if (e.key === "Escape") dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } });
+    if (e.key === "ArrowUp" && (e.metaKey || e.ctrlKey) && selected && selected.type !== "__body") {
+      e.preventDefault();
+      dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "up" } });
+      setDirty(true);
+    }
+    if (e.key === "ArrowDown" && (e.metaKey || e.ctrlKey) && selected && selected.type !== "__body") {
+      e.preventDefault();
+      dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "down" } });
+      setDirty(true);
+    }
     if ((e.metaKey || e.ctrlKey) && e.key === "=") { e.preventDefault(); setZoom((z) => Math.min(200, z + 10)); }
     if ((e.metaKey || e.ctrlKey) && e.key === "-") { e.preventDefault(); setZoom((z) => Math.max(50, z - 10)); }
     if ((e.metaKey || e.ctrlKey) && e.key === "0") { e.preventDefault(); setZoom(100); }
-  }, [selected, elements]);
+  }, [selected, clipboard, elements]);
 
   const body = elements[0];
   const deviceWidth = device === "Desktop" ? "100%" : device === "Tablet" ? 768 : 420;
-  const onDragStart = (e: React.DragEvent, elId: string) => { e.dataTransfer.setData("moveElementId", elId); };
+  const canUndo = state.history.currentIndex > 0;
+  const canRedo = state.history.currentIndex < state.history.history.length - 1;
 
   return (
     <div className="editor-root" onKeyDown={handleKeyDown} tabIndex={0}>
@@ -165,21 +217,21 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
           </div>
           <div className="editor-device-toggle">
             {([["Desktop", Laptop], ["Tablet", Tablet], ["Mobile", Smartphone]] as const).map(([d, Icon]) => (
-              <button key={d} onClick={() => setDevice(d as Device)} className={`editor-device-btn ${device === d ? "active" : ""}`}>
+              <button key={d} onClick={() => dispatch({ type: "CHANGE_DEVICE", payload: { device: d as Device } })} className={`editor-device-btn ${device === d ? "active" : ""}`}>
                 <Icon size={14} />
               </button>
             ))}
           </div>
           <TooltipProvider delayDuration={300}>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={() => setPreview(true)}><Eye /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Preview</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={() => dispatch({ type: "TOGGLE_PREVIEW" })}><Eye /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Preview</TooltipContent></Tooltip>
             <Separator orientation="vertical" className="h-5" />
             <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={() => setZoom((z) => Math.max(50, z - 10))}><ZoomOut size={14} /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Zoom Out (Cmd+-)</TooltipContent></Tooltip>
             <span style={{ fontSize: 10, width: 32, textAlign: "center", color: "var(--muted-foreground)" }}>{zoom}%</span>
             <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={() => setZoom((z) => Math.min(200, z + 10))}><ZoomIn size={14} /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Zoom In (Cmd+=)</TooltipContent></Tooltip>
             <Separator orientation="vertical" className="h-5" />
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={undo} disabled={historyIdx < 0}><Undo2 /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Undo (Cmd+Z)</TooltipContent></Tooltip>
-            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={redo} disabled={historyIdx >= history.length - 1}><Redo2 /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Redo (Cmd+Shift+Z)</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={undo} disabled={!canUndo}><Undo2 /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Undo (Cmd+Z)</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={redo} disabled={!canRedo}><Redo2 /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Redo (Cmd+Shift+Z)</TooltipContent></Tooltip>
             <Separator orientation="vertical" className="h-5" />
             <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={handleExportHTML}><FileCode size={14} /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Export HTML</TooltipContent></Tooltip>
             <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon-xs" onClick={handlePublishToggle}><Globe2 size={14} /></Button></TooltipTrigger><TooltipContent className="text-[10px]">Publish</TooltipContent></Tooltip>
@@ -228,7 +280,7 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
                   </div>
                 </div>
                 <div style={{ padding: "4px 8px" }}>
-                  {body && <LayerTree el={body} depth={0} selected={selected} onSelect={setSelected} filter={layerSearch} />}
+                  {body && <LayerTree el={body} depth={0} filter={layerSearch} />}
                 </div>
               </div>
             )}
@@ -258,9 +310,9 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
         )}
 
         {/* Canvas */}
-        <div className={`editor-canvas ${preview ? "preview" : ""}`} onClick={() => !preview && setSelected(null)}>
+        <div className={`editor-canvas ${preview ? "preview" : ""}`} onClick={() => !preview && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
           <div className="editor-canvas-inner" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
-            {body && <ElementRenderer el={body} selected={selected} preview={preview} hovered={hovered} dropTarget={dropTarget} onSelect={setSelected} onDelete={doDelete} onUpdate={doUpdate} onAdd={doAdd} onMove={doMove} onDragStart={onDragStart} setHovered={setHovered} setDropTarget={setDropTarget} />}
+            {body && <ElementRenderer el={body} />}
           </div>
         </div>
 
@@ -287,12 +339,12 @@ export default function FunnelEditor({ pageId, pageName, funnelId, subAccountId,
           </div>
         )}
         {!preview && selected && (
-          <DesignPanel selected={selected} onUpdate={doUpdate} onDuplicate={doDuplicate} onDelete={doDelete} propsTab={propsTab} setPropsTab={setPropsTab} />
+          <DesignPanel propsTab={propsTab} setPropsTab={setPropsTab} />
         )}
       </div>
 
       {preview && (
-        <button onClick={() => setPreview(false)} className="editor-preview-exit">
+        <button onClick={() => dispatch({ type: "TOGGLE_PREVIEW" })} className="editor-preview-exit">
           <EyeOff size={14} /> Exit Preview
         </button>
       )}

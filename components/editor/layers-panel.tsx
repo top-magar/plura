@@ -9,6 +9,7 @@ import {
   Heading1, CheckSquare, Rows3, Globe,
 } from "lucide-react";
 import type { El } from "./types";
+import { useEditor } from "./editor-provider";
 
 // Color + icon per element type
 const typeConfig: Record<string, { icon: React.ComponentType<{ size?: number; className?: string }>; color: string; label: string }> = {
@@ -51,7 +52,10 @@ function matchesChild(el: El, filter: string): boolean {
   return false;
 }
 
-export function LayerTree({ el, depth, selected, onSelect, filter = "" }: { el: El; depth: number; selected: El | null; onSelect: (el: El) => void; filter?: string }) {
+export function LayerTree({ el, depth, filter = "" }: { el: El; depth: number; filter?: string }) {
+  const { state, dispatch } = useEditor();
+  const selected = state.editor.selected;
+  const onSelect = (el: El) => dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: { element: el } });
   const children = Array.isArray(el.content) ? el.content : [];
   const hasChildren = children.length > 0;
   const matchesFilter = !filter || el.name.toLowerCase().includes(filter.toLowerCase()) || el.type.toLowerCase().includes(filter.toLowerCase());
@@ -96,7 +100,7 @@ export function LayerTree({ el, depth, selected, onSelect, filter = "" }: { el: 
 
       {/* Children */}
       {expanded && children.map((c) => (
-        <LayerTree key={c.id} el={c} depth={depth + 1} selected={selected} onSelect={onSelect} filter={filter} />
+        <LayerTree key={c.id} el={c} depth={depth + 1} filter={filter} />
       ))}
     </div>
   );

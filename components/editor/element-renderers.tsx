@@ -1,158 +1,101 @@
 "use client";
 
-import { useState, type CSSProperties, type ReactNode } from "react";
-import { Trash2 } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { useEditor } from "./editor-provider";
+import ElementWrapper from "./element-wrapper";
+import { makeEl } from "./element-factory";
 import type { El } from "./types";
 
-export type ElementRendererProps = {
-  el: El;
-  selected: El | null;
-  preview: boolean;
-  hovered: string | null;
-  dropTarget: string | null;
-  onSelect: (el: El) => void;
-  onDelete: (id: string) => void;
-  onUpdate: (el: El) => void;
-  onAdd: (containerId: string, type: string) => void;
-  onMove: (elId: string, targetId: string) => void;
-  onDragStart: (e: React.DragEvent, elId: string) => void;
-  setHovered: (id: string | null) => void;
-  setDropTarget: (id: string | null) => void;
-};
-
-export function ElementRenderer({ el, selected, preview, hovered, dropTarget, onSelect, onDelete, onUpdate, onAdd, onMove, onDragStart, setHovered, setDropTarget }: ElementRendererProps): ReactNode {
-  const isSel = selected?.id === el.id;
-  const isBody = el.type === "__body";
+export function ElementRenderer({ el }: { el: El }): ReactNode {
+  const { state, dispatch } = useEditor();
+  const { preview } = state.editor;
   const isContainer = Array.isArray(el.content);
-  const isHov = !preview && hovered === el.id && !isSel;
 
-  const elClass = `editor-el${isBody ? " is-body" : ""}${isSel && !preview ? " is-selected" : ""}${!preview && dropTarget === el.id && isContainer ? " is-drop-target" : ""}${isHov ? " is-hovered" : ""}`;
-  const wrapStyle: CSSProperties = { ...el.styles };
-
-  const handleClick = (e: React.MouseEvent) => { e.stopPropagation(); if (!preview) onSelect(el); };
-  const handleMouseEnter = () => { if (!preview) setHovered(el.id); };
-  const handleMouseLeave = () => { if (hovered === el.id) setHovered(null); };
-  const handleDragOver = (e: React.DragEvent) => {
-    if (isContainer) { e.preventDefault(); e.stopPropagation(); setDropTarget(el.id); }
-  };
-  const handleDragLeave = () => { if (dropTarget === el.id) setDropTarget(null); };
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault(); e.stopPropagation();
-    setDropTarget(null);
-    const type = e.dataTransfer.getData("componentType");
-    const moveId = e.dataTransfer.getData("moveElementId");
-    if (type && isContainer) onAdd(el.id, type);
-    else if (moveId && isContainer) onMove(moveId, el.id);
-  };
-  const handleElDragStart = (e: React.DragEvent) => {
-    if (isBody || preview) return;
-    e.stopPropagation();
-    onDragStart(e, el.id);
-  };
-
-  const childProps: Omit<ElementRendererProps, "el"> = { selected, preview, hovered, dropTarget, onSelect, onDelete, onUpdate, onAdd, onMove, onDragStart, setHovered, setDropTarget };
-
+  // ── Text (contentEditable) ──
   if (el.type === "text") {
     const c = el.content as Record<string, string>;
+    const isSel = state.editor.selected?.id === el.id;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         {isSel && !preview ? (
-          <span contentEditable suppressContentEditableWarning onBlur={(e) => onUpdate({ ...el, content: { ...c, innerText: (e.target as HTMLElement).innerText } })} style={{ outline: "none", display: "block", minHeight: 20 }}>
+          <span contentEditable suppressContentEditableWarning onBlur={(e) => dispatch({ type: "UPDATE_ELEMENT", payload: { element: { ...el, content: { ...c, innerText: (e.target as HTMLElement).innerText } } } })} style={{ outline: "none", display: "block", minHeight: 20 }}>
             {c.innerText || ""}
           </span>
         ) : (
           <span>{c.innerText || "Text"}</span>
         )}
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "link") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <a href={preview ? c.href : undefined} style={{ color: "inherit" }}>{c.innerText || "Link"}</a>
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "image") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={c.src || "https://placehold.co/600x300/111/333?text=Image"} alt={el.name} style={{ width: "100%", display: "block" }} />
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "video") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <iframe src={c.src} style={{ width: "100%", aspectRatio: "16/9", border: 0 }} allowFullScreen />
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "button") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <a href={preview ? c.href : undefined} style={{ display: "block", textDecoration: "none", color: "inherit" }}>{c.innerText || "Button"}</a>
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "divider") {
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <hr style={{ border: "none", borderTop: "inherit" }} />
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "spacer") {
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         {!preview && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: 10, color: "var(--ed-text-placeholder)" }}>spacer</div>}
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "quote") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <blockquote style={{ margin: 0 }}>{c.innerText || "Quote"}</blockquote>
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "badge") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <span>{c.innerText || "Badge"}</span>
-      </div>
+      </ElementWrapper>
     );
   }
 
@@ -160,35 +103,29 @@ export function ElementRenderer({ el, selected, preview, hovered, dropTarget, on
     const c = el.content as Record<string, string>;
     const items = (c.innerText || "").split("\n").filter(Boolean);
     return (
-      <div className={elClass} style={{ ...wrapStyle, listStyleType: "disc" }} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={{ ...el.styles, listStyleType: "disc" }}>
         <ul style={{ margin: 0, paddingLeft: "inherit" }}>
           {items.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "code") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <code>{c.innerText || "// code"}</code>
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "icon") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <span>{c.innerText || "★"}</span>
-      </div>
+      </ElementWrapper>
     );
   }
 
@@ -196,26 +133,22 @@ export function ElementRenderer({ el, selected, preview, hovered, dropTarget, on
     const c = el.content as Record<string, string>;
     const items: { title: string; body: string }[] = (() => { try { return JSON.parse(c.items || "[]"); } catch { return []; } })();
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         {items.map((item, i) => (
           <details key={i} style={{ borderBottom: "1px solid var(--ed-border-subtle)", padding: "12px 0" }}>
             <summary style={{ cursor: "pointer", fontWeight: 500, fontSize: 14 }}>{item.title}</summary>
             <p style={{ marginTop: 8, fontSize: 13, opacity: 0.7 }}>{item.body}</p>
           </details>
         ))}
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "countdown") {
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <CountdownDisplay content={el.content as Record<string, string>} />
-      </div>
+      </ElementWrapper>
     );
   }
 
@@ -223,58 +156,48 @@ export function ElementRenderer({ el, selected, preview, hovered, dropTarget, on
     const c = el.content as Record<string, string>;
     const items: { title: string; body: string }[] = (() => { try { return JSON.parse(c.items || "[]"); } catch { return []; } })();
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <TabsDisplay items={items} />
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "navbar") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <span style={{ fontWeight: 700, fontSize: 16 }}>{c.brand || "Brand"}</span>
         <div style={{ display: "flex", gap: 16, fontSize: 14 }}>
           {(c.links || "").split(",").map((l, i) => <a key={i} href="#" style={{ opacity: 0.7 }}>{l.trim()}</a>)}
         </div>
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "embed") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <div dangerouslySetInnerHTML={{ __html: c.code || "" }} />
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "socialIcons") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         {(c.platforms || "").split(",").map((p, i) => <span key={i} style={{ opacity: 0.6 }}>{p.trim()}</span>)}
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "map") {
     const c = el.content as Record<string, string>;
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         <iframe src={`https://maps.google.com/maps?q=${encodeURIComponent(c.address || "New York")}&z=${c.zoom || "13"}&output=embed`} style={{ width: "100%", height: "100%", border: 0 }} />
-      </div>
+      </ElementWrapper>
     );
   }
 
@@ -282,79 +205,67 @@ export function ElementRenderer({ el, selected, preview, hovered, dropTarget, on
     const c = el.content as Record<string, string>;
     const imgs = (c.images || "").split(",").filter(Boolean);
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name={el.name} />}
+      <ElementWrapper element={el} style={el.styles}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {imgs.map((src, i) => <img key={i} src={src.trim()} alt={`Gallery ${i + 1}`} style={{ width: "100%", display: "block" }} />)}
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "contactForm") {
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name="Contact Form" onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name="Contact Form" />}
+      <ElementWrapper element={el} style={el.styles}>
         <form onSubmit={(e) => e.preventDefault()} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <input placeholder="Name" className="editor-form-input" />
           <input placeholder="Email" className="editor-form-input" />
           <button className="editor-form-submit">Submit</button>
         </form>
-      </div>
+      </ElementWrapper>
     );
   }
 
   if (el.type === "paymentForm") {
     return (
-      <div className={elClass} style={wrapStyle} onClick={handleClick} draggable={!preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-        {isSel && !preview && <SelectBadge name="Payment" onDelete={() => onDelete(el.id)} />}
-        {isHov && <HoverBadge name="Payment" />}
+      <ElementWrapper element={el} style={el.styles}>
         <div style={{ padding: 16, border: "1px solid var(--border)", borderRadius: 8, textAlign: "center", fontSize: 13 }} className="text-muted-foreground">
           <div style={{ height: 40, borderRadius: 6, marginBottom: 8 }} className="bg-muted" />
           <button className="editor-form-submit">Pay Now</button>
           <p style={{ marginTop: 8, fontSize: 10 }} className="text-muted-foreground/60">Powered by Stripe</p>
         </div>
-      </div>
+      </ElementWrapper>
     );
   }
 
-  // Containers
+  // ── Containers (section, container, row, col, __body, etc.) ──
   const children = Array.isArray(el.content) ? el.content : [];
   const isEmpty = children.length === 0;
+  const isBody = el.type === "__body";
+  const { dropTarget } = state.editor;
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    dispatch({ type: "SET_DROP_TARGET", payload: { id: null } });
+    const type = e.dataTransfer.getData("componentType");
+    const moveId = e.dataTransfer.getData("moveElementId");
+    if (type) { const newEl = makeEl(type); if (newEl) dispatch({ type: "ADD_ELEMENT", payload: { containerId: el.id, element: newEl } }); }
+    else if (moveId) dispatch({ type: "MOVE_ELEMENT", payload: { elId: moveId, targetContainerId: el.id } });
+  };
 
   return (
-    <div className={elClass} style={wrapStyle} onClick={handleClick} onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} draggable={!isBody && !preview} onDragStart={handleElDragStart} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      {isSel && !isBody && !preview && <SelectBadge name={el.name} onDelete={() => onDelete(el.id)} />}
-      {isHov && !isBody && <HoverBadge name={el.name} />}
-      {children.map((child) => <ElementRenderer key={child.id} el={child} {...childProps} />)}
-      {isEmpty && !preview && (
-        <div onDragOver={handleDragOver} onDrop={handleDrop} onDragLeave={handleDragLeave} className={`editor-dropzone ${isBody ? "body" : "child"} ${dropTarget === el.id ? "active" : ""}`}>
-          {isBody ? "Drag a component here to start building" : "Drop here"}
-        </div>
-      )}
-    </div>
+    <ElementWrapper element={el} style={el.styles} isContainer>
+      <div onDrop={handleDrop} onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }} style={{ display: "contents" }}>
+        {children.map((child) => <ElementRenderer key={child.id} el={child} />)}
+        {isEmpty && !preview && (
+          <div className={`editor-dropzone ${isBody ? "body" : "child"} ${dropTarget === el.id ? "active" : ""}`}>
+            {isBody ? "Drag a component here to start building" : "Drop here"}
+          </div>
+        )}
+      </div>
+    </ElementWrapper>
   );
 }
 
-export function SelectBadge({ name, onDelete }: { name: string; onDelete: () => void }) {
-  return (
-    <div className="editor-badge-select">
-      <span className="editor-badge-select-name">{name}</span>
-      <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="editor-badge-select-delete">
-        <Trash2 size={10} />
-      </button>
-    </div>
-  );
-}
-
-export function HoverBadge({ name }: { name: string }) {
-  return (
-    <div className="editor-badge-hover">
-      <span className="editor-badge-hover-name">{name}</span>
-    </div>
-  );
-}
+// ── Helper components ──
 
 export function CountdownDisplay({ content }: { content: Record<string, string> }) {
   const [now, setNow] = useState(Date.now());

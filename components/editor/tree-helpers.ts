@@ -55,6 +55,17 @@ export function reorderEl(tree: El[], elId: string, direction: "up" | "down"): E
   });
 }
 
+export function findParentId(tree: El[], id: string): string | null {
+  for (const n of tree) {
+    if (Array.isArray(n.content)) {
+      if (n.content.some((c) => c.id === id)) return n.id;
+      const found = findParentId(n.content, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
 export function cloneEl(el: El): El {
   const id = v4();
   if (Array.isArray(el.content)) return { ...el, id, name: el.name + " copy", content: el.content.map(cloneEl) };

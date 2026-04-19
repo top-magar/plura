@@ -20,6 +20,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2, Copy, Star, Pencil } from "lucide-react";
 import type { El } from "./types";
+import { useEditor } from "./editor-provider";
+import { findParentId } from "./tree-helpers";
 
 const selectOptions: Record<string, string[]> = {
   display: ["block", "flex", "grid", "inline", "inline-block", "inline-flex", "none"],
@@ -361,14 +363,21 @@ export function PositionBox({ selected, onUpdate }: { selected: El; onUpdate: (e
   );
 }
 
-export function DesignPanel({ selected, onUpdate, onDuplicate, onDelete, propsTab, setPropsTab }: {
-  selected: El;
-  onUpdate: (el: El) => void;
-  onDuplicate: () => void;
-  onDelete: (id: string) => void;
+export function DesignPanel({ propsTab, setPropsTab }: {
   propsTab: "design" | "content";
   setPropsTab: (v: "design" | "content") => void;
 }) {
+  const { state, dispatch } = useEditor();
+  const selected = state.editor.selected;
+  if (!selected) return null;
+  const onUpdate = (el: El) => dispatch({ type: 'UPDATE_ELEMENT', payload: { element: el } });
+  const onDuplicate = () => {
+    if (selected.type === "__body") return;
+    const parentId = findParentId(state.editor.elements, selected.id);
+    if (!parentId) return;
+    dispatch({ type: 'DUPLICATE_ELEMENT', payload: { elId: selected.id, containerId: parentId } });
+  };
+  const onDelete = (id: string) => dispatch({ type: 'DELETE_ELEMENT', payload: { id } });
   return (
     <div className="editor-props">
       {/* Header */}
