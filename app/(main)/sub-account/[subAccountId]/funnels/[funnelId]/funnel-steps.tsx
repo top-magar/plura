@@ -80,10 +80,11 @@ export default function FunnelSteps({ pages: propPages, funnelId, subAccountId }
     if (!renameValue.trim()) { setRenameId(null); return; }
     const page = pages.find((p) => p.id === pageId);
     if (!page) return;
-    setPages((prev) => prev.map((p) => p.id === pageId ? { ...p, name: renameValue } : p));
+    const newPath = renameValue.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    setPages((prev) => prev.map((p) => p.id === pageId ? { ...p, name: renameValue, pathName: newPath } : p));
     setRenameId(null);
     try {
-      await upsertFunnelPage({ id: pageId, name: renameValue, pathName: page.pathName, funnelId, order: page.order });
+      await upsertFunnelPage({ id: pageId, name: renameValue, pathName: newPath, funnelId, order: page.order });
       toast.success("Renamed");
     } catch { toast.error("Could not rename"); }
   };
