@@ -12,8 +12,8 @@ import {
   WrapText,
   Italic, Underline, Strikethrough,
   CaseUpper, CaseLower, CaseSensitive,
-  Minus, Minus as MinusIcon, SeparatorHorizontal,
-  Box, Maximize, Palette, Frame, LayoutGrid, Move, Sparkles, Layers,
+  Minus, Minus as MinusIcon, SquareDashed, SeparatorHorizontal,
+  BoxSelect, Scan, Palette, Radius, LayoutGrid, Move, Sparkles, Layers, Space,
   Pencil, Copy, Trash2, Star,
 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -129,11 +129,11 @@ function SelectField({ label, value, options, onChange }: { label: string; value
 
 // ── 4-side box input ────────────────────────────────────
 
-function FourSideInput({ label, color, props, get, set }: { label: string; color: string; props: [string, string, string, string]; get: (p: string) => string; set: (p: string, v: string) => void }) {
+function FourSideInput({ label, color, props, get, set, icon }: { label: string; color: string; props: [string, string, string, string]; get: (p: string) => string; set: (p: string, v: string) => void; icon?: ReactNode }) {
   const inputCls = "h-7 w-full border border-sidebar-border rounded-md bg-transparent text-center text-[10px] outline-none focus:border-primary";
   return (
     <div>
-      <label className="mb-1 block text-[10px] text-sidebar-foreground/50">{label}</label>
+      <label className="mb-1 flex items-center gap-1 text-[10px] text-sidebar-foreground/50">{icon}{label}</label>
       <div className={`relative grid grid-cols-[1fr_auto_1fr] grid-rows-[auto_1fr_auto] items-center justify-items-center gap-1 rounded-md border border-dashed p-2 ${color}`}>
         <input className={`col-start-2 row-start-1 ${inputCls}`} value={get(props[0])} onChange={(e) => set(props[0], e.target.value)} placeholder="↑" title={props[0]} />
         <input className={`col-start-3 row-start-2 ${inputCls}`} value={get(props[1])} onChange={(e) => set(props[1], e.target.value)} placeholder="→" title={props[1]} />
@@ -194,7 +194,7 @@ const wrapOpts: IconOpt[] = [
 const borderStyleOpts: IconOpt[] = [
   { value: "none", label: "None", icon: <MinusIcon size={14} /> },
   { value: "solid", label: "Solid", icon: <Minus size={14} /> },
-  { value: "dashed", label: "Dashed", icon: <SeparatorHorizontal size={14} /> },
+  { value: "dashed", label: "Dashed", icon: <SquareDashed size={14} /> },
 ];
 
 // ── Main component ──────────────────────────────────────
@@ -309,14 +309,14 @@ export default function SettingsTab() {
           </Section>
 
           {/* Dimensions */}
-          <Section title="Dimensions" icon={Maximize}>
+          <Section title="Dimensions" icon={Scan}>
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-1.5">
                 <Field label="Width" value={get("width")} onChange={(v) => set("width", v)} placeholder="auto" />
                 <Field label="Height" value={get("height")} onChange={(v) => set("height", v)} placeholder="auto" />
               </div>
-              <FourSideInput label="Margin (px)" color="border-primary/20 bg-primary/[0.04]" props={["marginTop", "marginRight", "marginBottom", "marginLeft"]} get={get} set={set} />
-              <FourSideInput label="Padding (px)" color="border-emerald-500/20 bg-emerald-500/[0.04]" props={["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"]} get={get} set={set} />
+              <FourSideInput label="Margin (px)" color="border-primary/20 bg-primary/[0.04]" props={["marginTop", "marginRight", "marginBottom", "marginLeft"]} get={get} set={set} icon={<BoxSelect size={10} className="text-primary/60" />} />
+              <FourSideInput label="Padding (px)" color="border-emerald-500/20 bg-emerald-500/[0.04]" props={["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"]} get={get} set={set} icon={<Space size={10} className="text-emerald-500/60" />} />
               <div className="grid grid-cols-2 gap-1.5">
                 <SelectField label="Overflow" value={get("overflow")} options={selectOptions.overflow} onChange={(v) => set("overflow", v)} />
                 <SelectField label="Object Fit" value={get("objectFit")} options={selectOptions.objectFit} onChange={(v) => set("objectFit", v)} />
@@ -325,7 +325,7 @@ export default function SettingsTab() {
           </Section>
 
           {/* Decorations */}
-          <Section title="Decorations" icon={Palette}>
+          <Section title="Decorations" icon={Radius}>
             <div className="space-y-2">
               <ColorField label="Background" value={get("backgroundColor")} onChange={(v) => set("backgroundColor", v)} />
               <Field label="Background Image" value={get("backgroundImage")} onChange={(v) => set("backgroundImage", v)} placeholder="url()" />
