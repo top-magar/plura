@@ -200,6 +200,33 @@ const borderStyleOpts: IconOpt[] = [
 
 // ── Main component ──────────────────────────────────────
 
+function ItemsEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const items: { title: string; body: string }[] = (() => { try { return JSON.parse(value || "[]"); } catch { return []; } })();
+  const update = (idx: number, field: "title" | "body", v: string) => {
+    const next = items.map((item, i) => i === idx ? { ...item, [field]: v } : item);
+    onChange(JSON.stringify(next));
+  };
+  const add = () => onChange(JSON.stringify([...items, { title: "New Item", body: "Content here" }]));
+  const remove = (idx: number) => onChange(JSON.stringify(items.filter((_, i) => i !== idx)));
+
+  return (
+    <div className="space-y-2">
+      {items.map((item, i) => (
+        <div key={i} className="rounded-md border border-sidebar-border p-2 space-y-1">
+          <div className="flex items-center gap-1">
+            <Input value={item.title} onChange={(e) => update(i, "title", e.target.value)} className="h-6 text-[10px] flex-1" placeholder="Title" />
+            <button onClick={() => remove(i)} className="text-[10px] text-destructive hover:underline shrink-0 px-1">×</button>
+          </div>
+          <textarea value={item.body} onChange={(e) => update(i, "body", e.target.value)} className="w-full rounded border border-sidebar-border bg-transparent p-1.5 text-[10px] outline-none resize-y focus:border-primary min-h-[32px]" rows={2} placeholder="Content" />
+        </div>
+      ))}
+      <button onClick={add} className="w-full rounded-md border border-dashed border-sidebar-border py-1 text-[10px] text-sidebar-foreground/50 hover:border-primary hover:text-primary transition-colors">
+        + Add Item
+      </button>
+    </div>
+  );
+}
+
 export default function SettingsTab() {
   const { state, dispatch } = useEditor();
   const selected = state.editor.selected;
@@ -268,16 +295,26 @@ export default function SettingsTab() {
         {/* Content tab */}
         <TabsContent value="content" className="flex-1 overflow-y-auto mt-0 p-3">
           {!Array.isArray(selected.content) ? (
-            Object.entries(selected.content as Record<string, string>).map(([key, val]) => (
-              <div key={key} className="mb-3">
-                <label className="mb-1 block text-[10px] font-medium text-sidebar-foreground/50">{key}</label>
-                {key === "innerText" ? (
-                  <textarea value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="w-full rounded-md border border-sidebar-border bg-transparent p-2 text-xs outline-none resize-y focus:border-primary min-h-[60px]" rows={3} />
-                ) : (
-                  <Input value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-7 text-xs" />
-                )}
-              </div>
-            ))
+            Object.keys(selected.content as Record<string, string>).length === 0 ? (
+              <div className="py-8 text-center text-xs text-sidebar-foreground/50">No editable content for this element.</div>
+            ) : (
+              Object.entries(selected.content as Record<string, string>).map(([key, val]) => (
+                <div key={key} className="mb-3">
+                  <label className="mb-1 block text-[10px] font-medium text-sidebar-foreground/50">{key}</label>
+                  {key === "innerText" || key === "code" ? (
+                    <textarea value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="w-full rounded-md border border-sidebar-border bg-transparent p-2 text-xs outline-none resize-y focus:border-primary min-h-[60px] font-mono" rows={key === "code" ? 6 : 3} />
+                  ) : key === "targetDate" ? (
+                    <Input type="datetime-local" value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-7 text-xs" />
+                  ) : key === "images" ? (
+                    <textarea value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="w-full rounded-md border border-sidebar-border bg-transparent p-2 text-xs outline-none resize-y focus:border-primary min-h-[60px]" rows={4} placeholder="One URL per line or comma-separated" />
+                  ) : key === "items" ? (
+                    <ItemsEditor value={val} onChange={(v) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: v } })} />
+                  ) : (
+                    <Input value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-7 text-xs" />
+                  )}
+                </div>
+              ))
+            )
           ) : (
             <div className="py-8 text-center text-xs text-sidebar-foreground/50">Container — drag children from sidebar.</div>
           )}
