@@ -16,10 +16,10 @@ import {
 // ─── Actions ────────────────────────────────────────────────
 
 type EditorAction =
-  | { type: 'ADD_ELEMENT'; payload: { containerId: string; element: El } }
+  | { type: 'ADD_ELEMENT'; payload: { containerId: string; element: El; index?: number } }
   | { type: 'UPDATE_ELEMENT'; payload: { element: El } }
   | { type: 'DELETE_ELEMENT'; payload: { id: string } }
-  | { type: 'MOVE_ELEMENT'; payload: { elId: string; targetContainerId: string } }
+  | { type: 'MOVE_ELEMENT'; payload: { elId: string; targetContainerId: string; index?: number } }
   | { type: 'REORDER_ELEMENT'; payload: { elId: string; direction: 'up' | 'down' } }
   | { type: 'DUPLICATE_ELEMENT'; payload: { elId: string; containerId: string } }
   | { type: 'CHANGE_CLICKED_ELEMENT'; payload: { element: El | null } }
@@ -94,7 +94,7 @@ function pushHistory(store: EditorStore, next: EditorState): EditorStore {
 function editorReducer(store: EditorStore, action: EditorAction): EditorStore {
   switch (action.type) {
     case 'ADD_ELEMENT': {
-      const elements = addEl(store.editor.elements, action.payload.containerId, action.payload.element);
+      const elements = addEl(store.editor.elements, action.payload.containerId, action.payload.element, action.payload.index);
       return pushHistory(store, { ...store.editor, elements, dirty: true });
     }
     case 'UPDATE_ELEMENT': {
@@ -109,7 +109,7 @@ function editorReducer(store: EditorStore, action: EditorAction): EditorStore {
       return pushHistory(store, { ...store.editor, elements, selected, dirty: true });
     }
     case 'MOVE_ELEMENT': {
-      const elements = moveEl(store.editor.elements, action.payload.elId, action.payload.targetContainerId);
+      const elements = moveEl(store.editor.elements, action.payload.elId, action.payload.targetContainerId, action.payload.index);
       return pushHistory(store, { ...store.editor, elements, dirty: true });
     }
     case 'REORDER_ELEMENT': {

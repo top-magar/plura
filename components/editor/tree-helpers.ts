@@ -1,10 +1,15 @@
 import { v4 } from "uuid";
 import type { El } from "./types";
 
-export function addEl(tree: El[], containerId: string, el: El): El[] {
+export function addEl(tree: El[], containerId: string, el: El, index?: number): El[] {
   return tree.map((n) => {
-    if (n.id === containerId && Array.isArray(n.content)) return { ...n, content: [...n.content, el] };
-    if (Array.isArray(n.content)) return { ...n, content: addEl(n.content, containerId, el) };
+    if (n.id === containerId && Array.isArray(n.content)) {
+      const arr = [...n.content];
+      if (index !== undefined && index >= 0) arr.splice(index, 0, el);
+      else arr.push(el);
+      return { ...n, content: arr };
+    }
+    if (Array.isArray(n.content)) return { ...n, content: addEl(n.content, containerId, el, index) };
     return n;
   });
 }
@@ -32,10 +37,10 @@ export function findEl(tree: El[], id: string): El | null {
   return null;
 }
 
-export function moveEl(tree: El[], elId: string, targetContainerId: string): El[] {
+export function moveEl(tree: El[], elId: string, targetContainerId: string, index?: number): El[] {
   const el = findEl(tree, elId);
   if (!el) return tree;
-  return addEl(deleteEl(tree, elId), targetContainerId, el);
+  return addEl(deleteEl(tree, elId), targetContainerId, el, index);
 }
 
 export function reorderEl(tree: El[], elId: string, direction: "up" | "down"): El[] {
