@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink, Globe, LayoutTemplate, MoreHorizontal, Pencil, Plus, Search, Trash2, LayoutGrid, TableIcon, ArrowUpDown } from "lucide-react";
+import { ExternalLink, Globe, LayoutTemplate, MoreHorizontal, Pencil, Plus, Search, Trash2, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { useReactTable, getCoreRowModel, getSortedRowModel, flexRender, type SortingState, type ColumnDef } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -40,7 +39,6 @@ export default function FunnelsClient({ funnels, subAccountId }: Props) {
   const [search, setSearch] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [tab, setTab] = useState<"all" | "live" | "draft">("all");
-  const [view, setView] = useState<"grid" | "table">("grid");
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const filtered = funnels
@@ -128,83 +126,9 @@ export default function FunnelsClient({ funnels, subAccountId }: Props) {
             <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search funnels..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
           </div>
-          <div className="flex gap-1 border rounded-lg p-0.5">
-            <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon-xs" onClick={() => setView("grid")}><LayoutGrid size={14} /></Button>
-            <Button variant={view === "table" ? "secondary" : "ghost"} size="icon-xs" onClick={() => setView("table")}><TableIcon size={14} /></Button>
-          </div>
         </div>
 
-        {/* Content */}
         {filtered.length > 0 ? (
-          view === "grid" ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((funnel) => (
-              <div key={funnel.id} className="group relative overflow-hidden rounded-xl border bg-card transition-all hover:shadow-md hover:border-primary/20">
-                <Link href={`/sub-account/${subAccountId}/funnels/${funnel.id}`} className="block p-5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                        <LayoutTemplate className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <h3 className="text-[14px] font-medium leading-tight">{funnel.name}</h3>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">
-                          Updated {new Date(funnel.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={`shrink-0 text-[10px] ${funnel.published ? "border-emerald-500/30 text-emerald-600" : ""}`}
-                    >
-                      {funnel.published ? "Live" : "Draft"}
-                    </Badge>
-                  </div>
-
-                  {funnel.description && (
-                    <p className="mt-3 line-clamp-2 text-[12px] leading-relaxed text-muted-foreground">{funnel.description}</p>
-                  )}
-
-                  <Separator className="my-3" />
-
-                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span>{funnel.FunnelPages.length} page{funnel.FunnelPages.length !== 1 ? "s" : ""}</span>
-                    <div className="flex items-center gap-2">
-                      {funnel.subDomainName && (
-                        <span className="flex items-center gap-1 truncate">
-                          <Globe className="h-3 w-3" /> {funnel.subDomainName}
-                        </span>
-                      )}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                          <Button variant="ghost" size="icon-xs" className="opacity-0 group-hover:opacity-100">
-                            <MoreHorizontal />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/sub-account/${subAccountId}/funnels/${funnel.id}`}>
-                              <Pencil /> Edit
-                            </Link>
-                          </DropdownMenuItem>
-                          {funnel.subDomainName && (
-                            <DropdownMenuItem onClick={() => window.open(`/${funnel.subDomainName}`, "_blank")}>
-                              <ExternalLink /> Preview
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem variant="destructive" onClick={() => setDeleteId(funnel.id)}>
-                            <Trash2 /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            ))}
-          </div>
-          ) : (
           <div className="rounded-lg border">
             <Table>
               <TableHeader>
@@ -227,7 +151,6 @@ export default function FunnelsClient({ funnels, subAccountId }: Props) {
               </TableBody>
             </Table>
           </div>
-          )
         ) : (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
