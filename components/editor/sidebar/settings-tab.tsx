@@ -413,7 +413,7 @@ export default function SettingsTab() {
           </Section>
 
           {/* Dimensions */}
-          <Section title="Dimensions" icon={Scan}>
+          <Section title="Layout" icon={LayoutGrid}>
             <div className="space-y-2.5">
               {/* Sizing Mode */}
               <div>
@@ -509,11 +509,28 @@ export default function SettingsTab() {
                 <SelectField label="Overflow" value={get("overflow")} options={selectOptions.overflow} onChange={(v) => set("overflow", v)} />
                 <SelectField label="Object Fit" value={get("objectFit")} options={selectOptions.objectFit} onChange={(v) => set("objectFit", v)} />
               </div>
+
+              <div className="h-px bg-sidebar-border" />
+
+              {/* Flex */}
+              <SelectField label="Display" value={get("display")} options={selectOptions.display} onChange={(v) => set("display", v)} />
+              <div>
+                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Direction</label>
+                <IconToggle value={get("flexDirection")} options={directionOpts} onChange={(v) => set("flexDirection", v)} />
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <div><label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Justify</label><IconToggle value={get("justifyContent")} options={justifyOpts} onChange={(v) => set("justifyContent", v)} /></div>
+                <div><label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Align</label><IconToggle value={get("alignItems")} options={alignOpts} onChange={(v) => set("alignItems", v)} /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <div><label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Wrap</label><IconToggle value={get("flexWrap")} options={wrapOpts} onChange={(v) => set("flexWrap", v)} /></div>
+                <Field label="Gap" value={get("gap")} onChange={(v) => set("gap", v)} placeholder="0px" />
+              </div>
             </div>
           </Section>
 
           {/* Decorations */}
-          <Section title="Decorations" icon={Radius}>
+          <Section title="Appearance" icon={Palette}>
             <div className="space-y-2">
               <ColorField label="Background" value={get("backgroundColor")} onChange={(v) => set("backgroundColor", v)} />
               <Field label="Background Image" value={get("backgroundImage")} onChange={(v) => set("backgroundImage", v)} placeholder="url()" />
@@ -538,6 +555,8 @@ export default function SettingsTab() {
                 </div>
               </div>
               <Field label="Box Shadow" value={get("boxShadow")} onChange={(v) => set("boxShadow", v)} placeholder="0 2px 4px rgba(0,0,0,.1)" />
+              <SelectField label="Cursor" value={get("cursor")} options={selectOptions.cursor} onChange={(v) => set("cursor", v)} />
+              <Field label="Transition" value={get("transition")} onChange={(v) => set("transition", v)} placeholder="all 0.2s" />
             </div>
           </Section>
 
@@ -597,46 +616,12 @@ export default function SettingsTab() {
           )}
 
           {/* Flexbox */}
-          <Section title="Flexbox" icon={LayoutGrid}>
-            <div className="space-y-2">
-              <SelectField label="Display" value={get("display")} options={selectOptions.display} onChange={(v) => set("display", v)} />
-              <div>
-                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Direction</label>
-                <IconToggle value={get("flexDirection")} options={directionOpts} onChange={(v) => set("flexDirection", v)} />
-              </div>
-              <div>
-                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Justify Content</label>
-                <IconToggle value={get("justifyContent")} options={justifyOpts} onChange={(v) => set("justifyContent", v)} />
-              </div>
-              <div>
-                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Align Items</label>
-                <IconToggle value={get("alignItems")} options={alignOpts} onChange={(v) => set("alignItems", v)} />
-              </div>
-              <div>
-                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Wrap</label>
-                <IconToggle value={get("flexWrap")} options={wrapOpts} onChange={(v) => set("flexWrap", v)} />
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <Field label="Gap" value={get("gap")} onChange={(v) => set("gap", v)} placeholder="0px" />
-                <Field label="Flex" value={get("flex")} onChange={(v) => set("flex", v)} placeholder="none" />
-              </div>
-            </div>
-          </Section>
-
           {/* Position */}
           <Section title="Position" icon={Move} defaultOpen={false}>
             <div className="space-y-2">
               <SelectField label="Position" value={get("position")} options={selectOptions.position} onChange={(v) => set("position", v)} />
               <FourSideInput label="Offsets" color="border-sidebar-border bg-sidebar" props={["top", "right", "bottom", "left"]} get={get} set={set} />
               <Field label="Z-Index" value={get("zIndex")} onChange={(v) => set("zIndex", v)} placeholder="auto" />
-            </div>
-          </Section>
-
-          {/* Effects */}
-          <Section title="Effects" icon={Sparkles} defaultOpen={false}>
-            <div className="space-y-2">
-              <SelectField label="Cursor" value={get("cursor")} options={selectOptions.cursor} onChange={(v) => set("cursor", v)} />
-              <Field label="Transition" value={get("transition")} onChange={(v) => set("transition", v)} placeholder="all 0.2s" />
             </div>
           </Section>
 
