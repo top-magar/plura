@@ -45,6 +45,7 @@ function useResize(
         const updates: Partial<CSSProperties> = {};
         if (axis === 'x' || axis === 'xy') updates.width = `${Math.max(20, startRef.current.w + dx)}px`;
         if (axis === 'y' || axis === 'xy') updates.height = `${Math.max(20, startRef.current.h + dy)}px`;
+        if (!element.styles.overflow) updates.overflow = 'hidden';
         dispatch({
           type: 'UPDATE_ELEMENT',
           payload: { element: { ...element, styles: { ...element.styles, ...updates } } },
@@ -248,7 +249,7 @@ export default function ElementWrapper({ element, children, className, style, is
     <div
       data-wrapper
       className={cn(
-        'relative group/el',
+        'relative group/el min-w-0',
         !isBody && 'ring-1 ring-transparent hover:ring-primary/40 transition-shadow',
         isSel && !isBody && 'ring-2 ring-primary',
         isHov && !isBody && 'ring-1 ring-primary/40',

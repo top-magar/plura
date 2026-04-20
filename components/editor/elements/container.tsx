@@ -86,7 +86,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         style={{ display: resolved.display, flexDirection: resolved.flexDirection, gap: resolved.gap, flexWrap: resolved.flexWrap, alignItems: resolved.alignItems, justifyContent: resolved.justifyContent }}
       >
         {children.map((child, i) => (
-          <div key={child.id} data-el-id={child.id}>
+          <div key={child.id} data-el-id={child.id} className="min-w-0 break-words">
             {isActive && dropIdx === i && indicator}
             <Recursive element={child} />
           </div>
