@@ -6,7 +6,7 @@ import { componentGroups } from "../../core/element-factory";
 import { useDragOverlay } from "../../canvas/drag-overlay";
 import { cn } from "@/lib/utils";
 
-// Material icon mapping for each component type
+// Material icon + color mapping for each component type
 const typeIcons: Record<string, string> = {
   section: "view_agenda", container: "check_box_outline_blank", row: "view_column",
   column: "view_stream", grid: "grid_view", header: "web_asset", card: "crop_portrait",
@@ -17,6 +17,19 @@ const typeIcons: Record<string, string> = {
   accordion: "expand_more", tabs: "tab", countdown: "timer", navbar: "menu", footer: "call_to_action",
   contactForm: "contact_mail", paymentForm: "credit_card", hero: "featured_video", cta: "campaign",
   testimonial: "format_quote", pricing: "payments", features: "auto_awesome", stats: "bar_chart",
+};
+
+const typeColors: Record<string, string> = {
+  section: "#7c3aed", container: "#8b5cf6", row: "#6d28d9", column: "#7c3aed",
+  grid: "#5b21b6", header: "#7c3aed", card: "#8b5cf6", divider: "#94a3b8",
+  spacer: "#64748b", heading: "#3b82f6", subheading: "#60a5fa", text: "#3b82f6",
+  list: "#06b6d4", quote: "#f59e0b", badge: "#eab308", code: "#10b981",
+  icon: "#ec4899", image: "#22c55e", video: "#ef4444", gallery: "#84cc16",
+  link: "#0ea5e9", button: "#2563eb", map: "#16a34a", embed: "#a855f7",
+  socialIcons: "#14b8a6", accordion: "#f97316", tabs: "#fb923c", countdown: "#e11d48",
+  navbar: "#4f46e5", footer: "#475569", contactForm: "#0891b2", paymentForm: "#d97706",
+  hero: "#6366f1", cta: "#2563eb", testimonial: "#f59e0b", pricing: "#d97706",
+  features: "#8b5cf6", stats: "#3b82f6",
 };
 
 function useRecent(): [string[], (type: string) => void] {
@@ -77,7 +90,7 @@ export default function ComponentsTab() {
               {recentItems.map(({ type, label }) => (
                 <div key={type} draggable onDragStart={(e) => onDragStart(type, label, e)}
                   className="flex items-center gap-1 h-6 px-2 rounded-md bg-sidebar-accent/50 text-[10px] cursor-grab hover:bg-sidebar-accent active:cursor-grabbing transition-colors">
-                  <MIcon name={typeIcons[type] ?? 'widgets'} size={12} className="text-primary/70" />
+                  <span style={{ color: typeColors[type] }}><MIcon name={typeIcons[type] ?? 'widgets'} size={12} /></span>
                   <span>{label}</span>
                 </div>
               ))}
@@ -105,7 +118,7 @@ export default function ComponentsTab() {
                     {items.map(({ type, label }) => (
                       <div key={type} draggable onDragStart={(e) => onDragStart(type, label, e)}
                         className="flex flex-col items-center gap-1 rounded-md border border-border/40 bg-background p-2 cursor-grab hover:border-primary/30 hover:shadow-sm active:cursor-grabbing active:scale-[0.97] transition-all">
-                        <MIcon name={typeIcons[type] ?? 'widgets'} size={18} className="text-primary/60" />
+                        <span style={{ color: typeColors[type] }}><MIcon name={typeIcons[type] ?? 'widgets'} size={18} /></span>
                         <span className="text-[9px] text-muted-foreground/70 truncate w-full text-center">{label}</span>
                       </div>
                     ))}
@@ -115,7 +128,7 @@ export default function ComponentsTab() {
                     {items.map(({ type, label }) => (
                       <div key={type} draggable onDragStart={(e) => onDragStart(type, label, e)}
                         className="flex items-center gap-2 h-7 px-2 rounded-md cursor-grab hover:bg-sidebar-accent/60 active:cursor-grabbing active:bg-sidebar-accent transition-colors">
-                        <MIcon name={typeIcons[type] ?? 'widgets'} size={14} className="text-primary/60 shrink-0" />
+                        <span style={{ color: typeColors[type] }} className="shrink-0"><MIcon name={typeIcons[type] ?? 'widgets'} size={14} /></span>
                         <span className="text-[11px] truncate">{label}</span>
                         <MIcon name="drag_indicator" size={12} className="ml-auto text-muted-foreground/20 shrink-0" />
                       </div>
