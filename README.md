@@ -1,143 +1,161 @@
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-16-black?logo=next.js" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-blue?logo=typescript" />
+  <img src="https://img.shields.io/badge/Tailwind-v4-38bdf8?logo=tailwindcss" />
+  <img src="https://img.shields.io/badge/License-Private-red" />
+</p>
+
 # Plura
 
-White-labeled multi-tenant SaaS platform for agency owners. Build websites and funnels with a full-screen drag-and-drop editor.
+A white-labeled multi-tenant SaaS platform for agency owners to build websites and funnels with a visual drag-and-drop editor.
 
-## Architecture
+---
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Next.js App                             │
-├──────────┬──────────────────────────────────────┬───────────────┤
-│          │              Editor                   │               │
-│  Clerk   │  ┌────────────────────────────────┐  │   Stripe      │
-│  Auth    │  │         Toolbar / Navigation    │  │   Payments    │
-│          │  ├──────┬─────────────────┬────────┤  │               │
-│          │  │ Left │                 │ Right  │  │               │
-│          │  │Panel │     Canvas      │ Panel  │  │               │
-│          │  │      │                 │        │  │               │
-│          │  │ ┌──┐ │  ┌───────────┐  │ Design │  │               │
-│          │  │ │C │ │  │  Recursive │  │ Content│  │               │
-│          │  │ │o │ │  │  Element   │  │        │  │               │
-│          │  │ │m │ │  │  Renderer  │  │ ┌────┐ │  │               │
-│          │  │ │p │ │  └───────────┘  │ │Menu│ │  │               │
-│          │  │ │s │ │                 │ │ s  │ │  │               │
-│          │  │ ├──┤ │  ┌───────────┐  │ └────┘ │  │               │
-│          │  │ │L │ │  │  Overlays  │  │        │  │               │
-│          │  │ │a │ │  │  & Handles │  │        │  │               │
-│          │  │ │y │ │  └───────────┘  │        │  │               │
-│          │  │ │r │ │                 │        │  │               │
-│          │  │ │s │ │  ┌───────────┐  │        │  │               │
-│          │  │ ├──┤ │  │  Rulers   │  │        │  │               │
-│          │  │ │T │ │  │  & Guides │  │        │  │               │
-│          │  │ │pl│ │  └───────────┘  │        │  │               │
-│          │  │ └──┘ │                 │        │  │               │
-│          │  ├──────┴─────────────────┴────────┤  │               │
-│          │  │           Breadcrumb             │  │               │
-│          │  └────────────────────────────────┘  │               │
-├──────────┴──────────────────────────────────────┴───────────────┤
-│                     PostgreSQL (Neon)                            │
-│                     Appwrite Storage                             │
-└─────────────────────────────────────────────────────────────────┘
-```
+## Overview
 
-## Editor File Map
+Plura provides agencies with a complete website builder — from authentication and billing to a full-screen visual editor with 36+ element types, real-time style manipulation, and one-click publishing.
 
 ```
-components/editor/                    77 files, ~5300 lines
-├── editor.tsx                        Entry point — shell, overlays, breadcrumb
-├── core/
-│   ├── types.ts                      El type, Device, resolveStyles
-│   ├── provider.tsx                  EditorProvider + useEditor (15 actions, undo/redo)
-│   ├── tree-helpers.ts               addEl, deleteEl, moveEl, reorderEl, cloneEl
-│   ├── element-factory.ts            makeEl, 36+ element types, componentGroups
-│   └── use-shortcuts.ts              Keyboard shortcuts (Cmd+Z/S/D/C/V, arrows, zoom)
-├── canvas/
-│   ├── element-wrapper.tsx           Selection ring, toolbar, context menu, smart handles
-│   ├── container.tsx                 Drop zones, gap handles, style splitting
-│   ├── recursive.tsx                 Element type → component router
-│   ├── drag-overlay.tsx              Portal-based drag ghost
-│   ├── use-canvas.ts                 Zoom, pan, scroll, Alt tracking
-│   ├── handles/                      11 files
-│   │   ├── use-handles.ts            Drag hook + CSS shorthand helpers
-│   │   ├── box-zone.tsx              Padding/margin colored overlay
-│   │   ├── box-handle.tsx            Interactive drag target
-│   │   ├── radius-corners.tsx        4 corner dots for border-radius
-│   │   ├── gap-handle.tsx            Flex gap adjuster (DOM-measured)
-│   │   ├── resize-handles.tsx        8-point width/height resize
-│   │   ├── dimensions-badge.tsx      W×H badge
-│   │   └── font-size-handle.tsx      Vertical drag for font size
-│   ├── overlays/                     10 files
-│   │   ├── rulers.tsx                Canvas rulers (RAF loop, cached colors)
-│   │   ├── guides.tsx                Draggable guide lines
-│   │   ├── snap-guides.tsx           Alignment snap lines
-│   │   ├── snap-distances.tsx        Alt+hover distance measurement
-│   │   ├── grid-editor.tsx           CSS grid track editor
-│   │   ├── gradient-editor.tsx       Gradient angle handle
-│   │   ├── pixel-grid.tsx            Pixel grid at high zoom
-│   │   ├── marquee.tsx               Selection rectangle
-│   │   └── eyedropper.tsx            Color picker from canvas
-│   └── elements/                     22 leaf element renderers
-├── panels/
-│   ├── left/
-│   │   ├── left-panel.tsx            Icon rail + 3 tabs
-│   │   ├── components-tab.tsx        Draggable component library (list/grid view)
-│   │   ├── layers-tab.tsx            Tree view with DnD reordering
-│   │   └── templates-tab.tsx         Pre-built section templates
-│   └── right/
-│       ├── right-panel.tsx           Collapsible properties panel
-│       ├── settings-tab.tsx          Element name, actions, tab switcher
-│       ├── design-tab.tsx            Style properties (compose menus per type)
-│       ├── content-tab.tsx           Smart content fields (text/url/csv/code/date)
-│       ├── shared.tsx                Reusable UI (Section, ColorField, IconToggle)
-│       └── menus/                    9 decomposed property sections
-├── toolbar/
-│   └── navigation.tsx                Device toggle, zoom, save, publish, page settings
-└── ui/
-    ├── m-icon.tsx                    Material Symbols helper
-    └── color-picker.tsx              HSV color picker (ramp/wheel/HSVA tabs + eyedropper)
+┌─────────────────────────────────────────────────────────┐
+│                      Next.js App                        │
+├─────────┬───────────────────────────────┬───────────────┤
+│  Auth   │           Editor              │   Payments    │
+│ (Clerk) │  ┌───┬───────────────┬─────┐  │   (Stripe)   │
+│         │  │ L │               │  R  │  │               │
+│         │  │ e │    Canvas     │  i  │  │               │
+│         │  │ f │  ┌─────────┐  │  g  │  │               │
+│         │  │ t │  │ Element │  │  h  │  │               │
+│         │  │   │  │ Tree    │  │  t  │  │               │
+│         │  │ P │  ├─────────┤  │     │  │               │
+│         │  │ a │  │ Handles │  │  P  │  │               │
+│         │  │ n │  │ Overlays│  │  a  │  │               │
+│         │  │ e │  └─────────┘  │  n  │  │               │
+│         │  │ l │               │  e  │  │               │
+│         │  └───┴───────────────┴─────┘  │               │
+├─────────┴───────────────────────────────┴───────────────┤
+│          PostgreSQL (Neon) · Appwrite Storage            │
+└─────────────────────────────────────────────────────────┘
 ```
+
+## Features
+
+**Editor**
+- 36+ draggable element types (layout, typography, media, forms, blocks)
+- Visual handles — padding, margin, gap, border-radius, resize, font-size
+- Context-aware overlays — rulers, guides, distance measurement, grid editor
+- 3-tab color picker with eyedropper and saved palette
+- Responsive preview — Desktop / Tablet / Mobile with per-device styles
+- Layer tree with drag-and-drop reordering
+- Rich text editing (bold, italic, underline, links)
+- Undo/redo (50 steps), auto-save, keyboard shortcuts
+
+**Platform**
+- Multi-tenant with sub-accounts
+- Clerk authentication
+- Stripe billing integration
+- Appwrite file storage
+- HTML export and live publishing
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 16 (App Router, Turbopack) |
-| Language | TypeScript (strict) |
-| Styling | Tailwind CSS v4 (inline, no CSS files) |
-| UI Components | shadcn/ui |
-| Auth | Clerk |
-| Database | PostgreSQL via Neon |
-| Storage | Appwrite |
-| Payments | Stripe |
-| Icons | Material Symbols Outlined (Google Fonts CDN) |
-| Font | Inter |
-| Package Manager | pnpm |
+| | Technology |
+|---|---|
+| **Framework** | Next.js 16 (App Router) |
+| **Language** | TypeScript (strict mode) |
+| **Styling** | Tailwind CSS v4 |
+| **Components** | shadcn/ui |
+| **Auth** | Clerk |
+| **Database** | PostgreSQL (Neon) |
+| **Storage** | Appwrite |
+| **Payments** | Stripe |
+| **Icons** | Material Symbols Outlined |
 
 ## Getting Started
 
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+
+### Installation
+
 ```bash
+git clone https://github.com/top-magar/plura.git
+cd plura
 pnpm install
+```
+
+### Environment Variables
+
+Create `.env.local`:
+
+```env
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+
+DATABASE_URL=
+
+NEXT_PUBLIC_APPWRITE_ENDPOINT=
+NEXT_PUBLIC_APPWRITE_PROJECT=
+NEXT_PUBLIC_APPWRITE_BUCKET=
+
+STRIPE_SECRET_KEY=
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
+
+### Development
+
+```bash
 pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Editor Features
+### Build
 
-- **36+ element types** — layout, typography, media, interactive, forms, blocks
-- **Visual handles** — padding (green), margin (orange), gap (pink), radius (dots), resize (8-point)
-- **Smart overlays** — context-aware, priority-based visibility
-- **Drag and drop** — canvas drop zones, layer tree reordering
-- **Responsive** — Desktop / Tablet / Mobile preview with per-device styles
-- **Color picker** — HSV ramp, color wheel, HSVA sliders, eyedropper, saved palette
-- **Rulers & guides** — zoom-aware canvas rulers, draggable guide lines
-- **Undo/redo** — 50-step history stack
-- **Auto-save** — 5-second debounce with indicator
-- **Keyboard shortcuts** — Cmd+Z/S/D/C/V, arrow nudge, Shift+R rulers, ? help
-- **Context menu** — right-click on any element
-- **Rich text** — bold/italic/underline/link toolbar on double-click
-- **Export** — HTML export, publish to live URL
+```bash
+pnpm build
+```
+
+## Project Structure
+
+```
+├── app/                    Next.js app router pages
+│   ├── (main)/             Dashboard, sub-accounts, settings
+│   ├── editor/             Full-screen editor page
+│   └── api/                API routes (Stripe webhooks, etc.)
+├── components/
+│   ├── editor/             Visual editor (77 files, ~5300 lines)
+│   │   ├── core/           State, types, tree helpers, element factory
+│   │   ├── canvas/         Element rendering, handles, overlays
+│   │   ├── panels/         Left panel (components, layers) + Right panel (design, content)
+│   │   ├── toolbar/        Navigation bar
+│   │   └── ui/             Color picker, icon helper
+│   ├── ui/                 shadcn/ui components
+│   └── global/             Shared layout components
+├── lib/                    Database queries, utilities
+└── prisma/                 Database schema
+```
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd+Z` | Undo |
+| `Cmd+Shift+Z` | Redo |
+| `Cmd+S` | Save |
+| `Cmd+D` | Duplicate |
+| `Cmd+C / V` | Copy / Paste element |
+| `Cmd+Alt+C / V` | Copy / Paste styles |
+| `Delete` | Delete selected |
+| `Escape` | Select parent / Deselect |
+| `Shift+R` | Toggle rulers |
+| `Alt+hover` | Show distances |
+| `?` | Shortcuts help |
 
 ## License
 
-Private.
+Private — All rights reserved.
