@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { GripVertical, Trash2, Copy, ChevronUp, ChevronDown, Lock } from 'lucide-react';
+import { GripVertical, Trash2, Copy, ChevronUp, ChevronDown, Lock, Clipboard, ClipboardPaste, Eye, EyeOff as EyeOffIcon, LockOpen } from 'lucide-react';
 import { useEditor } from './editor-provider';
-import { findParentId } from './tree-helpers';
+import { findParentId, cloneEl } from './tree-helpers';
 import { useDragOverlay } from './drag-overlay';
+import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, ContextMenuShortcut } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import type { El } from './types';
 import { resolveStyles } from './types';
@@ -203,7 +204,11 @@ export default function ElementWrapper({ element, children, className, style, is
   const [pt, pr, pb, pl] = parseBox(s, 'padding');
   const [mt, mr, mb, ml] = parseBox(s, 'margin');
 
+  const parentId = findParentId(elements, element.id);
+
   return (
+    <ContextMenu>
+    <ContextMenuTrigger disabled={isBody} asChild>
     <div
       data-wrapper
       className={cn(
@@ -253,5 +258,37 @@ export default function ElementWrapper({ element, children, className, style, is
 
       {children}
     </div>
+    </ContextMenuTrigger>
+    {!isBody && (
+      <ContextMenuContent className="w-48 text-xs">
+        <ContextMenuItem onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'up' } })}>
+          Move Up <ContextMenuShortcut>Cmd+↑</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'down' } })}>
+          Move Down <ContextMenuShortcut>Cmd+↓</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        {parentId && (
+          <ContextMenuItem onClick={() => dispatch({ type: 'DUPLICATE_ELEMENT', payload: { elId: element.id, containerId: parentId } })}>
+            Duplicate <ContextMenuShortcut>Cmd+D</ContextMenuShortcut>
+          </ContextMenuItem>
+        )}
+        <ContextMenuItem onClick={() => navigator.clipboard.writeText(JSON.stringify(element))}>
+          Copy <ContextMenuShortcut>Cmd+C</ContextMenuShortcut>
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem onClick={() => dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, locked: !element.locked } } })}>
+          {element.locked ? <><LockOpen className="size-3.5 mr-2" /> Unlock</> : <><Lock className="size-3.5 mr-2" /> Lock</>}
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, hidden: !element.hidden } } })}>
+          {element.hidden ? <><Eye className="size-3.5 mr-2" /> Show</> : <><EyeOffIcon className="size-3.5 mr-2" /> Hide</>}
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem className="text-destructive focus:text-destructive" onClick={() => dispatch({ type: 'DELETE_ELEMENT', payload: { id: element.id } })}>
+          Delete <ContextMenuShortcut>Del</ContextMenuShortcut>
+        </ContextMenuItem>
+      </ContextMenuContent>
+    )}
+    </ContextMenu>
   );
 }

@@ -135,6 +135,15 @@ function EditorInner() {
     }
     if (mod && e.key === "ArrowUp" && selected && selected.type !== "__body") { e.preventDefault(); dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "up" } }); setDirty(true); }
     if (mod && e.key === "ArrowDown" && selected && selected.type !== "__body") { e.preventDefault(); dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "down" } }); setDirty(true); }
+    // Plain arrow keys: nudge reorder (when not in input)
+    if (!mod && (e.key === "ArrowUp" || e.key === "ArrowDown") && selected && selected.type !== "__body") {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag !== "INPUT" && tag !== "TEXTAREA" && !(e.target as HTMLElement).isContentEditable) {
+        e.preventDefault();
+        dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: e.key === "ArrowUp" ? "up" : "down" } });
+        setDirty(true);
+      }
+    }
     if (mod && e.key === "=") { e.preventDefault(); setZoom((z) => Math.min(200, z + 10)); }
     if (mod && e.key === "-") { e.preventDefault(); setZoom((z) => Math.max(50, z - 10)); }
     if (mod && e.key === "0") { e.preventDefault(); setZoom(100); }

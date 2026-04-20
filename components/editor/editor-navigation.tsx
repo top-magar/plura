@@ -102,6 +102,7 @@ export default function EditorNavigation({
               <Undo2 className="size-4" />
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Undo (Cmd+Z)</TooltipContent></Tooltip>
+          <span className="text-[9px] font-mono text-muted-foreground tabular-nums w-6 text-center">{state.history.currentIndex}/{state.history.history.length - 1}</span>
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-8" onClick={() => dispatch({ type: "REDO" })} disabled={!canRedo}>
               <Redo2 className="size-4" />
