@@ -15,8 +15,6 @@ import PixelGrid from "./canvas/overlays/pixel-grid";
 import Guides from "./canvas/overlays/guides";
 import GridEditor from "./canvas/overlays/grid-editor";
 import Marquee from "./canvas/overlays/marquee";
-import GradientEditor from "./canvas/overlays/gradient-editor";
-import LayoutGrid from "./canvas/overlays/layout-grid";
 import { EditorProvider, useEditor } from "./core/provider";
 import EditorNavigation from "./toolbar/navigation";
 import { LeftPanel, RightPanel } from "./panels";
@@ -143,20 +141,15 @@ function EditorInner() {
             {(() => {
               const isDragging = !!state.editor.dropTarget;
               const hasSel = !!selected;
-              const isContainer = hasSel && Array.isArray(selected.content);
               const isGrid = hasSel && selected.styles.display === "grid";
-              const hasGradient = hasSel && (selected.styles as Record<string, string>).backgroundImage?.includes("gradient");
               return (<>
-                {/* Measurement overlays — hidden during drag (Penpot: show-snap-distance?) */}
+                {/* Distance indicators — Alt key only (Figma behavior) */}
                 {!isDragging && hasSel && <SnapDistances altHeld={altHeld} />}
+                {/* Alignment guides — visible on selection for sibling alignment */}
                 {!isDragging && hasSel && <SnapGuides />}
-                {/* Grid editor — only on grid containers (Penpot: show-grid-editor?) */}
+                {/* Grid editor — only on CSS grid containers */}
                 {!isDragging && isGrid && <GridEditor />}
-                {/* Gradient handles — only when element has gradient fill */}
-                {!isDragging && hasGradient && <GradientEditor />}
-                {/* Layout grid — 8px grid on selected containers */}
-                {!isDragging && isContainer && <LayoutGrid />}
-                {/* Pixel grid — only at very high zoom (Penpot: show-pixel-grid?) */}
+                {/* Pixel grid — only at very high zoom */}
                 <PixelGrid zoom={zoom} />
               </>);
             })()}
