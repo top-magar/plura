@@ -12,12 +12,14 @@ import Recursive from "../recursive";
 /** Draggable diamond handle between flex children to adjust gap */
 function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
   const [dragging, setDragging] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const gap = parseInt(String(element.styles.gap ?? '0')) || 0;
 
   const onPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const start = isRow ? e.clientX : e.clientY;
-    const startGap = parseInt(String(element.styles.gap ?? '0')) || 0;
+    const startGap = gap;
     setDragging(true);
 
     const onMove = (ev: PointerEvent) => {
@@ -34,24 +36,39 @@ function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; 
     document.addEventListener('pointerup', onUp);
   };
 
-  const gap = parseInt(String(element.styles.gap ?? '0')) || 0;
+  const show = dragging || hovered;
 
   return (
     <div
       className={cn(
-        "flex items-center justify-center z-10 shrink-0",
-        isRow ? "cursor-ew-resize self-stretch w-0 relative" : "cursor-ns-resize w-full h-0 relative"
+        "shrink-0 z-10 relative",
+        isRow ? "cursor-ew-resize self-stretch" : "cursor-ns-resize w-full",
       )}
+      style={isRow ? { width: gap || 4 } : { height: gap || 4 }}
       onPointerDown={onPointerDown}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
     >
+      {/* Colored gap zone */}
       <div className={cn(
-        "absolute rounded-full transition-all",
-        dragging ? "bg-pink-500 scale-125" : "bg-pink-400/0 hover:bg-pink-400",
-        isRow ? "w-[5px] h-6" : "h-[5px] w-6"
+        "absolute inset-0 transition-colors rounded-sm",
+        dragging ? "bg-pink-400/30" : show ? "bg-pink-400/15" : "bg-transparent"
       )} />
+      {/* Center pill indicator */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className={cn(
+          "rounded-full transition-all",
+          dragging ? "bg-pink-500 scale-110" : show ? "bg-pink-400" : "bg-transparent",
+          isRow ? "w-[4px] h-5" : "h-[4px] w-5"
+        )} />
+      </div>
+      {/* Value label */}
       {dragging && (
-        <span className="absolute rounded bg-pink-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none z-20" style={isRow ? { left: 8 } : { top: 8 }}>
-          {gap}
+        <span className={cn(
+          "absolute rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow",
+          isRow ? "left-1/2 -translate-x-1/2 -top-5" : "top-1/2 -translate-y-1/2 -right-8"
+        )}>
+          {gap}px
         </span>
       )}
     </div>
