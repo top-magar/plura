@@ -93,7 +93,15 @@ function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
       if (!elRef.current) return;
       const d = Math.max(Math.abs(sx - ev.clientX), Math.abs(sy - ev.clientY)) * ((sx - ev.clientX + sy - ev.clientY) > 0 ? 1 : -1);
       const val = Math.max(0, Math.round((sv + d) / 2) * 2);
-      const next = { ...elRef.current, styles: { ...elRef.current.styles, [prop]: `${val}px` } };
+      // Expand borderRadius shorthand to avoid React conflict
+      const cur = { ...elRef.current.styles } as Record<string, unknown>;
+      if (cur.borderRadius) {
+        const r = parseInt(String(cur.borderRadius)) || 0;
+        cur.borderTopLeftRadius = `${r}px`; cur.borderTopRightRadius = `${r}px`;
+        cur.borderBottomRightRadius = `${r}px`; cur.borderBottomLeftRadius = `${r}px`;
+        delete cur.borderRadius;
+      }
+      const next = { ...elRef.current, styles: { ...cur, [prop]: `${val}px` } as CSSProperties };
       elRef.current = next;
       dispatch({ type: 'UPDATE_ELEMENT', payload: { element: next } });
     };
