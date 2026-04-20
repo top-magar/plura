@@ -11,6 +11,8 @@ import Recursive from "./canvas/recursive";
 import SnapDistances from "./canvas/overlays/snap-distances";
 import SnapGuides from "./canvas/overlays/snap-guides";
 import Rulers from "./canvas/overlays/rulers";
+import PixelGrid from "./canvas/overlays/pixel-grid";
+import Guides from "./canvas/overlays/guides";
 import { EditorProvider, useEditor } from "./core/provider";
 import EditorNavigation from "./toolbar/navigation";
 import { LeftPanel, RightPanel } from "./panels";
@@ -116,10 +118,13 @@ function EditorInner() {
 
         <div ref={canvasRef} onPointerDown={onCanvasPointerDown} className={cn("flex-1 overflow-auto p-4 min-h-0 relative", preview ? "p-0 bg-background" : "bg-muted", panning && "cursor-grab active:cursor-grabbing")} style={!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined} onClick={() => !preview && !spaceRef.current && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
           {!preview && <Rulers zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} width={scroll.w} height={scroll.h} />}
+          {!preview && <Guides zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} />}
           <div data-canvas className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200 relative" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
             {body && <Recursive element={body} />}
-            <SnapDistances />
-            <SnapGuides />
+            {/* Penpot conditional flags: hide overlays during drag for performance */}
+            {!state.editor.dropTarget && selected && <SnapDistances />}
+            {!state.editor.dropTarget && selected && <SnapGuides />}
+            <PixelGrid zoom={zoom} />
           </div>
         </div>
 

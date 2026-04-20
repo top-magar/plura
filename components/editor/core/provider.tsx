@@ -30,7 +30,9 @@ type EditorAction =
   | { type: 'LOAD_DATA'; payload: { elements: El[] } }
   | { type: 'SET_ELEMENTS'; payload: { elements: El[] } }
   | { type: 'UNDO' }
-  | { type: 'REDO' };
+  | { type: 'REDO' }
+  | { type: 'ADD_GUIDE'; payload: { axis: 'x' | 'y'; position: number } }
+  | { type: 'REMOVE_GUIDE'; payload: { index: number } };
 
 export type { EditorAction };
 
@@ -46,6 +48,7 @@ type EditorState = {
   dirty: boolean;
   clipboard: El | null;
   zoom: number;
+  guides: { axis: 'x' | 'y'; position: number }[];
 };
 
 type HistoryState = {
@@ -72,6 +75,7 @@ const initialEditorState: EditorState = {
   dirty: false,
   clipboard: null,
   zoom: 100,
+  guides: [],
 };
 
 const initialStore: EditorStore = {
@@ -156,6 +160,10 @@ function editorReducer(store: EditorStore, action: EditorAction): EditorStore {
       const selected = store.editor.selected ? findEl(elements, store.editor.selected.id) : null;
       return { editor: { ...store.editor, elements, selected }, history: { ...store.history, currentIndex: idx } };
     }
+    case 'ADD_GUIDE':
+      return { ...store, editor: { ...store.editor, guides: [...store.editor.guides, action.payload] } };
+    case 'REMOVE_GUIDE':
+      return { ...store, editor: { ...store.editor, guides: store.editor.guides.filter((_, i) => i !== action.payload.index) } };
     default:
       return store;
   }
