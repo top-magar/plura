@@ -154,7 +154,7 @@ function EditorInner() {
 
   return (
     <DragOverlayProvider>
-    <div className="fixed inset-0 z-20 flex flex-col bg-background text-foreground text-sm leading-snug outline-none antialiased" onKeyDown={handleKeyDown} tabIndex={0}>
+    <div className="fixed inset-0 z-50 flex flex-col bg-background text-foreground text-sm leading-snug outline-none antialiased" onKeyDown={handleKeyDown} tabIndex={0}>
       {!preview && (
         <EditorNavigation
           pageTitle={pageTitle}

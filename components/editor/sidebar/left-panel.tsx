@@ -25,7 +25,7 @@ export default function LeftPanel() {
     <div className="flex h-full border-r border-sidebar-border">
       {/* Icon rail */}
       <TooltipProvider delayDuration={200}>
-        <div className="flex w-12 flex-col items-center gap-1 border-r border-sidebar-border bg-sidebar py-2">
+        <div className="flex w-12 flex-col items-center gap-1 bg-sidebar py-2">
           {tabs.map(({ id, label, icon: Icon }) => (
             <Tooltip key={id}>
               <TooltipTrigger asChild>

@@ -17,9 +17,9 @@ export default function RightPanel() {
   }, [selected]);
 
   return (
-    <div className={cn("flex h-full border-l border-sidebar-border", collapsed ? "w-0" : "w-72")}>
+    <div className={cn("flex h-full border-l border-sidebar-border transition-[width] duration-200", collapsed ? "w-0" : "w-64")}>
       {!collapsed && (
-        <div className="flex w-72 flex-col overflow-hidden bg-sidebar">
+        <div className="flex w-64 flex-col overflow-hidden bg-sidebar">
           {/* Toggle */}
           <div className="flex h-10 items-center justify-between border-b border-sidebar-border px-3">
             <span className="text-xs font-medium">{selected ? "Properties" : "Shortcuts"}</span>
