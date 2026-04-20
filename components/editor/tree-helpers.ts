@@ -89,4 +89,4 @@ export function cloneEl(el: El): El {
   return { ...el, id, name: el.name + " copy" };
 }
 
-export const defaultBody: El = { id: "__body", type: "__body", name: "Body", styles: { display: "flex", flexDirection: "column", minHeight: "100vh", width: "100%" }, content: [] };
+export const defaultBody: El = { id: "__body", type: "__body", name: "Body", styles: { display: "flex", flexDirection: "column", gap: "0px", minHeight: "100vh", width: "100%" }, content: [] };
