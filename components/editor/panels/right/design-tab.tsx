@@ -198,11 +198,34 @@ export default function DesignTab({ get, set, selected, onUpdate }: StyleProps &
       {!isSimple && (
         <Section title="Fill" icon="format_color_fill">
           <div className="space-y-2">
-            <ColorField label="" value={get("backgroundColor")} onChange={(v) => set("backgroundColor", v)} />
-            <div className="grid grid-cols-2 gap-1">
-              <N icon="🖼" value={get("backgroundImage")} onChange={(v) => set("backgroundImage", v)} placeholder="url()" tip="Background Image" />
-              <SelectField label="" value={get("backgroundSize")} options={selectOptions.backgroundSize} onChange={(v) => set("backgroundSize", v)} />
+            {/* Fill type toggle: solid / linear / radial */}
+            <div className="flex gap-1">
+              {(["solid", "linear", "radial"] as const).map((t) => {
+                const current = get("backgroundImage")?.startsWith("linear-gradient") ? "linear" : get("backgroundImage")?.startsWith("radial-gradient") ? "radial" : "solid";
+                return (
+                  <button key={t} onClick={() => {
+                    if (t === "solid") { set("backgroundImage", ""); }
+                    else if (t === "linear") { set("backgroundImage", `linear-gradient(180deg, ${get("backgroundColor") || "#6366f1"}, #000000)`); }
+                    else { set("backgroundImage", `radial-gradient(circle, ${get("backgroundColor") || "#6366f1"}, #000000)`); }
+                  }} className={cn("flex-1 h-6 rounded border text-[9px] font-medium capitalize transition-colors", current === t ? "bg-primary text-primary-foreground border-primary" : "border-sidebar-border text-muted-foreground/60 hover:text-foreground")}>{t}</button>
+                );
+              })}
             </div>
+            <ColorField label="" value={get("backgroundColor")} onChange={(v) => set("backgroundColor", v)} />
+            {/* Gradient angle (linear only) */}
+            {get("backgroundImage")?.startsWith("linear-gradient") && (
+              <N icon="∠" value={get("backgroundImage")?.match(/(\d+)deg/)?.[1] || "180"} onChange={(v) => {
+                const stops = get("backgroundImage").replace(/linear-gradient\([^,]+,/, "").replace(/\)$/, "");
+                set("backgroundImage", `linear-gradient(${v}deg,${stops})`);
+              }} placeholder="180" tip="Gradient angle (deg)" />
+            )}
+            {/* Background image URL (when not gradient) */}
+            {!get("backgroundImage")?.includes("gradient") && (
+              <div className="grid grid-cols-2 gap-1">
+                <N icon="🖼" value={get("backgroundImage")} onChange={(v) => set("backgroundImage", v)} placeholder="url()" tip="Background Image" />
+                <SelectField label="" value={get("backgroundSize")} options={selectOptions.backgroundSize} onChange={(v) => set("backgroundSize", v)} />
+              </div>
+            )}
           </div>
         </Section>
       )}

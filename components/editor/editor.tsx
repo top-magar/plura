@@ -15,6 +15,8 @@ import PixelGrid from "./canvas/overlays/pixel-grid";
 import Guides from "./canvas/overlays/guides";
 import GridEditor from "./canvas/overlays/grid-editor";
 import Marquee from "./canvas/overlays/marquee";
+import GradientEditor from "./canvas/overlays/gradient-editor";
+import LayoutGrid from "./canvas/overlays/layout-grid";
 import { EditorProvider, useEditor } from "./core/provider";
 import EditorNavigation from "./toolbar/navigation";
 import { LeftPanel, RightPanel } from "./panels";
@@ -123,11 +125,27 @@ function EditorInner() {
           {!preview && <Guides zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} />}
           <div data-canvas className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200 relative" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
             {body && <Recursive element={body} />}
-            {/* Penpot conditional flags: hide overlays during drag for performance */}
-            {!state.editor.dropTarget && selected && <SnapDistances />}
-            {!state.editor.dropTarget && selected && <SnapGuides />}
-            <PixelGrid zoom={zoom} />
-            <GridEditor />
+            {/* ── Overlays with Penpot-style conditional flags ── */}
+            {(() => {
+              const isDragging = !!state.editor.dropTarget;
+              const hasSel = !!selected;
+              const isContainer = hasSel && Array.isArray(selected.content);
+              const isGrid = hasSel && selected.styles.display === "grid";
+              const hasGradient = hasSel && (selected.styles as Record<string, string>).backgroundImage?.includes("gradient");
+              return (<>
+                {/* Measurement overlays — hidden during drag (Penpot: show-snap-distance?) */}
+                {!isDragging && hasSel && <SnapDistances />}
+                {!isDragging && hasSel && <SnapGuides />}
+                {/* Grid editor — only on grid containers (Penpot: show-grid-editor?) */}
+                {!isDragging && isGrid && <GridEditor />}
+                {/* Gradient handles — only when element has gradient fill */}
+                {!isDragging && hasGradient && <GradientEditor />}
+                {/* Layout grid — 8px grid on selected containers */}
+                {!isDragging && isContainer && <LayoutGrid />}
+                {/* Pixel grid — only at very high zoom (Penpot: show-pixel-grid?) */}
+                <PixelGrid zoom={zoom} />
+              </>);
+            })()}
           </div>
           {!preview && <Marquee canvasRef={canvasRef} />}
         </div>
