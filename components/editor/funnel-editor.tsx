@@ -3,11 +3,9 @@
 import { useState, useCallback, useEffect, useRef, type CSSProperties } from "react";
 import { EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { DragDropProvider, DragOverlay } from "@dnd-kit/react";
 import { upsertFunnelPage, upsertFunnel } from "@/lib/queries";
 import type { El, EditorProps } from "./types";
 import { cloneEl, findParentId, getAncestorPath, findEl as findElInTree } from "./tree-helpers";
-import { makeElInContext } from "./element-factory";
 import { cn } from "@/lib/utils";
 import Recursive from "./recursive";
 import { EditorProvider, useEditor } from "./editor-provider";
@@ -141,66 +139,8 @@ function EditorInner() {
 
   const body = elements[0];
   const deviceWidth = device === "Desktop" ? "100%" : device === "Tablet" ? 768 : 420;
-  const elementsSnapshot = useRef<El[]>(elements);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleDragStart = useCallback(() => {
-    elementsSnapshot.current = elements;
-  }, [elements]);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleDragEnd = useCallback((event: any) => {
-    if (event.canceled) {
-      // Revert to snapshot
-      dispatch({ type: "SET_ELEMENTS", payload: { elements: elementsSnapshot.current } });
-      return;
-    }
-    const source = event.operation?.source;
-    if (!source) return;
-
-    // Palette drop: new element from sidebar
-    if (source.data?.componentType) {
-      const targetId = event.operation.target?.id as string | undefined;
-      const containerId = targetId ?? "__body";
-      const parentEl = findElInTree(elements, containerId);
-      if (!parentEl) return;
-      const newEl = makeElInContext(source.data.componentType as string, parentEl);
-      if (newEl) {
-        dispatch({ type: "ADD_ELEMENT", payload: { containerId, element: newEl } });
-        setDirty(true);
-      }
-      return;
-    }
-
-    // Sortable: state already updated via onDragOver, just mark dirty
-    if (typeof source.initialIndex === "number") {
-      const { initialIndex, index, group, initialGroup } = source;
-      if (initialIndex !== index || initialGroup !== group) {
-        setDirty(true);
-      }
-    }
-  }, [elements, dispatch]);
-
-  // Live reorder during drag via optimistic sorting
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleDragOver = useCallback((event: any) => {
-    const source = event.operation?.source;
-    const target = event.operation?.target;
-    if (!source || !target) return;
-    // Skip palette items — they only drop on onDragEnd
-    if (source.data?.componentType) return;
-
-    // Cross-container move: source.group changed
-    if (typeof source.initialIndex === "number" && source.group !== source.initialGroup) {
-      dispatch({
-        type: "MOVE_ELEMENT",
-        payload: { elId: String(source.id), targetContainerId: String(source.group), index: source.index },
-      });
-    }
-  }, [dispatch]);
 
   return (
-    <DragDropProvider onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
     <div className="fixed inset-0 z-20 flex flex-col bg-background text-foreground text-sm leading-snug outline-none antialiased" onKeyDown={handleKeyDown} tabIndex={0}>
       {!preview && (
         <EditorNavigation
@@ -250,19 +190,6 @@ function EditorInner() {
           <EyeOff size={14} /> Exit Preview
         </button>
       )}
-
-      <DragOverlay>
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {(source: any) => {
-          const label = source?.data?.label ?? source?.data?.componentType ?? String(source?.id ?? "");
-          return (
-            <div className="rounded-lg border border-primary/30 bg-background px-3 py-2 text-xs font-medium shadow-lg">
-              {label}
-            </div>
-          );
-        }}
-      </DragOverlay>
     </div>
-    </DragDropProvider>
   );
 }
