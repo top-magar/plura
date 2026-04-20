@@ -1,16 +1,48 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import type { El } from '../../core/types';
 import type { useEditor } from '../../core/provider';
 
+type GapRect = { x: number; y: number; w: number; h: number };
+
 export function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
   const [dragging, setDragging] = useState(false);
-  const [hovered, setHovered] = useState(false);
+  const [hoveredIdx, setHoveredIdx] = useState(-1);
+  const [gaps, setGaps] = useState<GapRect[]>([]);
   const elRef = useRef<El>(element);
   elRef.current = element;
   const gap = parseInt(String(element.styles.gap ?? '0')) || 0;
+  const childEls = (Array.isArray(element.content) ? element.content : []) as El[];
+
+  // Measure actual gap positions from DOM
+  useEffect(() => {
+    const container = document.querySelector(`[data-el-id="${element.id}"]`);
+    if (!container) return;
+    const wrapRef = container.querySelector('[data-el-id]')?.parentElement;
+    const parent = wrapRef ?? container;
+    const children = parent.querySelectorAll(':scope > [data-el-id]');
+    if (children.length < 2) { setGaps([]); return; }
+
+    const pr = parent.getBoundingClientRect();
+    const rects: GapRect[] = [];
+
+    for (let i = 0; i < children.length - 1; i++) {
+      const a = children[i].getBoundingClientRect();
+      const b = children[i + 1].getBoundingClientRect();
+      if (isRow) {
+        const x = a.right - pr.left;
+        const w = b.left - a.right;
+        rects.push({ x, y: 0, w: Math.max(w, 4), h: pr.height });
+      } else {
+        const y = a.bottom - pr.top;
+        const h = b.top - a.bottom;
+        rects.push({ x: 0, y, w: pr.width, h: Math.max(h, 4) });
+      }
+    }
+    setGaps(rects);
+  }, [element.id, element.styles.gap, childEls.length, isRow]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -21,7 +53,7 @@ export function GapHandle({ element, isRow, dispatch }: { element: El; isRow: bo
 
     const onMove = (ev: PointerEvent) => {
       const delta = (isRow ? ev.clientX : ev.clientY) - start;
-      const snap = ev.shiftKey ? 10 : 4; // Shift = big nudge
+      const snap = ev.shiftKey ? 10 : 4;
       const val = Math.max(0, Math.round((startGap + delta) / snap) * snap);
       const next = { ...elRef.current, styles: { ...elRef.current.styles, gap: `${val}px` } };
       elRef.current = next;
@@ -36,34 +68,31 @@ export function GapHandle({ element, isRow, dispatch }: { element: El; isRow: bo
     document.addEventListener('pointerup', onUp);
   };
 
-  const show = dragging || hovered;
-  const childEls = (Array.isArray(element.content) ? element.content : []) as El[];
+  if (gaps.length === 0) return null;
 
   return (
-    <div className="absolute inset-0 z-10 pointer-events-none" style={{ display: 'flex', flexDirection: isRow ? 'row' : 'column' }}>
-      {childEls.map((child, i) => (
-        <div key={child.id} className="contents">
-          <div className="flex-1 pointer-events-none" />
-          {i < childEls.length - 1 && (
-            <div
-              className={cn('pointer-events-auto flex items-center justify-center relative', isRow ? 'cursor-ew-resize self-stretch' : 'cursor-ns-resize w-full')}
-              style={isRow ? { width: Math.max(gap, 4) } : { height: Math.max(gap, 4) }}
-              onPointerDown={onPointerDown}
-              onPointerEnter={() => setHovered(true)}
-              onPointerLeave={() => setHovered(false)}
-            >
-              {show && <div className={cn('absolute inset-0 rounded-sm', dragging ? 'bg-pink-400/30' : 'bg-pink-400/20')} />}
-              {show && <div className={cn('rounded-full relative z-10', dragging ? 'bg-pink-500 scale-110' : 'bg-pink-400', isRow ? 'w-[4px] h-5' : 'h-[4px] w-5')} />}
-              {/* Show label on hover AND drag (Figma behavior) */}
-              {show && (
-                <span className={cn('absolute rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', isRow ? '-top-5 left-1/2 -translate-x-1/2' : 'top-1/2 -translate-y-1/2 -right-10')}>
-                  {gap}px
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      ))}
+    <div className="absolute inset-0 z-10 pointer-events-none">
+      {gaps.map((g, i) => {
+        const show = dragging || hoveredIdx === i;
+        return (
+          <div
+            key={i}
+            className={cn('absolute pointer-events-auto flex items-center justify-center', isRow ? 'cursor-ew-resize' : 'cursor-ns-resize')}
+            style={{ left: g.x, top: g.y, width: g.w, height: g.h }}
+            onPointerDown={onPointerDown}
+            onPointerEnter={() => setHoveredIdx(i)}
+            onPointerLeave={() => setHoveredIdx(-1)}
+          >
+            {show && <div className={cn('absolute inset-0 rounded-sm', dragging ? 'bg-pink-400/30' : 'bg-pink-400/15')} />}
+            {show && <div className={cn('rounded-full relative z-10 shrink-0', dragging ? 'bg-pink-500 scale-110' : 'bg-pink-400', isRow ? 'w-1 h-5' : 'h-1 w-5')} />}
+            {show && (
+              <span className={cn('absolute rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', isRow ? '-top-5 left-1/2 -translate-x-1/2' : 'top-1/2 -translate-y-1/2 -right-10')}>
+                {gap}px
+              </span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
