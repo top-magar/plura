@@ -131,7 +131,7 @@ function EditorInner() {
         {!preview && <LeftPanel />}
 
         {/* Canvas area — grid layout: rulers pinned, scroll container independent */}
-        <div className="flex-1 min-h-0 min-w-0" style={!preview && showRulers ? { display: 'grid', gridTemplate: `"corner hruler" ${SZ}px "vruler scroll" 1fr / ${SZ}px 1fr` } : undefined}>
+        <div className="flex-1 min-h-0 min-w-0 overflow-hidden" style={!preview && showRulers ? { display: 'grid', gridTemplate: `"corner hruler" ${SZ}px "vruler scroll" 1fr / ${SZ}px 1fr` } : undefined}>
           {!preview && showRulers && <Rulers zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} width={scroll.w} height={scroll.h} selectedId={selected?.id ?? null} onCreateGuide={(axis, position) => dispatch({ type: 'ADD_GUIDE', payload: { axis, position } })} onResetZoom={() => setZoom(100)} />}
 
           <div ref={canvasRef} onPointerDown={onCanvasPointerDown} className={cn("overflow-auto min-h-0 relative", preview ? "bg-background" : "bg-muted", cursor)} style={{ ...(!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined), gridArea: showRulers && !preview ? 'scroll' : undefined }} onClick={() => !preview && !spaceRef.current && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
