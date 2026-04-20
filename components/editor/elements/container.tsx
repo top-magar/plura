@@ -38,39 +38,37 @@ function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; 
 
   const show = dragging || hovered;
 
+  // Render a single absolute overlay covering the entire container, only interactive in gap areas
   return (
     <div
-      className={cn(
-        "shrink-0 z-10 relative",
-        isRow ? "cursor-ew-resize self-stretch" : "cursor-ns-resize w-full",
-      )}
-      style={isRow ? { width: gap || 4 } : { height: gap || 4 }}
-      onPointerDown={onPointerDown}
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
+      className="absolute inset-0 z-10 pointer-events-none"
+      style={{ display: 'flex', flexDirection: isRow ? 'row' : 'column', gap: `${gap}px` }}
     >
-      {/* Colored gap zone */}
-      <div className={cn(
-        "absolute inset-0 transition-colors rounded-sm",
-        dragging ? "bg-pink-400/30" : show ? "bg-pink-400/15" : "bg-transparent"
-      )} />
-      {/* Center pill indicator */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className={cn(
-          "rounded-full transition-all",
-          dragging ? "bg-pink-500 scale-110" : show ? "bg-pink-400" : "bg-transparent",
-          isRow ? "w-[4px] h-5" : "h-[4px] w-5"
-        )} />
+      {/* Invisible spacers matching children, gap areas between them are interactive */}
+      <div className="flex-1 pointer-events-none" />
+      <div
+        className={cn(
+          'pointer-events-auto flex items-center justify-center',
+          isRow ? 'cursor-ew-resize' : 'cursor-ns-resize',
+        )}
+        style={isRow ? { width: gap || 4, alignSelf: 'stretch' } : { height: gap || 4, width: '100%' }}
+        onPointerDown={onPointerDown}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
+      >
+        {show && (
+          <>
+            <div className={cn('absolute inset-0 rounded-sm', dragging ? 'bg-pink-400/30' : 'bg-pink-400/15')} />
+            <div className={cn('rounded-full', dragging ? 'bg-pink-500 scale-110' : 'bg-pink-400', isRow ? 'w-[4px] h-5' : 'h-[4px] w-5')} />
+          </>
+        )}
+        {dragging && (
+          <span className={cn('absolute rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', isRow ? '-top-5' : '-right-10')}>
+            {gap}px
+          </span>
+        )}
       </div>
-      {/* Value label */}
-      {dragging && (
-        <span className={cn(
-          "absolute rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow",
-          isRow ? "left-1/2 -translate-x-1/2 -top-5" : "top-1/2 -translate-y-1/2 -right-8"
-        )}>
-          {gap}px
-        </span>
-      )}
+      <div className="flex-1 pointer-events-none" />
     </div>
   );
 }
@@ -161,15 +159,16 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         style={layout}
       >
         {children.map((child, i) => (
-          <div key={child.id} data-el-id={child.id} className="min-w-0 break-words">
+          <div key={child.id} data-el-id={child.id} className="min-w-0 break-words relative">
             {isActive && dropIdx === i && indicator}
             <Recursive element={child} />
-            {isSel && !preview && i < children.length - 1 && (
-              <GapHandle element={element} isRow={isRow} dispatch={dispatch} />
-            )}
           </div>
         ))}
         {isActive && dropIdx === children.length && !isEmpty && indicator}
+        {/* Gap handles — absolute positioned in the gap between children */}
+        {isSel && !preview && children.length > 1 && (
+          <GapHandle element={element} isRow={isRow} dispatch={dispatch} />
+        )}
         {isEmpty && !preview && (
           <div className={cn(
             "flex items-center justify-center border-2 border-dashed rounded-md text-xs transition-all flex-1",
