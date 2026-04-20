@@ -1,6 +1,7 @@
 "use client";
 
 import { componentGroups } from "../element-factory";
+import { setDragPreview } from "../element-wrapper";
 
 export default function ComponentsTab() {
   return (
@@ -15,7 +16,7 @@ export default function ComponentsTab() {
               <div
                 key={type}
                 draggable
-                onDragStart={(e) => e.dataTransfer.setData("componentType", type)}
+                onDragStart={(e) => { e.dataTransfer.setData("componentType", type); setDragPreview(e, label); }}
                 className="flex cursor-grab items-center gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-xs shadow-sm transition-all hover:shadow-md hover:border-border active:cursor-grabbing active:scale-[0.97]"
               >
                 <span style={{ color }}><Icon size={14} /></span>
