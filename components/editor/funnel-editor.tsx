@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef, type CSSProperties } from "react";
-import { MIcon } from "./m-icon";
+import { MIcon } from "./ui/m-icon";
 import { toast } from "sonner";
 import { upsertFunnelPage, upsertFunnel } from "@/lib/queries";
-import type { El, EditorProps } from "./types";
-import { cloneEl, findParentId, getAncestorPath, findEl as findElInTree } from "./tree-helpers";
+import type { El, EditorProps } from "./core/types";
+import { cloneEl, findParentId, getAncestorPath, findEl as findElInTree } from "./core/tree-helpers";
 import { cn } from "@/lib/utils";
-import Recursive from "./recursive";
-import { EditorProvider, useEditor } from "./editor-provider";
-import EditorNavigation from "./editor-navigation";
-import { LeftPanel, RightPanel } from "./sidebar";
-import { DragOverlayProvider } from "./drag-overlay";
+import Recursive from "./canvas/recursive";
+import { EditorProvider, useEditor } from "./core/provider";
+import EditorNavigation from "./toolbar/navigation";
+import { LeftPanel, RightPanel } from "./panels";
+import { DragOverlayProvider } from "./canvas/drag-overlay";
 
 
 export default function FunnelEditor(props: EditorProps) {
