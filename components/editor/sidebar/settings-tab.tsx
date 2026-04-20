@@ -604,47 +604,53 @@ export default function SettingsTab() {
           {/* Position */}
           <Section title="Position" icon="open_with" defaultOpen={false}>
             <div className="space-y-2">
-              {/* Alignment buttons */}
+              {/* Align self */}
               <div className="flex gap-1">
-                <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden">
-                  {[
-                    { v: "flex-start", label: "Left", icon: "align_horizontal_left" },
-                    { v: "center", label: "Center", icon: "align_horizontal_center" },
-                    { v: "flex-end", label: "Right", icon: "align_horizontal_right" },
-                  ].map(({ v, icon }) => (
-                    <button key={v} onClick={() => set("alignSelf", v)} className={cn("flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("alignSelf") === v && "bg-primary/10 text-primary")}>
-                      <span className="material-symbols-outlined text-[16px]">{icon}</span>
+                <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden flex-1">
+                  {(["flex-start","center","flex-end"] as const).map((v, i) => (
+                    <button key={v} onClick={() => set("alignSelf", v)} className={cn("flex flex-1 h-6 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("alignSelf") === v && "bg-primary/10 text-primary")}>
+                      <MIcon name={["align_horizontal_left","align_horizontal_center","align_horizontal_right"][i]} size={14} />
                     </button>
                   ))}
                 </div>
-                <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden">
-                  {[
-                    { v: "flex-start", label: "Top", icon: "align_vertical_top" },
-                    { v: "center", label: "Middle", icon: "align_vertical_center" },
-                    { v: "flex-end", label: "Bottom", icon: "align_vertical_bottom" },
-                  ].map(({ v, icon }) => (
-                    <button key={`v-${v}`} onClick={() => set("justifySelf", v)} className={cn("flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("justifySelf") === v && "bg-primary/10 text-primary")}>
-                      <span className="material-symbols-outlined text-[16px]">{icon}</span>
+                <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden flex-1">
+                  {(["flex-start","center","flex-end"] as const).map((v, i) => (
+                    <button key={v} onClick={() => set("justifySelf", v)} className={cn("flex flex-1 h-6 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("justifySelf") === v && "bg-primary/10 text-primary")}>
+                      <MIcon name={["align_vertical_top","align_vertical_center","align_vertical_bottom"][i]} size={14} />
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Position type */}
-              <SelectField label="Position" value={get("position")} options={selectOptions.position} onChange={(v) => set("position", v)} />
-
-              {/* Offsets — compact 2x2 grid */}
-              <div className="grid grid-cols-2 gap-1.5">
-                <Field label="Top" value={get("top")} onChange={(v) => set("top", v)} placeholder="auto" />
-                <Field label="Right" value={get("right")} onChange={(v) => set("right", v)} placeholder="auto" />
-                <Field label="Bottom" value={get("bottom")} onChange={(v) => set("bottom", v)} placeholder="auto" />
-                <Field label="Left" value={get("left")} onChange={(v) => set("left", v)} placeholder="auto" />
+              {/* Position type as icon toggle */}
+              <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden">
+                {(["static","relative","absolute","fixed","sticky"] as const).map((v) => (
+                  <button key={v} onClick={() => set("position", v)} className={cn("flex flex-1 h-6 items-center justify-center text-[9px] text-muted-foreground transition-colors hover:text-foreground", get("position") === v && "bg-primary/10 text-primary font-medium")}>
+                    {v.slice(0, 3)}
+                  </button>
+                ))}
               </div>
 
-              {/* Z-index + rotation */}
-              <div className="grid grid-cols-2 gap-1.5">
-                <Field label="Z-Index" value={get("zIndex")} onChange={(v) => set("zIndex", v)} placeholder="auto" />
-                <Field label="Rotate" value={get("transform")} onChange={(v) => set("transform", v)} placeholder="rotate(0deg)" />
+              {/* Offsets — icon-labeled compact row */}
+              <div className="grid grid-cols-4 gap-1">
+                {([["top","arrow_upward"],["right","arrow_forward"],["bottom","arrow_downward"],["left","arrow_back"]] as const).map(([p, ic]) => (
+                  <div key={p} className="relative">
+                    <MIcon name={ic} size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+                    <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-6 text-[10px] pl-5 text-center" placeholder="—" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Z-index + Rotate — icon-labeled */}
+              <div className="grid grid-cols-2 gap-1">
+                <div className="relative">
+                  <MIcon name="layers" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+                  <Input value={get("zIndex")} onChange={(e) => set("zIndex", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="auto" />
+                </div>
+                <div className="relative">
+                  <MIcon name="rotate_right" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+                  <Input value={get("transform")} onChange={(e) => set("transform", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="0deg" />
+                </div>
               </div>
             </div>
           </Section>
