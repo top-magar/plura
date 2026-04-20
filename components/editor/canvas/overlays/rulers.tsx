@@ -1,10 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
-import type { useEditor } from '../../core/provider';
 
-const RULER_SIZE = 22;
-const FONT = '10px Inter, system-ui, sans-serif';
+const SZ = 24;
+const FONT = '9px Inter, system-ui, sans-serif';
 
 function stepSize(zoom: number): number {
   if (zoom < 0.04) return 2500;
@@ -18,6 +17,26 @@ function stepSize(zoom: number): number {
   return 5;
 }
 
+/** Resolve a CSS custom property to a usable canvas color */
+function resolveColor(prop: string, fallback: string): string {
+  if (typeof document === 'undefined') return fallback;
+  // Create a temp element, set its color to the CSS var, read computed value
+  const el = document.createElement('div');
+  el.style.color = `var(${prop})`;
+  el.style.display = 'none';
+  document.body.appendChild(el);
+  const computed = getComputedStyle(el).color;
+  el.remove();
+  return computed || fallback;
+}
+
+function resolveColorWithAlpha(prop: string, alpha: number, fallback: string): string {
+  const c = resolveColor(prop, fallback);
+  const m = c.match(/(\d+),\s*(\d+),\s*(\d+)/);
+  if (!m) return fallback;
+  return `rgba(${m[1]}, ${m[2]}, ${m[3]}, ${alpha})`;
+}
+
 type SelRect = { x: number; y: number; w: number; h: number } | null;
 
 export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, selectedId, onCreateGuide, onResetZoom }: {
@@ -28,21 +47,24 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
 }): ReactNode {
   const hRef = useRef<HTMLCanvasElement>(null);
   const vRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
   const [selRect, setSelRect] = useState<SelRect>(null);
   const z = zoom / 100;
   const step = stepSize(z);
 
-  // Track cursor position
+  // Track cursor
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
     const onMove = (e: PointerEvent) => setCursor({ x: e.clientX, y: e.clientY });
     const onLeave = () => setCursor(null);
-    document.addEventListener('pointermove', onMove, { passive: true });
-    document.addEventListener('pointerleave', onLeave);
-    return () => { document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerleave', onLeave); };
+    el.addEventListener('pointermove', onMove, { passive: true });
+    el.addEventListener('pointerleave', onLeave);
+    return () => { el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave); };
   }, []);
 
-  // Track selected element rect for blue highlight
+  // Track selected element rect
   useEffect(() => {
     if (!selectedId) { setSelRect(null); return; }
     const el = document.querySelector(`[data-el-id="${selectedId}"]`) as HTMLElement | null;
@@ -59,41 +81,44 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
     return () => ro.disconnect();
   }, [selectedId]);
 
-  // Draw rulers
+  // Draw
   useEffect(() => {
     const dpr = window.devicePixelRatio || 1;
-    const primary = '#6366f1'; // indigo-500
-    const primaryLight = 'rgba(99, 102, 241, 0.12)';
+    const bg = resolveColor('--background', '#fafafa');
+    const borderColor = resolveColorWithAlpha('--border', 0.4, 'rgba(0,0,0,0.08)');
+    const tickMajor = resolveColorWithAlpha('--muted-foreground', 0.3, 'rgba(0,0,0,0.3)');
+    const tickMinor = resolveColorWithAlpha('--muted-foreground', 0.1, 'rgba(0,0,0,0.1)');
+    const textColor = resolveColorWithAlpha('--muted-foreground', 0.45, 'rgba(0,0,0,0.45)');
+    const primary = resolveColor('--primary', '#6366f1');
+    const primaryBand = resolveColorWithAlpha('--primary', 0.08, 'rgba(99,102,241,0.08)');
+    const primaryEdge = resolveColorWithAlpha('--primary', 0.5, 'rgba(99,102,241,0.5)');
+    const cursorLine = resolveColorWithAlpha('--primary', 0.6, 'rgba(99,102,241,0.6)');
 
-    // ── Horizontal ruler ──
+    // ── Horizontal ──
     const hc = hRef.current;
     if (hc) {
       const ctx = hc.getContext('2d');
       if (!ctx) return;
-      const cw = width - RULER_SIZE;
+      const cw = width - SZ;
       hc.width = cw * dpr;
-      hc.height = RULER_SIZE * dpr;
+      hc.height = SZ * dpr;
       ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, cw, RULER_SIZE);
 
       // Background
-      ctx.fillStyle = 'hsl(var(--sidebar-background))';
-      ctx.fillRect(0, 0, cw, RULER_SIZE);
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, cw, SZ);
 
-      // Blue selection highlight band (Figma behavior)
+      // Selection highlight band
       if (selRect) {
-        const sx = selRect.x - scrollLeft / z * z;
-        ctx.fillStyle = primaryLight;
-        ctx.fillRect(sx, 0, selRect.w, RULER_SIZE);
-        // Edge markers
-        ctx.strokeStyle = primary;
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(sx, RULER_SIZE - 6); ctx.lineTo(sx, RULER_SIZE); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(sx + selRect.w, RULER_SIZE - 6); ctx.lineTo(sx + selRect.w, RULER_SIZE); ctx.stroke();
+        ctx.fillStyle = primaryBand;
+        const sx = selRect.x;
+        ctx.fillRect(sx, 0, selRect.w, SZ);
+        ctx.fillStyle = primaryEdge;
+        ctx.fillRect(sx, SZ - 3, 1, 3);
+        ctx.fillRect(sx + selRect.w, SZ - 3, 1, 3);
       }
 
-      // Tick marks
-      ctx.fillStyle = 'hsl(var(--muted-foreground) / 0.5)';
+      // Ticks
       ctx.font = FONT;
       ctx.textAlign = 'left';
       const startPx = scrollLeft / z;
@@ -101,76 +126,73 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
       for (let v = first; v < startPx + cw / z; v += step) {
         const x = (v - startPx) * z;
         const isMajor = v % (step * 5) === 0;
-        ctx.beginPath();
-        ctx.moveTo(x, isMajor ? RULER_SIZE - 10 : RULER_SIZE - 5);
-        ctx.lineTo(x, RULER_SIZE);
-        ctx.strokeStyle = isMajor ? 'hsl(var(--muted-foreground) / 0.4)' : 'hsl(var(--muted-foreground) / 0.15)';
+        ctx.strokeStyle = isMajor ? tickMajor : tickMinor;
         ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(x, isMajor ? SZ - 10 : SZ - 5);
+        ctx.lineTo(x, SZ);
         ctx.stroke();
-        if (isMajor) ctx.fillText(String(Math.round(v)), x + 2, RULER_SIZE - 12);
-      }
-
-      // Cursor indicator
-      if (cursor) {
-        const canvasEl = hc.closest('[data-canvas]') ?? hc.parentElement?.parentElement;
-        if (canvasEl) {
-          const cr = canvasEl.getBoundingClientRect();
-          const cx = cursor.x - cr.left - RULER_SIZE;
-          if (cx > 0 && cx < cw) {
-            ctx.strokeStyle = primary;
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, RULER_SIZE); ctx.stroke();
-          }
+        if (isMajor) {
+          ctx.fillStyle = textColor;
+          ctx.fillText(String(Math.round(v)), x + 2, SZ - 13);
         }
       }
 
-      // Bottom border
-      ctx.strokeStyle = 'hsl(var(--border))';
+      // Cursor indicator
+      if (cursor && containerRef.current) {
+        const cr = containerRef.current.getBoundingClientRect();
+        const cx = cursor.x - cr.left - SZ;
+        if (cx > 0 && cx < cw) {
+          ctx.strokeStyle = cursorLine;
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, SZ); ctx.stroke();
+        }
+      }
+
+      // Bottom edge
+      ctx.strokeStyle = borderColor;
       ctx.lineWidth = 0.5;
-      ctx.beginPath(); ctx.moveTo(0, RULER_SIZE - 0.5); ctx.lineTo(cw, RULER_SIZE - 0.5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, SZ - 0.5); ctx.lineTo(cw, SZ - 0.5); ctx.stroke();
     }
 
-    // ── Vertical ruler ──
+    // ── Vertical ──
     const vc = vRef.current;
     if (vc) {
       const ctx = vc.getContext('2d');
       if (!ctx) return;
-      const ch = height - RULER_SIZE;
-      vc.width = RULER_SIZE * dpr;
+      const ch = height - SZ;
+      vc.width = SZ * dpr;
       vc.height = ch * dpr;
       ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, RULER_SIZE, ch);
 
-      ctx.fillStyle = 'hsl(var(--sidebar-background))';
-      ctx.fillRect(0, 0, RULER_SIZE, ch);
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, SZ, ch);
 
-      // Blue selection highlight band
       if (selRect) {
-        const sy = selRect.y - scrollTop / z * z;
-        ctx.fillStyle = primaryLight;
-        ctx.fillRect(0, sy, RULER_SIZE, selRect.h);
-        ctx.strokeStyle = primary;
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(RULER_SIZE - 6, sy); ctx.lineTo(RULER_SIZE, sy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(RULER_SIZE - 6, sy + selRect.h); ctx.lineTo(RULER_SIZE, sy + selRect.h); ctx.stroke();
+        ctx.fillStyle = primaryBand;
+        const sy = selRect.y;
+        ctx.fillRect(0, sy, SZ, selRect.h);
+        ctx.fillStyle = primaryEdge;
+        ctx.fillRect(SZ - 3, sy, 3, 1);
+        ctx.fillRect(SZ - 3, sy + selRect.h, 3, 1);
       }
 
-      ctx.fillStyle = 'hsl(var(--muted-foreground) / 0.5)';
       ctx.font = FONT;
       const startPx = scrollTop / z;
       const first = Math.floor(startPx / step) * step;
       for (let v = first; v < startPx + ch / z; v += step) {
         const y = (v - startPx) * z;
         const isMajor = v % (step * 5) === 0;
-        ctx.beginPath();
-        ctx.moveTo(isMajor ? RULER_SIZE - 10 : RULER_SIZE - 5, y);
-        ctx.lineTo(RULER_SIZE, y);
-        ctx.strokeStyle = isMajor ? 'hsl(var(--muted-foreground) / 0.4)' : 'hsl(var(--muted-foreground) / 0.15)';
+        ctx.strokeStyle = isMajor ? tickMajor : tickMinor;
         ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(isMajor ? SZ - 10 : SZ - 5, y);
+        ctx.lineTo(SZ, y);
         ctx.stroke();
         if (isMajor) {
+          ctx.fillStyle = textColor;
           ctx.save();
-          ctx.translate(RULER_SIZE - 12, y + 2);
+          ctx.translate(SZ - 13, y + 2);
           ctx.rotate(-Math.PI / 2);
           ctx.textAlign = 'right';
           ctx.fillText(String(Math.round(v)), 0, 0);
@@ -178,33 +200,28 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
         }
       }
 
-      // Cursor indicator
-      if (cursor) {
-        const canvasEl = vc.closest('[data-canvas]') ?? vc.parentElement?.parentElement;
-        if (canvasEl) {
-          const cr = canvasEl.getBoundingClientRect();
-          const cy = cursor.y - cr.top - RULER_SIZE;
-          if (cy > 0 && cy < ch) {
-            ctx.strokeStyle = primary;
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(RULER_SIZE, cy); ctx.stroke();
-          }
+      if (cursor && containerRef.current) {
+        const cr = containerRef.current.getBoundingClientRect();
+        const cy = cursor.y - cr.top - SZ;
+        if (cy > 0 && cy < ch) {
+          ctx.strokeStyle = cursorLine;
+          ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(SZ, cy); ctx.stroke();
         }
       }
 
-      // Right border
-      ctx.strokeStyle = 'hsl(var(--border))';
+      ctx.strokeStyle = borderColor;
       ctx.lineWidth = 0.5;
-      ctx.beginPath(); ctx.moveTo(RULER_SIZE - 0.5, 0); ctx.lineTo(RULER_SIZE - 0.5, ch); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(SZ - 0.5, 0); ctx.lineTo(SZ - 0.5, ch); ctx.stroke();
     }
   }, [zoom, scrollLeft, scrollTop, width, height, step, z, cursor, selRect]);
 
   // Drag from ruler to create guide
   const startGuideDrag = useCallback((axis: 'x' | 'y', e: React.PointerEvent) => {
     e.preventDefault();
-    const startPos = axis === 'x' ? e.clientX : e.clientY;
     const ghost = document.createElement('div');
-    ghost.style.cssText = `position:fixed;z-index:9999;pointer-events:none;${axis === 'x' ? 'width:1px;top:0;bottom:0' : 'height:1px;left:0;right:0'};background:#818cf8`;
+    const ghostColor = resolveColorWithAlpha('--primary', 0.5, 'rgba(99,102,241,0.5)');
+    ghost.style.cssText = `position:fixed;z-index:9999;pointer-events:none;background:${ghostColor};${axis === 'x' ? 'width:1px;top:0;bottom:0' : 'height:1px;left:0;right:0'}`;
     document.body.appendChild(ghost);
 
     const onMove = (ev: PointerEvent) => {
@@ -217,8 +234,8 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
       if (canvasEl) {
         const cr = canvasEl.getBoundingClientRect();
         const pos = axis === 'x'
-          ? (ev.clientX - cr.left + scrollLeft) / z
-          : (ev.clientY - cr.top + scrollTop) / z;
+          ? (ev.clientX - cr.left) / z
+          : (ev.clientY - cr.top) / z;
         if (pos > 0) onCreateGuide(axis, Math.round(pos));
       }
       document.removeEventListener('pointermove', onMove);
@@ -226,35 +243,37 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
     };
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
-  }, [z, scrollLeft, scrollTop, onCreateGuide]);
+  }, [z, onCreateGuide]);
 
   return (
-    <>
-      {/* Corner square — zoom indicator */}
+    <div ref={containerRef} className="contents">
+      {/* Corner — zoom indicator */}
       <div
-        className="absolute top-0 left-0 z-30 bg-sidebar border-r border-b border-sidebar-border flex items-center justify-center cursor-pointer hover:bg-muted/50 transition-colors select-none"
-        style={{ width: RULER_SIZE, height: RULER_SIZE }}
+        className="sticky top-0 left-0 z-40 flex items-center justify-center cursor-pointer select-none bg-background/80 backdrop-blur-sm border-r border-b border-border/40 hover:bg-muted/60 transition-colors"
+        style={{ width: SZ, height: SZ, gridArea: '1 / 1' }}
         onClick={onResetZoom}
-        title="Reset zoom to 100%"
+        title={`${zoom}% — Click to reset`}
       >
-        <span className="text-[7px] font-mono text-muted-foreground/60 leading-none">{zoom}%</span>
+        <span className="text-[7px] font-mono text-muted-foreground/50 leading-none tabular-nums">{zoom}</span>
       </div>
-      {/* Horizontal ruler — interactive (drag to create guide) */}
+
+      {/* Horizontal ruler */}
       <div
-        className="absolute top-0 z-20 cursor-row-resize"
-        style={{ left: RULER_SIZE, width: width - RULER_SIZE, height: RULER_SIZE }}
+        className="sticky top-0 z-30 cursor-s-resize bg-background/80 backdrop-blur-sm border-b border-border/40"
+        style={{ height: SZ, marginLeft: SZ }}
         onPointerDown={(e) => startGuideDrag('y', e)}
       >
-        <canvas ref={hRef} className="pointer-events-none" style={{ width: '100%', height: RULER_SIZE }} />
+        <canvas ref={hRef} style={{ width: width - SZ, height: SZ, display: 'block' }} />
       </div>
-      {/* Vertical ruler — interactive (drag to create guide) */}
+
+      {/* Vertical ruler */}
       <div
-        className="absolute left-0 z-20 cursor-col-resize"
-        style={{ top: RULER_SIZE, width: RULER_SIZE, height: height - RULER_SIZE }}
+        className="sticky left-0 z-30 cursor-e-resize bg-background/80 backdrop-blur-sm border-r border-border/40"
+        style={{ width: SZ, position: 'absolute', top: SZ, bottom: 0 }}
         onPointerDown={(e) => startGuideDrag('x', e)}
       >
-        <canvas ref={vRef} className="pointer-events-none" style={{ width: RULER_SIZE, height: '100%' }} />
+        <canvas ref={vRef} style={{ width: SZ, height: height - SZ, display: 'block' }} />
       </div>
-    </>
+    </div>
   );
 }
