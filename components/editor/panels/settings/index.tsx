@@ -141,41 +141,75 @@ export default function SettingsTab() {
             ) : (
               <div className="space-y-3">
                 {Object.entries(selected.content as Record<string, string>).map(([key, val]) => {
-                  const label = { innerText: "Text", href: "Link URL", src: "Source URL", alt: "Alt Text", code: "HTML Code", address: "Address", zoom: "Zoom Level", brand: "Brand Name", links: "Navigation Links", platforms: "Platforms", images: "Image URLs", targetDate: "Target Date", items: "Items" }[key] ?? key;
-                  const icon = { innerText: "text_fields", href: "link", src: "image", alt: "description", code: "code", address: "location_on", zoom: "zoom_in", brand: "branding_watermark", links: "menu", platforms: "share", images: "photo_library", targetDate: "event", items: "list" }[key] ?? "edit";
+                  const meta: Record<string, { label: string; icon: string; type: 'text' | 'url' | 'textarea' | 'code' | 'date' | 'images' | 'items' | 'csv' }> = {
+                    innerText: { label: "Text", icon: "text_fields", type: "textarea" },
+                    href: { label: "Link URL", icon: "link", type: "url" },
+                    src: { label: "Source URL", icon: "image", type: "url" },
+                    alt: { label: "Alt Text", icon: "description", type: "text" },
+                    code: { label: "HTML Code", icon: "code", type: "code" },
+                    address: { label: "Address", icon: "location_on", type: "text" },
+                    zoom: { label: "Zoom", icon: "zoom_in", type: "text" },
+                    brand: { label: "Brand", icon: "branding_watermark", type: "text" },
+                    links: { label: "Nav Links", icon: "menu", type: "csv" },
+                    platforms: { label: "Platforms", icon: "share", type: "csv" },
+                    images: { label: "Image URLs", icon: "photo_library", type: "images" },
+                    targetDate: { label: "Target Date", icon: "event", type: "date" },
+                    items: { label: "Items", icon: "list", type: "items" },
+                  };
+                  const m = meta[key] ?? { label: key, icon: "edit", type: "text" as const };
+                  const setVal = (v: string) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: v } });
 
                   return (
-                    <div key={key}>
-                      <label className="mb-1 flex items-center gap-1 text-[10px] font-medium text-sidebar-foreground/50">
-                        <MIcon name={icon} size={12} className="text-sidebar-foreground/30" />
-                        {label}
-                      </label>
-                      {key === "innerText" || key === "code" ? (
-                        <textarea
-                          value={val}
-                          onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })}
-                          className={cn("w-full rounded-md border border-sidebar-border bg-transparent p-2 text-xs outline-none resize-y focus:border-primary min-h-[60px]", key === "code" && "font-mono text-[10px]")}
-                          rows={key === "code" ? 6 : 3}
-                          placeholder={key === "innerText" ? "Enter text..." : "Paste HTML..."}
-                        />
-                      ) : key === "targetDate" ? (
-                        <Input type="datetime-local" value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-6 text-[10px]" />
-                      ) : key === "images" ? (
-                        <textarea
-                          value={val}
-                          onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })}
-                          className="w-full rounded-md border border-sidebar-border bg-transparent p-2 text-[10px] outline-none resize-y focus:border-primary min-h-[48px]"
-                          rows={3}
-                          placeholder="Comma-separated URLs"
-                        />
-                      ) : key === "items" ? (
-                        <ItemsEditor value={val} onChange={(v) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: v } })} />
-                      ) : (
-                        <Input value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-6 text-[10px]" placeholder={key === "href" ? "https://..." : key === "src" ? "https://..." : ""} />
+                    <div key={key} className="rounded-md border border-sidebar-border/50 bg-sidebar-accent/20 p-2">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="flex items-center gap-1 text-[10px] font-medium text-sidebar-foreground/60">
+                          <MIcon name={m.icon} size={12} className="text-sidebar-foreground/30" />
+                          {m.label}
+                        </label>
+                        <div className="flex items-center gap-0.5">
+                          {m.type === "textarea" && <span className="text-[8px] text-muted-foreground/30 tabular-nums">{val.length}</span>}
+                          {m.type === "url" && val && (
+                            <button onClick={() => window.open(val, '_blank')} className="flex size-4 items-center justify-center rounded text-muted-foreground/40 hover:text-foreground transition-colors">
+                              <MIcon name="open_in_new" size={10} />
+                            </button>
+                          )}
+                          {val && (
+                            <button onClick={() => setVal("")} className="flex size-4 items-center justify-center rounded text-muted-foreground/30 hover:text-destructive transition-colors">
+                              <MIcon name="close" size={10} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {m.type === "textarea" && (
+                        <textarea value={val} onChange={(e) => setVal(e.target.value)} className="w-full rounded border border-sidebar-border bg-transparent p-2 text-xs outline-none resize-y focus:border-primary min-h-[48px]" rows={3} placeholder="Enter text..." />
                       )}
-                      {key === "src" && val && (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={val} alt="" className="mt-1.5 rounded border border-sidebar-border max-h-24 w-full object-cover" />
+                      {m.type === "code" && (
+                        <textarea value={val} onChange={(e) => setVal(e.target.value)} className="w-full rounded border border-sidebar-border bg-transparent p-2 text-[10px] font-mono outline-none resize-y focus:border-primary min-h-[80px]" rows={5} placeholder="<div>...</div>" />
+                      )}
+                      {m.type === "url" && (
+                        <>
+                          <Input value={val} onChange={(e) => setVal(e.target.value)} className="h-6 text-[10px]" placeholder="https://..." />
+                          {key === "src" && val && (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={val} alt="" className="mt-1.5 rounded border border-sidebar-border max-h-20 w-full object-cover" />
+                          )}
+                        </>
+                      )}
+                      {m.type === "text" && (
+                        <Input value={val} onChange={(e) => setVal(e.target.value)} className="h-6 text-[10px]" />
+                      )}
+                      {m.type === "csv" && (
+                        <Input value={val} onChange={(e) => setVal(e.target.value)} className="h-6 text-[10px]" placeholder="Item1,Item2,Item3" />
+                      )}
+                      {m.type === "date" && (
+                        <Input type="datetime-local" value={val} onChange={(e) => setVal(e.target.value)} className="h-6 text-[10px]" />
+                      )}
+                      {m.type === "images" && (
+                        <textarea value={val} onChange={(e) => setVal(e.target.value)} className="w-full rounded border border-sidebar-border bg-transparent p-2 text-[10px] outline-none resize-y focus:border-primary min-h-[40px]" rows={2} placeholder="url1,url2,url3" />
+                      )}
+                      {m.type === "items" && (
+                        <ItemsEditor value={val} onChange={setVal} />
                       )}
                     </div>
                   );
