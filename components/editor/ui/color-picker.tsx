@@ -171,24 +171,41 @@ function ColorInputs({ hex, r, g, b, alpha, onChange }: { hex: string; r: number
   );
 }
 
-// ─── Eyedropper Overlay (Penpot-style, built into picker) ─
+// ─── Eyedropper (native API + fallback) ─────────────────
 
-function EyedropperOverlay({ onPick, onClose }: { onPick: (hex: string) => void; onClose: () => void }) {
-  const overlayRef = useRef<HTMLDivElement>(null);
+function useEyedropper(onPick: (hex: string) => void, onClose: () => void) {
+  const [active, setActive] = useState(false);
   const [preview, setPreview] = useState<{ color: string; x: number; y: number } | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const start = useCallback(() => {
+    // Try native EyeDropper API first (Chrome/Edge)
+    if ('EyeDropper' in window) {
+      const dropper = new (window as unknown as { EyeDropper: new () => { open: () => Promise<{ sRGBHex: string }> } }).EyeDropper();
+      dropper.open().then((result) => {
+        onPick(result.sRGBHex);
+      }).catch(() => { /* user cancelled */ });
+      return;
+    }
+    // Fallback: manual overlay
+    setActive(true);
+  }, [onPick]);
 
   const sampleAt = useCallback((x: number, y: number): string => {
-    const el = overlayRef.current;
-    if (!el) return '#000000';
-    el.style.pointerEvents = 'none';
+    // Hide ALL overlays: our overlay + popover + radix layers
+    const hidden: HTMLElement[] = [];
+    const overlay = overlayRef.current;
+    if (overlay) { overlay.style.display = 'none'; hidden.push(overlay); }
+    document.querySelectorAll('[data-radix-popper-content-wrapper], [data-radix-portal]').forEach((el) => {
+      const h = el as HTMLElement;
+      if (h.style.display !== 'none') { h.style.display = 'none'; hidden.push(h); }
+    });
+
     const target = document.elementFromPoint(x, y) as HTMLElement | null;
-    el.style.pointerEvents = '';
+
+    // Restore all
+    hidden.forEach((h) => { h.style.display = ''; });
+
     if (!target) return '#000000';
     const cs = window.getComputedStyle(target);
     const bg = cs.backgroundColor;
@@ -196,13 +213,22 @@ function EyedropperOverlay({ onPick, onClose }: { onPick: (hex: string) => void;
     return parseRgbString(raw);
   }, []);
 
-  return createPortal(
-    <div ref={overlayRef} className="fixed inset-0 z-[200] cursor-crosshair"
+  const close = useCallback(() => { setActive(false); setPreview(null); onClose(); }, [onClose]);
+
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [active, close]);
+
+  const overlay = active ? createPortal(
+    <div ref={overlayRef} className="fixed inset-0 z-[9999] cursor-crosshair"
       onPointerMove={(e) => setPreview({ color: sampleAt(e.clientX, e.clientY), x: e.clientX, y: e.clientY })}
-      onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onPick(sampleAt(e.clientX, e.clientY)); onClose(); }}
-      onContextMenu={(e) => { e.preventDefault(); onClose(); }}>
+      onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onPick(sampleAt(e.clientX, e.clientY)); close(); }}
+      onContextMenu={(e) => { e.preventDefault(); close(); }}>
       {preview && (
-        <div className="fixed pointer-events-none z-[201]" style={{ left: preview.x + 20, top: preview.y + 20 }}>
+        <div className="fixed pointer-events-none" style={{ left: preview.x + 20, top: preview.y + 20, zIndex: 10000 }}>
           <div className="rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
             <div className="size-12 border-b border-border" style={{ backgroundColor: preview.color }} />
             <div className="px-2 py-1 flex items-center gap-1.5">
@@ -212,13 +238,15 @@ function EyedropperOverlay({ onPick, onClose }: { onPick: (hex: string) => void;
           </div>
         </div>
       )}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[201] flex items-center gap-1.5 rounded-md bg-popover border border-border shadow-lg px-3 py-1.5">
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-md bg-popover border border-border shadow-lg px-3 py-1.5" style={{ zIndex: 10000 }}>
         <MIcon name="colorize" size={14} className="text-primary" />
         <span className="text-[10px] text-muted-foreground">Click to pick · Esc to cancel</span>
       </div>
     </div>,
     document.body,
-  );
+  ) : null;
+
+  return { start, active, overlay };
 }
 
 // ─── Preset + Saved Palette ─────────────────────────────
@@ -268,7 +296,7 @@ export function ColorPicker({ color, alpha = 1, onChange, onAlphaChange, showAlp
   const [hsv, setHsv] = useState(() => rgbToHsv(...rgb));
   const [a, setA] = useState(alpha);
   const [tab, setTab] = useState<'ramp' | 'harmony' | 'hsva'>('ramp');
-  const [picking, setPicking] = useState(false);
+  const eyedropper = useEyedropper(onChange, () => {});
 
   useEffect(() => { if (!color) return; const r = hexToRgb(color); setRgb(r); setHsv(rgbToHsv(...r)); }, [color]);
   useEffect(() => { setA(alpha); }, [alpha]);
@@ -300,20 +328,13 @@ export function ColorPicker({ color, alpha = 1, onChange, onAlphaChange, showAlp
             </button>
           ))}
         </div>
-        <button onClick={() => setPicking(true)} className={cn('size-6 flex items-center justify-center rounded-md border border-border transition-colors', picking ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted')} title="Eyedropper (pick from canvas)">
+        <button onClick={eyedropper.start} className={cn('size-6 flex items-center justify-center rounded-md border border-border transition-colors', eyedropper.active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted')} title="Eyedropper (pick from canvas)">
           <MIcon name="colorize" size={14} />
         </button>
       </div>
 
       {/* Picker area */}
-      {picking ? (
-        <div className="flex items-center justify-center h-[140px] rounded-md border border-dashed border-primary/30 bg-primary/5">
-          <div className="text-center">
-            <MIcon name="colorize" size={24} className="text-primary/60 mx-auto" />
-            <p className="text-[10px] text-muted-foreground mt-1">Click anywhere on the page</p>
-          </div>
-        </div>
-      ) : tab === 'ramp' ? (
+      {tab === 'ramp' ? (
         <SaturationValue hue={hsv[0]} s={hsv[1]} v={hsv[2]} onChange={(s, v) => update(hsv[0], s, v)} />
       ) : tab === 'harmony' ? (
         <HarmonyWheel hue={hsv[0]} s={hsv[1]} v={hsv[2]} onChange={(h, s) => update(h, s, hsv[2])} />
@@ -322,7 +343,7 @@ export function ColorPicker({ color, alpha = 1, onChange, onAlphaChange, showAlp
       )}
 
       {/* Sliders (ramp + harmony only) */}
-      {!picking && tab !== 'hsva' && (
+      {tab !== 'hsva' && (
         <div className="flex items-center gap-2">
           <div className="size-8 rounded-md border border-border shrink-0 relative overflow-hidden">
             <div className="absolute inset-0" style={{ backgroundImage: 'repeating-conic-gradient(#d4d4d4 0% 25%, transparent 0% 50%)', backgroundSize: '8px 8px' }} />
@@ -336,13 +357,13 @@ export function ColorPicker({ color, alpha = 1, onChange, onAlphaChange, showAlp
       )}
 
       {/* Inputs */}
-      {!picking && <ColorInputs hex={hex} r={rgb[0]} g={rgb[1]} b={rgb[2]} alpha={a} onChange={handleInputChange} />}
+      <ColorInputs hex={hex} r={rgb[0]} g={rgb[1]} b={rgb[2]} alpha={a} onChange={handleInputChange} />
 
       {/* Palette */}
-      {!picking && <Palette current={hex} onSelect={onChange} />}
+      <Palette current={hex} onSelect={onChange} />
 
-      {/* Eyedropper overlay */}
-      {picking && <EyedropperOverlay onPick={(c) => { onChange(c); setPicking(false); }} onClose={() => setPicking(false)} />}
+      {/* Eyedropper overlay (portal) */}
+      {eyedropper.overlay}
     </div>
   );
 }
