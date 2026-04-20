@@ -97,7 +97,7 @@ export default function ElementWrapper({ element, children, className, style, is
            - Resize handles: leaf elements only (not containers)
            - Font size handle: text elements only
            - Dimensions badge: always
-        4. Alt+hover on non-selected → padding zones visible (Figma peek)
+        4. Alt+hover on non-selected → padding zones visible
       */}
 
       {/* Hover state: just name + dims */}

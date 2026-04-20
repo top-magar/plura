@@ -5,7 +5,6 @@ import { useEditor } from '../../core/provider';
 
 /**
  * Layout grid overlay — shows 8px grid on selected container.
- * Penpot: frame_grid.cljs (181 lines) — square grid pattern.
  */
 export default function LayoutGrid(): ReactNode {
   const { state } = useEditor();

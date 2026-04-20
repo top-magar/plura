@@ -15,7 +15,7 @@ export function RadiusCorners({ element, h }: { element: El; h: ReturnType<typeo
   const s = element.styles;
   const getR = (prop: string) => parseInt(String((s as Record<string, unknown>)[prop] ?? s.borderRadius ?? '0')) || 0;
 
-  // Always render all 4 corners — allows dragging from 0 (Figma behavior)
+  // Always render all 4 corners — allows dragging from 0
   return <>{CORNERS.map(({ id, prop, pos, cursor }) => {
     const r = getR(prop);
     const isActive = h.active === id;

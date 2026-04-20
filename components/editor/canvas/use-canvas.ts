@@ -8,7 +8,7 @@ export function useCanvas() {
   const [scroll, setScroll] = useState({ left: 0, top: 0, w: 0, h: 0 });
   const spaceRef = useRef(false);
 
-  // RAF-batched zoom accumulator (Penpot: schedule-zoom! in actions.cljs)
+  // RAF-batched zoom accumulator
   const zoomAccum = useRef({ delta: 0, raf: 0 });
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export function useCanvas() {
     };
   }, []);
 
-  // Space+drag pan + Alt tracking (Penpot: setup-keyboard in hooks.cljs)
+  // Space+drag pan + Alt tracking
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => {
       if (e.code === "Space" && !(e.target as HTMLElement).matches("input,textarea,[contenteditable]")) { e.preventDefault(); spaceRef.current = true; setPanning(true); }
@@ -66,7 +66,7 @@ export function useCanvas() {
     document.addEventListener("pointerup", onUp);
   }, []);
 
-  // Dynamic cursor (Penpot: setup-cursor in hooks.cljs)
+  // Dynamic cursor
   const cursor = panning ? "cursor-grab active:cursor-grabbing" : altHeld ? "cursor-copy" : "";
 
   return { canvasRef, zoom, setZoom, panning, altHeld, spaceRef, scroll, onCanvasPointerDown, cursor };

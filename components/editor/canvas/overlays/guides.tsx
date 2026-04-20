@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { useEditor } from '../../core/provider';
 
 /**
- * Draggable guide lines — Penpot: guides.cljs
+ * Draggable guide lines
  * Drag from ruler edge to create a guide. Drag guide to reposition. Double-click to remove.
  */
 export default function Guides({ zoom, scrollLeft, scrollTop }: { zoom: number; scrollLeft: number; scrollTop: number }): ReactNode {

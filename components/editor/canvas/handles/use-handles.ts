@@ -55,7 +55,7 @@ export function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
 
     const onMove = (ev: PointerEvent) => {
       if (!elRef.current) return;
-      const snap = ev.shiftKey ? 10 : _snap; // Shift = big nudge (Figma behavior)
+      const snap = ev.shiftKey ? 10 : _snap; // Shift = big nudge
       const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - startPos) * sign;
       const val = Math.max(0, Math.round((startVal + delta) / snap) * snap);
       const expanded = expandShorthand(elRef.current.styles, prefix);
@@ -102,7 +102,7 @@ export function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
         delete cur.borderRadius;
       }
       const updates: Record<string, string> = { [prop]: `${val}px` };
-      // Alt = all corners uniform (Figma: Option+drag corner)
+      // Alt = all corners uniform
       if (ev.altKey) {
         updates.borderTopLeftRadius = `${val}px`;
         updates.borderTopRightRadius = `${val}px`;

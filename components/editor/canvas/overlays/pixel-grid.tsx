@@ -1,6 +1,6 @@
 'use client';
 
-/** Pixel grid overlay — shown at zoom >= 800% (Penpot: zoom >= 8) */
+/** Pixel grid overlay — shown at zoom >= 800% */
 export default function PixelGrid({ zoom }: { zoom: number }) {
   const z = zoom / 100;
   if (z < 8) return null;

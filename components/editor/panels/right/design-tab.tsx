@@ -4,12 +4,12 @@ import type { El } from "../../core/types";
 import type { StyleProps } from "./shared";
 import { LayerMenu, MeasuresMenu, RadiusMenu, FillMenu, StrokeMenu, ShadowMenu, BlurMenu, TypographyMenu, LayoutMenu } from "./menus";
 
-// ─── Shape type sets (Penpot pattern: each shape composes its menus) ─
+// ─── Shape type sets ─
 
 const textTypes = new Set(["text","heading","subheading","quote","code","list","badge","icon","footer","button","link","navbar"]);
 const simpleTypes = new Set(["divider","spacer"]);
 
-// ─── Design Tab (Penpot: shape → menu composition) ──────
+// ─── Design Tab ──────
 
 export default function DesignTab({ get, set, selected, onUpdate }: StyleProps & { selected: El; onUpdate: (el: El) => void }) {
   const type = selected.type;
@@ -17,7 +17,7 @@ export default function DesignTab({ get, set, selected, onUpdate }: StyleProps &
   const isBody = type === "__body";
   const isText = textTypes.has(type);
 
-  // Penpot pattern: compose menus based on shape type
+  // Compose menus based on element type
   // frame.cljs → [layer, measures, layout, fill, stroke, shadow, blur, exports]
   // rect.cljs  → [layer, measures, fill, stroke, shadow, blur]
   // text.cljs  → [layer, measures, typography, fill, stroke, shadow, blur]

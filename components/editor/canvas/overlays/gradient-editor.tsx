@@ -5,7 +5,6 @@ import { useEditor } from '../../core/provider';
 
 /**
  * Gradient editor overlay — shows angle handle for linear gradients on canvas.
- * Penpot: gradients.cljs (539 lines) — we implement the core UX.
  */
 export default function GradientEditor(): ReactNode {
   const { state, dispatch } = useEditor();

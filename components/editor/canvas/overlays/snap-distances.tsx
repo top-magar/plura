@@ -90,7 +90,7 @@ export default function SnapDistances({ altHeld }: { altHeld: boolean }): ReactN
         result.push(...measure(selRect, sibDom.getBoundingClientRect()));
       }
 
-      // Parent-edge distances (Figma: red lines to parent edges on Alt)
+      // Parent-edge distances
       const parentDom = document.querySelector(`[data-el-id="${parentId}"]`);
       if (parentDom) {
         result.push(...measureToParent(selRect, parentDom.getBoundingClientRect()));

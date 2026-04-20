@@ -319,7 +319,7 @@ export function ColorPicker({ color, alpha = 1, onChange, onAlphaChange, showAlp
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Top bar: tabs + eyedropper (Penpot layout) */}
+      {/* Top bar: tabs + eyedropper */}
       <div className="flex items-center gap-1">
         <div className="flex flex-1 gap-px rounded-md overflow-hidden border border-border">
           {(['ramp', 'harmony', 'hsva'] as const).map((t) => (
