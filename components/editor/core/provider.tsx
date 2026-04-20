@@ -49,7 +49,7 @@ type EditorState = {
 };
 
 type HistoryState = {
-  history: EditorState[];
+  snapshots: El[][];
   currentIndex: number;
 };
 
@@ -76,16 +76,18 @@ const initialEditorState: EditorState = {
 
 const initialStore: EditorStore = {
   editor: initialEditorState,
-  history: { history: [initialEditorState], currentIndex: 0 },
+  history: { snapshots: [initialEditorState.elements], currentIndex: 0 },
 };
 
 // ─── Helpers ────────────────────────────────────────────────
 
+const MAX_HISTORY = 50;
+
 function pushHistory(store: EditorStore, next: EditorState): EditorStore {
-  const trimmed = store.history.history.slice(0, store.history.currentIndex + 1);
+  const trimmed = store.history.snapshots.slice(Math.max(0, store.history.currentIndex + 1 - MAX_HISTORY), store.history.currentIndex + 1);
   return {
     editor: next,
-    history: { history: [...trimmed, next], currentIndex: trimmed.length },
+    history: { snapshots: [...trimmed, next.elements], currentIndex: trimmed.length },
   };
 }
 
@@ -134,7 +136,7 @@ function editorReducer(store: EditorStore, action: EditorAction): EditorStore {
       return { ...store, editor: { ...store.editor, dropTarget: action.payload.id } };
     case 'LOAD_DATA': {
       const next: EditorState = { ...initialEditorState, elements: action.payload.elements };
-      return { editor: next, history: { history: [next], currentIndex: 0 } };
+      return { editor: next, history: { snapshots: [next.elements], currentIndex: 0 } };
     }
     case 'SET_ELEMENTS': {
       const elements = action.payload.elements;
@@ -143,12 +145,16 @@ function editorReducer(store: EditorStore, action: EditorAction): EditorStore {
     case 'UNDO': {
       if (store.history.currentIndex <= 0) return store;
       const idx = store.history.currentIndex - 1;
-      return { editor: store.history.history[idx], history: { ...store.history, currentIndex: idx } };
+      const elements = store.history.snapshots[idx];
+      const selected = store.editor.selected ? findEl(elements, store.editor.selected.id) : null;
+      return { editor: { ...store.editor, elements, selected }, history: { ...store.history, currentIndex: idx } };
     }
     case 'REDO': {
-      if (store.history.currentIndex >= store.history.history.length - 1) return store;
+      if (store.history.currentIndex >= store.history.snapshots.length - 1) return store;
       const idx = store.history.currentIndex + 1;
-      return { editor: store.history.history[idx], history: { ...store.history, currentIndex: idx } };
+      const elements = store.history.snapshots[idx];
+      const selected = store.editor.selected ? findEl(elements, store.editor.selected.id) : null;
+      return { editor: { ...store.editor, elements, selected }, history: { ...store.history, currentIndex: idx } };
     }
     default:
       return store;

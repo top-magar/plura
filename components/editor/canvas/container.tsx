@@ -101,11 +101,27 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
   const calcDropIdx = useCallback((e: React.DragEvent) => {
     if (!wrapRef.current) return children.length;
     const els = wrapRef.current.querySelectorAll(":scope > [data-el-id]");
-    for (let i = 0; i < els.length; i++) {
-      const rect = els[i].getBoundingClientRect();
-      if (isRow ? e.clientX < rect.left + rect.width / 2 : e.clientY < rect.top + rect.height / 2) return i;
+    // Find closest edge between children
+    let bestIdx = children.length;
+    let bestDist = Infinity;
+    for (let i = 0; i <= els.length; i++) {
+      let edge: number;
+      if (i === 0) {
+        const r = els[0]?.getBoundingClientRect();
+        edge = r ? (isRow ? r.left : r.top) : 0;
+      } else if (i === els.length) {
+        const r = els[els.length - 1]?.getBoundingClientRect();
+        edge = r ? (isRow ? r.right : r.bottom) : 0;
+      } else {
+        const prev = els[i - 1].getBoundingClientRect();
+        const next = els[i].getBoundingClientRect();
+        edge = isRow ? (prev.right + next.left) / 2 : (prev.bottom + next.top) / 2;
+      }
+      const cursor = isRow ? e.clientX : e.clientY;
+      const dist = Math.abs(cursor - edge);
+      if (dist < bestDist) { bestDist = dist; bestIdx = i; }
     }
-    return children.length;
+    return bestIdx;
   }, [children.length, isRow]);
 
   function handleDragOver(e: React.DragEvent) {

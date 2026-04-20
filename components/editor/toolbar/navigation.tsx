@@ -42,7 +42,7 @@ export default function EditorNavigation({
   const { state, dispatch, subAccountId, funnelId } = useEditor();
   const device = state.editor.device;
   const canUndo = state.history.currentIndex > 0;
-  const canRedo = state.history.currentIndex < state.history.history.length - 1;
+  const canRedo = state.history.currentIndex < state.history.snapshots.length - 1;
 
   return (
     <TooltipProvider delayDuration={300}>

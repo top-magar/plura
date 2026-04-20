@@ -8,6 +8,8 @@ import type { El, EditorProps } from "./core/types";
 import { cloneEl, findParentId, getAncestorPath, findEl as findElInTree } from "./core/tree-helpers";
 import { cn } from "@/lib/utils";
 import Recursive from "./canvas/recursive";
+import SnapDistances from "./canvas/snap-distances";
+import SnapGuides from "./canvas/snap-guides";
 import { EditorProvider, useEditor } from "./core/provider";
 import EditorNavigation from "./toolbar/navigation";
 import { LeftPanel, RightPanel } from "./panels";
@@ -182,8 +184,10 @@ function EditorInner() {
         {!preview && <LeftPanel />}
 
         <div className={cn("flex-1 overflow-auto p-4 min-h-0", preview ? "p-0 bg-background" : "bg-muted")} style={!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined} onClick={() => !preview && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
-          <div className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
+          <div data-canvas className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200 relative" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
             {body && <Recursive element={body} />}
+            <SnapDistances />
+            <SnapGuides />
           </div>
         </div>
 
