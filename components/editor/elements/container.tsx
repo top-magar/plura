@@ -56,19 +56,15 @@ function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; 
           {i < childEls.length - 1 && (
             <div
               className={cn('pointer-events-auto flex items-center justify-center relative', isRow ? 'cursor-ew-resize self-stretch' : 'cursor-ns-resize w-full')}
-              style={isRow ? { width: gap || 4 } : { height: gap || 4 }}
+              style={isRow ? { width: Math.max(gap, 4) } : { height: Math.max(gap, 4) }}
               onPointerDown={onPointerDown}
               onPointerEnter={() => setHovered(true)}
               onPointerLeave={() => setHovered(false)}
             >
-              {show && (
-                <>
-                  <div className={cn('absolute inset-0 rounded-sm', dragging ? 'bg-pink-400/30' : 'bg-pink-400/15')} />
-                  <div className={cn('rounded-full', dragging ? 'bg-pink-500 scale-110' : 'bg-pink-400', isRow ? 'w-[4px] h-5' : 'h-[4px] w-5')} />
-                </>
-              )}
+              {show && <div className={cn('absolute inset-0 rounded-sm', dragging ? 'bg-pink-400/30' : 'bg-pink-400/20')} />}
+              {show && <div className={cn('rounded-full relative z-10', dragging ? 'bg-pink-500 scale-110' : 'bg-pink-400', isRow ? 'w-[4px] h-5' : 'h-[4px] w-5')} />}
               {dragging && i === 0 && (
-                <span className={cn('absolute rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', isRow ? '-top-5' : '-right-10')}>
+                <span className={cn('absolute rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', isRow ? '-top-5 left-1/2 -translate-x-1/2' : 'top-1/2 -translate-y-1/2 -right-10')}>
                   {gap}px
                 </span>
               )}
