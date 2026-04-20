@@ -7,7 +7,17 @@ import type { El } from '../../core/types';
 
 type Guide = { x1: number; y1: number; x2: number; y2: number };
 
-const SNAP_THRESH = 2; // px tolerance for alignment
+const SNAP_THRESH = 3;
+
+function dedup(guides: Guide[]): Guide[] {
+  const seen = new Set<string>();
+  return guides.filter(g => {
+    const key = `${Math.round(g.x1)},${Math.round(g.y1)},${Math.round(g.x2)},${Math.round(g.y2)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 export default function SnapGuides(): ReactNode {
   const { state } = useEditor();
@@ -37,12 +47,12 @@ export default function SnapGuides(): ReactNode {
 
     const result: Guide[] = [];
 
+    // Sibling alignment guides
     for (const sib of parent.content as El[]) {
       if (sib.id === selected.id) continue;
       const sibDom = document.querySelector(`[data-el-id="${sib.id}"]`);
       if (!sibDom) continue;
       const r = sibDom.getBoundingClientRect();
-
       const sibEdges = {
         left: r.left, right: r.right, cx: r.left + r.width / 2,
         top: r.top, bottom: r.bottom, cy: r.top + r.height / 2,
@@ -58,8 +68,7 @@ export default function SnapGuides(): ReactNode {
         if (Math.abs(a - b) <= SNAP_THRESH) {
           const minY = Math.min(sr.top, r.top);
           const maxY = Math.max(sr.bottom, r.bottom);
-          const p1 = toLocal(a, minY);
-          const p2 = toLocal(a, maxY);
+          const p1 = toLocal(a, minY); const p2 = toLocal(a, maxY);
           result.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
         }
       }
@@ -74,14 +83,30 @@ export default function SnapGuides(): ReactNode {
         if (Math.abs(a - b) <= SNAP_THRESH) {
           const minX = Math.min(sr.left, r.left);
           const maxX = Math.max(sr.right, r.right);
-          const p1 = toLocal(minX, a);
-          const p2 = toLocal(maxX, a);
+          const p1 = toLocal(minX, a); const p2 = toLocal(maxX, a);
           result.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
         }
       }
     }
 
-    setGuides(result);
+    // Parent-edge alignment guides
+    const parentDom = document.querySelector(`[data-el-id="${parentId}"]`);
+    if (parentDom) {
+      const pr = parentDom.getBoundingClientRect();
+      // Center alignment with parent
+      const pcx = pr.left + pr.width / 2;
+      const pcy = pr.top + pr.height / 2;
+      if (Math.abs(selEdges.cx - pcx) <= SNAP_THRESH) {
+        const p1 = toLocal(pcx, pr.top); const p2 = toLocal(pcx, pr.bottom);
+        result.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
+      }
+      if (Math.abs(selEdges.cy - pcy) <= SNAP_THRESH) {
+        const p1 = toLocal(pr.left, pcy); const p2 = toLocal(pr.right, pcy);
+        result.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
+      }
+    }
+
+    setGuides(dedup(result));
   }, [selected, elements, preview]);
 
   if (guides.length === 0) return null;

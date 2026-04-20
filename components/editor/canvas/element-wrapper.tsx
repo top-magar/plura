@@ -9,7 +9,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator,
 import { cn } from '@/lib/utils';
 import type { El } from '../core/types';
 import { resolveStyles } from '../core/types';
-import { parseBox, useHandles, BoxZone, BoxHandle, RadiusCorners } from './handles';
+import { parseBox, useHandles, BoxZone, BoxHandle, RadiusCorners } from './handles/index';
 
 // ─── Toolbar ────────────────────────────────────────────
 

@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 const RULER_SIZE = 22;
 const FONT = '10px Inter, system-ui, sans-serif';
 
-/** Penpot's calculate-step-size — adapts tick spacing to zoom level */
 function stepSize(zoom: number): number {
   if (zoom < 0.04) return 2500;
   if (zoom < 0.07) return 1000;
@@ -23,28 +22,52 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height }: {
 }): ReactNode {
   const hRef = useRef<HTMLCanvasElement>(null);
   const vRef = useRef<HTMLCanvasElement>(null);
+  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
+  const [dims, setDims] = useState({ w: width, h: height });
   const z = zoom / 100;
   const step = stepSize(z);
 
+  // ResizeObserver for DPR-aware sizing
   useEffect(() => {
+    const hc = hRef.current?.parentElement;
+    if (!hc) return;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width: w, height: h } = entry.contentRect;
+      setDims({ w, h });
+    });
+    ro.observe(hc);
+    return () => ro.disconnect();
+  }, []);
+
+  // Cursor tracking for position indicator
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => setCursor({ x: e.clientX, y: e.clientY });
+    const onLeave = () => setCursor(null);
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerleave', onLeave);
+    return () => { document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerleave', onLeave); };
+  }, []);
+
+  const w = dims.w || width;
+  const h = dims.h || height;
+
+  useEffect(() => {
+    const dpr = window.devicePixelRatio || 1;
+
     // Horizontal ruler
     const hc = hRef.current;
     if (hc) {
       const ctx = hc.getContext('2d');
       if (!ctx) return;
-      const dpr = window.devicePixelRatio || 1;
-      hc.width = width * dpr;
+      hc.width = w * dpr;
       hc.height = RULER_SIZE * dpr;
       ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, width, RULER_SIZE);
+      ctx.clearRect(0, 0, w, RULER_SIZE);
       ctx.fillStyle = 'hsl(var(--sidebar-background))';
-      ctx.fillRect(0, 0, width, RULER_SIZE);
+      ctx.fillRect(0, 0, w, RULER_SIZE);
       ctx.strokeStyle = 'hsl(var(--border))';
       ctx.lineWidth = 0.5;
-      ctx.beginPath();
-      ctx.moveTo(0, RULER_SIZE - 0.5);
-      ctx.lineTo(width, RULER_SIZE - 0.5);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, RULER_SIZE - 0.5); ctx.lineTo(w, RULER_SIZE - 0.5); ctx.stroke();
 
       ctx.fillStyle = 'hsl(var(--muted-foreground) / 0.5)';
       ctx.font = FONT;
@@ -52,7 +75,7 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height }: {
 
       const startPx = scrollLeft / z;
       const first = Math.floor(startPx / step) * step;
-      for (let v = first; v < startPx + width / z; v += step) {
+      for (let v = first; v < startPx + w / z; v += step) {
         const x = (v - startPx) * z;
         const isMajor = v % (step * 5) === 0;
         ctx.beginPath();
@@ -62,6 +85,20 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height }: {
         ctx.stroke();
         if (isMajor) ctx.fillText(String(Math.round(v)), x + 2, RULER_SIZE - 12);
       }
+
+      // Cursor position indicator
+      if (cursor) {
+        const canvasEl = hc.closest('[data-canvas]') ?? hc.parentElement;
+        if (canvasEl) {
+          const cr = canvasEl.getBoundingClientRect();
+          const cx = cursor.x - cr.left;
+          if (cx > 0 && cx < w) {
+            ctx.strokeStyle = 'hsl(var(--primary))';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, RULER_SIZE); ctx.stroke();
+          }
+        }
+      }
     }
 
     // Vertical ruler
@@ -69,26 +106,22 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height }: {
     if (vc) {
       const ctx = vc.getContext('2d');
       if (!ctx) return;
-      const dpr = window.devicePixelRatio || 1;
       vc.width = RULER_SIZE * dpr;
-      vc.height = height * dpr;
+      vc.height = h * dpr;
       ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, RULER_SIZE, height);
+      ctx.clearRect(0, 0, RULER_SIZE, h);
       ctx.fillStyle = 'hsl(var(--sidebar-background))';
-      ctx.fillRect(0, 0, RULER_SIZE, height);
+      ctx.fillRect(0, 0, RULER_SIZE, h);
       ctx.strokeStyle = 'hsl(var(--border))';
       ctx.lineWidth = 0.5;
-      ctx.beginPath();
-      ctx.moveTo(RULER_SIZE - 0.5, 0);
-      ctx.lineTo(RULER_SIZE - 0.5, height);
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(RULER_SIZE - 0.5, 0); ctx.lineTo(RULER_SIZE - 0.5, h); ctx.stroke();
 
       ctx.fillStyle = 'hsl(var(--muted-foreground) / 0.5)';
       ctx.font = FONT;
 
       const startPx = scrollTop / z;
       const first = Math.floor(startPx / step) * step;
-      for (let v = first; v < startPx + height / z; v += step) {
+      for (let v = first; v < startPx + h / z; v += step) {
         const y = (v - startPx) * z;
         const isMajor = v % (step * 5) === 0;
         ctx.beginPath();
@@ -105,17 +138,28 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height }: {
           ctx.restore();
         }
       }
+
+      // Cursor position indicator
+      if (cursor) {
+        const canvasEl = vc.closest('[data-canvas]') ?? vc.parentElement;
+        if (canvasEl) {
+          const cr = canvasEl.getBoundingClientRect();
+          const cy = cursor.y - cr.top;
+          if (cy > 0 && cy < h) {
+            ctx.strokeStyle = 'hsl(var(--primary))';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(RULER_SIZE, cy); ctx.stroke();
+          }
+        }
+      }
     }
-  }, [zoom, scrollLeft, scrollTop, width, height, step, z]);
+  }, [zoom, scrollLeft, scrollTop, w, h, step, z, cursor]);
 
   return (
     <>
-      {/* Corner square */}
       <div className="absolute top-0 left-0 z-30 bg-sidebar border-r border-b border-sidebar-border" style={{ width: RULER_SIZE, height: RULER_SIZE }} />
-      {/* Horizontal ruler */}
-      <canvas ref={hRef} className="absolute top-0 z-20 pointer-events-none" style={{ left: RULER_SIZE, width: width - RULER_SIZE, height: RULER_SIZE }} />
-      {/* Vertical ruler */}
-      <canvas ref={vRef} className="absolute left-0 z-20 pointer-events-none" style={{ top: RULER_SIZE, width: RULER_SIZE, height: height - RULER_SIZE }} />
+      <canvas ref={hRef} className="absolute top-0 z-20 pointer-events-none" style={{ left: RULER_SIZE, width: w - RULER_SIZE, height: RULER_SIZE }} />
+      <canvas ref={vRef} className="absolute left-0 z-20 pointer-events-none" style={{ top: RULER_SIZE, width: RULER_SIZE, height: h - RULER_SIZE }} />
     </>
   );
 }
