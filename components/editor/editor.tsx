@@ -29,6 +29,8 @@ export default function FunnelEditor(props: EditorProps) {
   return <EditorProvider {...props}><EditorInner /></EditorProvider>;
 }
 
+const SZ = 24; // ruler size in px
+
 function EditorInner() {
   const { state, dispatch, pageId, pageName, funnelId, subAccountId } = useEditor();
   const elements = state.editor.elements;
@@ -128,11 +130,14 @@ function EditorInner() {
       <div className="flex flex-1 overflow-hidden min-h-0">
         {!preview && <LeftPanel />}
 
-        <div ref={canvasRef} onPointerDown={onCanvasPointerDown} className={cn("flex-1 overflow-auto min-h-0 relative", preview ? "bg-background" : "bg-muted", cursor)} style={!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined} onClick={() => !preview && !spaceRef.current && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
+        {/* Canvas area — grid layout: rulers pinned, scroll container independent */}
+        <div className="flex-1 min-h-0 min-w-0" style={!preview && showRulers ? { display: 'grid', gridTemplate: `"corner hruler" ${SZ}px "vruler scroll" 1fr / ${SZ}px 1fr` } : undefined}>
           {!preview && showRulers && <Rulers zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} width={scroll.w} height={scroll.h} selectedId={selected?.id ?? null} onCreateGuide={(axis, position) => dispatch({ type: 'ADD_GUIDE', payload: { axis, position } })} onResetZoom={() => setZoom(100)} />}
-          {!preview && showRulers && <Guides zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} />}
-          <div className={cn("p-4", showRulers && !preview && "pt-0 pl-0")} style={showRulers && !preview ? { marginLeft: 24, marginTop: 0 } : undefined}>
-          <div data-canvas className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200 relative" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
+
+          <div ref={canvasRef} onPointerDown={onCanvasPointerDown} className={cn("overflow-auto min-h-0 relative", preview ? "bg-background" : "bg-muted", cursor)} style={{ ...(!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined), gridArea: showRulers && !preview ? 'scroll' : undefined }} onClick={() => !preview && !spaceRef.current && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
+            {!preview && showRulers && <Guides zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} />}
+            <div className="p-4">
+            <div data-canvas className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200 relative" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
             {body && <Recursive element={body} />}
             {/* ── Overlays with Penpot-style conditional flags ── */}
             {(() => {
@@ -158,6 +163,7 @@ function EditorInner() {
           </div>
           </div>
           {!preview && <Marquee canvasRef={canvasRef} />}
+          </div>
         </div>
 
         {!preview && <RightPanel />}
