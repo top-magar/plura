@@ -271,22 +271,24 @@ function PaddingHandles({ element, dispatch }: { element: El; dispatch: ReturnTy
           </div>
         )
       ))}
-      {/* Drag handles */}
+      {/* Drag handles — only when padding exists */}
       {sides.map(({ key, cls, dir, sign, val }) => (
-        <div
-          key={key}
-          className={cn('absolute z-[15]', cls)}
-          style={dir === 'y' ? { height: Math.max(6, val) } : { width: Math.max(6, val) }}
-          onPointerDown={onPointerDown(key, dir, sign)}
-          onPointerEnter={() => setHovered(key)}
-          onPointerLeave={() => setHovered(null)}
-        >
-          {(active === key) && (
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow">
-              {parseInt(String(element.styles[`padding${key}` as keyof CSSProperties] ?? '0')) || 0}px
-            </span>
-          )}
-        </div>
+        val > 0 ? (
+          <div
+            key={key}
+            className={cn('absolute z-[15]', cls)}
+            style={dir === 'y' ? { height: val } : { width: val }}
+            onPointerDown={onPointerDown(key, dir, sign)}
+            onPointerEnter={() => setHovered(key)}
+            onPointerLeave={() => setHovered(null)}
+          >
+            {(active === key) && (
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow">
+                {val}px
+              </span>
+            )}
+          </div>
+        ) : null
       ))}
     </>
   );
@@ -348,21 +350,23 @@ function MarginHandles({ element, dispatch }: { element: El; dispatch: ReturnTyp
           </div>
         )
       ))}
-      {sides.map(({ key, dir, sign, handle }) => (
-        <div
-          key={`m-${key}`}
-          className={cn('absolute z-[14]', dir === 'y' ? 'cursor-ns-resize' : 'cursor-ew-resize')}
-          style={handle}
-          onPointerDown={onPointerDown(key, dir, sign)}
-          onPointerEnter={() => setHovered(key)}
-          onPointerLeave={() => setHovered(null)}
-        >
-          {active === key && (
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-orange-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow">
-              {parseInt(String(element.styles[`margin${key}` as keyof CSSProperties] ?? '0')) || 0}px
-            </span>
-          )}
-        </div>
+      {sides.map(({ key, dir, sign, val, handle }) => (
+        val > 0 ? (
+          <div
+            key={`m-${key}`}
+            className={cn('absolute z-[14]', dir === 'y' ? 'cursor-ns-resize' : 'cursor-ew-resize')}
+            style={handle}
+            onPointerDown={onPointerDown(key, dir, sign)}
+            onPointerEnter={() => setHovered(key)}
+            onPointerLeave={() => setHovered(null)}
+          >
+            {active === key && (
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-orange-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow">
+                {val}px
+              </span>
+            )}
+          </div>
+        ) : null
       ))}
     </>
   );
