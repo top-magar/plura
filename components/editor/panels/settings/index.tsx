@@ -134,27 +134,60 @@ export default function SettingsTab() {
         <TabsContent value="content" className="flex-1 overflow-y-auto mt-0 p-3">
           {!Array.isArray(selected.content) ? (
             Object.keys(selected.content as Record<string, string>).length === 0 ? (
-              <div className="py-8 text-center text-xs text-sidebar-foreground/50">No editable content for this element.</div>
+              <div className="py-8 text-center">
+                <MIcon name="block" size={24} className="text-muted-foreground/20 mx-auto mb-2" />
+                <p className="text-[10px] text-muted-foreground/50">No editable content</p>
+              </div>
             ) : (
-              Object.entries(selected.content as Record<string, string>).map(([key, val]) => (
-                <div key={key} className="mb-3">
-                  <label className="mb-1 block text-[10px] font-medium text-sidebar-foreground/50">{key}</label>
-                  {key === "innerText" || key === "code" ? (
-                    <textarea value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="w-full rounded-md border border-sidebar-border bg-transparent p-2 text-xs outline-none resize-y focus:border-primary min-h-[60px] font-mono" rows={key === "code" ? 6 : 3} />
-                  ) : key === "targetDate" ? (
-                    <Input type="datetime-local" value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-6 text-[10px]" />
-                  ) : key === "images" ? (
-                    <textarea value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="w-full rounded-md border border-sidebar-border bg-transparent p-2 text-xs outline-none resize-y focus:border-primary min-h-[60px]" rows={4} placeholder="One URL per line or comma-separated" />
-                  ) : key === "items" ? (
-                    <ItemsEditor value={val} onChange={(v) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: v } })} />
-                  ) : (
-                    <Input value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-6 text-[10px]" />
-                  )}
-                </div>
-              ))
+              <div className="space-y-3">
+                {Object.entries(selected.content as Record<string, string>).map(([key, val]) => {
+                  const label = { innerText: "Text", href: "Link URL", src: "Source URL", alt: "Alt Text", code: "HTML Code", address: "Address", zoom: "Zoom Level", brand: "Brand Name", links: "Navigation Links", platforms: "Platforms", images: "Image URLs", targetDate: "Target Date", items: "Items" }[key] ?? key;
+                  const icon = { innerText: "text_fields", href: "link", src: "image", alt: "description", code: "code", address: "location_on", zoom: "zoom_in", brand: "branding_watermark", links: "menu", platforms: "share", images: "photo_library", targetDate: "event", items: "list" }[key] ?? "edit";
+
+                  return (
+                    <div key={key}>
+                      <label className="mb-1 flex items-center gap-1 text-[10px] font-medium text-sidebar-foreground/50">
+                        <MIcon name={icon} size={12} className="text-sidebar-foreground/30" />
+                        {label}
+                      </label>
+                      {key === "innerText" || key === "code" ? (
+                        <textarea
+                          value={val}
+                          onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })}
+                          className={cn("w-full rounded-md border border-sidebar-border bg-transparent p-2 text-xs outline-none resize-y focus:border-primary min-h-[60px]", key === "code" && "font-mono text-[10px]")}
+                          rows={key === "code" ? 6 : 3}
+                          placeholder={key === "innerText" ? "Enter text..." : "Paste HTML..."}
+                        />
+                      ) : key === "targetDate" ? (
+                        <Input type="datetime-local" value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-6 text-[10px]" />
+                      ) : key === "images" ? (
+                        <textarea
+                          value={val}
+                          onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })}
+                          className="w-full rounded-md border border-sidebar-border bg-transparent p-2 text-[10px] outline-none resize-y focus:border-primary min-h-[48px]"
+                          rows={3}
+                          placeholder="Comma-separated URLs"
+                        />
+                      ) : key === "items" ? (
+                        <ItemsEditor value={val} onChange={(v) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: v } })} />
+                      ) : (
+                        <Input value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-6 text-[10px]" placeholder={key === "href" ? "https://..." : key === "src" ? "https://..." : ""} />
+                      )}
+                      {key === "src" && val && (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={val} alt="" className="mt-1.5 rounded border border-sidebar-border max-h-24 w-full object-cover" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )
           ) : (
-            <div className="py-8 text-center text-xs text-sidebar-foreground/50">Container — drag children from sidebar.</div>
+            <div className="py-8 text-center">
+              <MIcon name="dashboard_customize" size={24} className="text-muted-foreground/20 mx-auto mb-2" />
+              <p className="text-[10px] text-muted-foreground/50">Container element</p>
+              <p className="text-[9px] text-muted-foreground/30 mt-1">{(selected.content as El[]).length} children</p>
+            </div>
           )}
         </TabsContent>
 
