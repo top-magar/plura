@@ -428,7 +428,7 @@ export default function SettingsTab() {
               <div>
                 <span className="text-[9px] font-medium text-emerald-500/60 uppercase tracking-wider mb-1 block">Padding</span>
                 <div className="grid grid-cols-2 gap-1">
-                  {([["paddingTop","arrow_upward"],["paddingRight","arrow_forward"],["paddingBottom","arrow_downward"],["paddingLeft","arrow_back"]] as const).map(([p, ic]) => (
+                  {([["paddingTop","border_top"],["paddingRight","border_right"],["paddingBottom","border_bottom"],["paddingLeft","border_left"]] as const).map(([p, ic]) => (
                     <Tooltip key={p}><TooltipTrigger asChild>
                       <div className="relative">
                         <MIcon name={ic} size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-emerald-500/40" />
