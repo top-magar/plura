@@ -619,9 +619,44 @@ export default function SettingsTab() {
           {/* Position */}
           <Section title="Position" icon={Move} defaultOpen={false}>
             <div className="space-y-2">
+              {/* Alignment buttons */}
+              <div className="flex gap-1">
+                <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden">
+                  {[
+                    { v: "flex-start", icon: <AlignHorizontalJustifyStart size={13} />, tip: "Align left" },
+                    { v: "center", icon: <AlignHorizontalJustifyCenter size={13} />, tip: "Align center" },
+                    { v: "flex-end", icon: <AlignHorizontalJustifyEnd size={13} />, tip: "Align right" },
+                  ].map(({ v, icon }) => (
+                    <button key={v} onClick={() => set("alignSelf", v)} className={cn("flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("alignSelf") === v && "bg-primary/10 text-primary")}>{icon}</button>
+                  ))}
+                </div>
+                <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden">
+                  {[
+                    { v: "flex-start", icon: <AlignVerticalJustifyStart size={13} />, tip: "Align top" },
+                    { v: "center", icon: <AlignVerticalJustifyCenter size={13} />, tip: "Align middle" },
+                    { v: "flex-end", icon: <AlignVerticalJustifyEnd size={13} />, tip: "Align bottom" },
+                  ].map(({ v, icon }) => (
+                    <button key={`v-${v}`} onClick={() => set("justifySelf", v)} className={cn("flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("justifySelf") === v && "bg-primary/10 text-primary")}>{icon}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Position type */}
               <SelectField label="Position" value={get("position")} options={selectOptions.position} onChange={(v) => set("position", v)} />
-              <FourSideInput label="Offsets" color="border-sidebar-border bg-sidebar" props={["top", "right", "bottom", "left"]} get={get} set={set} />
-              <Field label="Z-Index" value={get("zIndex")} onChange={(v) => set("zIndex", v)} placeholder="auto" />
+
+              {/* Offsets — compact 2x2 grid */}
+              <div className="grid grid-cols-2 gap-1.5">
+                <Field label="Top" value={get("top")} onChange={(v) => set("top", v)} placeholder="auto" />
+                <Field label="Right" value={get("right")} onChange={(v) => set("right", v)} placeholder="auto" />
+                <Field label="Bottom" value={get("bottom")} onChange={(v) => set("bottom", v)} placeholder="auto" />
+                <Field label="Left" value={get("left")} onChange={(v) => set("left", v)} placeholder="auto" />
+              </div>
+
+              {/* Z-index + rotation */}
+              <div className="grid grid-cols-2 gap-1.5">
+                <Field label="Z-Index" value={get("zIndex")} onChange={(v) => set("zIndex", v)} placeholder="auto" />
+                <Field label="Rotate" value={get("transform")} onChange={(v) => set("transform", v)} placeholder="rotate(0deg)" />
+              </div>
             </div>
           </Section>
 
