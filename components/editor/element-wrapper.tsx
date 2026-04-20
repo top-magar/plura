@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback, type CSSProperties, type ReactNode } from 'react';
+import { useRef, useCallback, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   GripVertical, Trash2, Copy, ChevronUp, ChevronDown, Lock,
 } from 'lucide-react';
@@ -27,7 +27,8 @@ function useResize(
   element: El,
   dispatch: ReturnType<typeof useEditor>['dispatch'],
 ) {
-  const startRef = useRef<{ x: number; y: number; w: number; h: number } | null>(null);
+  const startRef = useRef<{ x: number; y: number; w: number; h: number; parentW: number } | null>(null);
+  const [snapGuide, setSnapGuide] = useState<{ value: number; axis: 'x' | 'y'; label: string } | null>(null);
 
   const onPointerDown = useCallback(
     (axis: 'x' | 'y' | 'xy') => (e: React.PointerEvent) => {
@@ -36,15 +37,39 @@ function useResize(
       const el = (e.target as HTMLElement).closest('[data-wrapper]') as HTMLElement | null;
       if (!el) return;
       const rect = el.getBoundingClientRect();
-      startRef.current = { x: e.clientX, y: e.clientY, w: rect.width, h: rect.height };
+      const parent = el.parentElement;
+      const parentW = parent ? parent.getBoundingClientRect().width : rect.width;
+      startRef.current = { x: e.clientX, y: e.clientY, w: rect.width, h: rect.height, parentW };
+
+      const SNAP_THRESHOLD = 6;
+      const snapPoints = [0.25, 0.333, 0.5, 0.667, 0.75, 1].map(r => ({
+        px: Math.round(parentW * r),
+        label: `${Math.round(r * 100)}%`,
+      }));
 
       const onMove = (ev: PointerEvent) => {
         if (!startRef.current) return;
         const dx = ev.clientX - startRef.current.x;
         const dy = ev.clientY - startRef.current.y;
+        let newW = Math.max(20, startRef.current.w + dx);
+        let newH = Math.max(20, startRef.current.h + dy);
+
+        // Snap width to percentage points
+        let snapped: typeof snapGuide = null;
+        if (axis === 'x' || axis === 'xy') {
+          for (const sp of snapPoints) {
+            if (Math.abs(newW - sp.px) < SNAP_THRESHOLD) {
+              newW = sp.px;
+              snapped = { value: sp.px, axis: 'x', label: sp.label };
+              break;
+            }
+          }
+        }
+        setSnapGuide(snapped);
+
         const updates: Partial<CSSProperties> = {};
-        if (axis === 'x' || axis === 'xy') updates.width = `${Math.max(20, startRef.current.w + dx)}px`;
-        if (axis === 'y' || axis === 'xy') updates.height = `${Math.max(20, startRef.current.h + dy)}px`;
+        if (axis === 'x' || axis === 'xy') updates.width = `${newW}px`;
+        if (axis === 'y' || axis === 'xy') updates.height = `${newH}px`;
         if (!element.styles.overflow) updates.overflow = 'hidden';
         dispatch({
           type: 'UPDATE_ELEMENT',
@@ -54,6 +79,7 @@ function useResize(
 
       const onUp = () => {
         startRef.current = null;
+        setSnapGuide(null);
         document.removeEventListener('pointermove', onMove);
         document.removeEventListener('pointerup', onUp);
       };
@@ -64,7 +90,7 @@ function useResize(
     [element, dispatch],
   );
 
-  return { onResizeX: onPointerDown('x'), onResizeY: onPointerDown('y'), onResizeXY: onPointerDown('xy') };
+  return { onResizeX: onPointerDown('x'), onResizeY: onPointerDown('y'), onResizeXY: onPointerDown('xy'), snapGuide };
 }
 
 // ─── Spacing Overlay ────────────────────────────────────────
@@ -228,7 +254,7 @@ export default function ElementWrapper({ element, children, className, style, is
   const isHidden = element.hidden;
 
   const resolved = style ?? resolveStyles(element, device);
-  const { onResizeX, onResizeY, onResizeXY } = useResize(element, dispatch);
+  const { onResizeX, onResizeY, onResizeXY, snapGuide } = useResize(element, dispatch);
 
   // Hidden: gone in preview, ghosted in editor
   if (isHidden && preview) return null;
@@ -276,6 +302,16 @@ export default function ElementWrapper({ element, children, className, style, is
       {/* Resize handles — selected, non-body, non-locked */}
       {isSel && !isBody && !isLocked && (
         <ResizeHandles onResizeX={onResizeX} onResizeY={onResizeY} onResizeXY={onResizeXY} />
+      )}
+
+      {/* Snap guide — shows percentage line during resize */}
+      {snapGuide && (
+        <div className="absolute top-0 bottom-0 z-30 pointer-events-none" style={{ left: snapGuide.value }}>
+          <div className="absolute inset-y-0 w-px bg-indigo-500" />
+          <span className="absolute -top-5 left-1 rounded bg-indigo-500 px-1.5 py-0.5 text-[9px] font-medium text-white whitespace-nowrap">
+            {snapGuide.label}
+          </span>
+        </div>
       )}
 
       {/* Spacing visualization — selected element on hover */}
