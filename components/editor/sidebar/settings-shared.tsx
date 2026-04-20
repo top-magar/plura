@@ -162,3 +162,8 @@ export const borderStyleOpts: IconOpt[] = [
   { value: "solid", label: "Solid", icon: <MIcon name="remove" /> },
   { value: "dashed", label: "Dashed", icon: <MIcon name="line_style" /> },
 ];
+
+export type StyleProps = {
+  get: (p: string) => string;
+  set: (p: string, v: string) => void;
+};

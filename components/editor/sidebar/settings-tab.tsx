@@ -18,6 +18,10 @@ import {
   selectOptions, textAlignOpts, fontStyleOpts, textDecoOpts, textTransOpts,
   justifyOpts, alignOpts, directionOpts, wrapOpts, borderStyleOpts,
 } from "./settings-shared";
+import TypographySection from "./settings-typography";
+import LayoutSection from "./settings-layout";
+import AppearanceSection from "./settings-appearance";
+import PositionSection from "./settings-position";
 
 // ── Shared ──────────────────────────────────────────────
 
@@ -159,198 +163,12 @@ export default function SettingsTab() {
           )}
 
           {/* Typography */}
-          <Section title="Typography" icon="text_fields">
-            <div className="space-y-2">
-              {/* Font Family */}
-              <Select value={get("fontFamily") || undefined} onValueChange={(v) => {
-                set("fontFamily", v);
-                if (typeof document !== 'undefined' && !document.querySelector(`link[data-font="${v}"]`)) {
-                  const link = document.createElement('link');
-                  link.rel = 'stylesheet';
-                  link.href = `https://fonts.googleapis.com/css2?family=${v.replace(/\s+/g, '+')}&display=swap`;
-                  link.setAttribute('data-font', v);
-                  document.head.appendChild(link);
-                }
-              }}>
-                <SelectTrigger className="h-6 text-[10px] px-2"><SelectValue placeholder="Default font" /></SelectTrigger>
-                <SelectContent className="max-h-60">
-                  {["Inter","Roboto","Open Sans","Lato","Montserrat","Poppins","Raleway","Nunito","Playfair Display","Merriweather","Source Sans 3","DM Sans","Space Grotesk","Outfit","Sora","Geist"].map((f) => (
-                    <SelectItem key={f} value={f} className="text-xs" style={{ fontFamily: f }}>{f}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {/* Size / Weight / Height / Spacing — icon-labeled 4-col */}
-              <div className="grid grid-cols-4 gap-1">
-                {([["fontSize","format_size","16px"],["fontWeight","line_weight","400"],["lineHeight","format_line_spacing","1.5"],["letterSpacing","space_bar","0"]] as const).map(([p, ic, ph]) => (
-                  <Tooltip key={p}><TooltipTrigger asChild>
-                    <div className="relative">
-                      <MIcon name={ic} size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
-                      <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-6 text-[10px] pl-5 text-center" placeholder={ph} />
-                    </div>
-                  </TooltipTrigger><TooltipContent className="text-[10px]">{{fontSize:"Font Size",fontWeight:"Weight",lineHeight:"Line Height",letterSpacing:"Spacing"}[p]}</TooltipContent></Tooltip>
-                ))}
-              </div>
-              <ColorField label="Color" value={get("color")} onChange={(v) => set("color", v)} />
-              {/* Align + Style + Deco + Transform — 2 rows */}
-              <div className="grid grid-cols-2 gap-1">
-                <IconToggle value={get("textAlign")} options={textAlignOpts} onChange={(v) => set("textAlign", v)} />
-                <IconToggle value={get("textTransform")} options={textTransOpts} onChange={(v) => set("textTransform", v)} />
-                <IconToggle value={get("fontStyle")} options={fontStyleOpts} onChange={(v) => set("fontStyle", v)} />
-                <IconToggle value={get("textDecoration")} options={textDecoOpts} onChange={(v) => set("textDecoration", v)} />
-              </div>
-            </div>
-          </Section>
+          <TypographySection get={get} set={set} />
 
           {/* Dimensions */}
-          <Section title="Layout" icon="grid_view">
-            <div className="space-y-2.5">
-              {/* Sizing Mode */}
-              <IconToggle
-                value={get("width") === "fit-content" ? "hug" : get("width") === "100%" || get("flex") === "1" ? "fill" : "fixed"}
-                options={[
-                  { value: "hug", label: "Hug Content", icon: <MIcon name="fit_screen" /> },
-                  { value: "fill", label: "Fill Container", icon: <MIcon name="expand" /> },
-                  { value: "fixed", label: "Fixed Width", icon: <MIcon name="remove" /> },
-                ]}
-                onChange={(v) => {
-                  if (v === "hug") { set("width", "fit-content"); set("flex", ""); }
-                  else if (v === "fill") { set("width", "100%"); set("flex", ""); }
-                  else { set("width", "auto"); set("flex", ""); }
-                }}
-              />
-
-              {/* W × H — icon-labeled */}
-              <div className="grid grid-cols-2 gap-1">
-                <Tooltip><TooltipTrigger asChild>
-                  <div className="relative">
-                    <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[9px] font-medium text-muted-foreground/40">W</span>
-                    <Input value={get("width")} onChange={(e) => set("width", e.target.value)} className="h-6 text-[10px] pl-6 text-center" placeholder="auto" />
-                  </div>
-                </TooltipTrigger><TooltipContent className="text-[10px]">Width</TooltipContent></Tooltip>
-                <Tooltip><TooltipTrigger asChild>
-                  <div className="relative">
-                    <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[9px] font-medium text-muted-foreground/40">H</span>
-                    <Input value={get("height")} onChange={(e) => set("height", e.target.value)} className="h-6 text-[10px] pl-6 text-center" placeholder="auto" />
-                  </div>
-                </TooltipTrigger><TooltipContent className="text-[10px]">Height</TooltipContent></Tooltip>
-              </div>
-
-              <div className="h-px bg-sidebar-border" />
-
-              {/* Padding — 2x2 grid with arrow icons */}
-              <div>
-                <span className="text-[9px] font-medium text-emerald-500/60 uppercase tracking-wider mb-1 block">Padding</span>
-                <div className="grid grid-cols-2 gap-1">
-                  {([["paddingTop","border_top"],["paddingRight","border_right"],["paddingBottom","border_bottom"],["paddingLeft","border_left"]] as const).map(([p, ic]) => (
-                    <Tooltip key={p}><TooltipTrigger asChild>
-                      <div className="relative">
-                        <MIcon name={ic} size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-emerald-500/40" />
-                        <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-6 text-[10px] pl-5 text-center" placeholder="0" />
-                      </div>
-                    </TooltipTrigger><TooltipContent className="text-[10px]">{{paddingTop:"Top",paddingRight:"Right",paddingBottom:"Bottom",paddingLeft:"Left"}[p]}</TooltipContent></Tooltip>
-                  ))}
-                </div>
-              </div>
-
-              <div className="h-px bg-sidebar-border" />
-
-              {/* Overflow / Object Fit */}
-              <div className="grid grid-cols-2 gap-1">
-                <SelectField label="" value={get("overflow")} options={selectOptions.overflow} onChange={(v) => set("overflow", v)} />
-                <SelectField label="" value={get("objectFit")} options={selectOptions.objectFit} onChange={(v) => set("objectFit", v)} />
-              </div>
-
-              <div className="h-px bg-sidebar-border" />
-
-              {/* Flex */}
-              <SelectField label="" value={get("display")} options={selectOptions.display} onChange={(v) => set("display", v)} />
-              <IconToggle value={get("flexDirection")} options={directionOpts} onChange={(v) => set("flexDirection", v)} />
-              <div className="grid grid-cols-2 gap-1">
-                <IconToggle value={get("justifyContent")} options={justifyOpts} onChange={(v) => set("justifyContent", v)} />
-                <IconToggle value={get("alignItems")} options={alignOpts} onChange={(v) => set("alignItems", v)} />
-              </div>
-              <div className="grid grid-cols-2 gap-1">
-                <IconToggle value={get("flexWrap")} options={wrapOpts} onChange={(v) => set("flexWrap", v)} />
-                <Tooltip><TooltipTrigger asChild>
-                  <div className="relative">
-                    <MIcon name="space_bar" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
-                    <Input value={get("gap")} onChange={(e) => set("gap", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="0px" />
-                  </div>
-                </TooltipTrigger><TooltipContent className="text-[10px]">Gap</TooltipContent></Tooltip>
-              </div>
-            </div>
-          </Section>
-
+          <LayoutSection get={get} set={set} />
           {/* Decorations */}
-          <Section title="Appearance" icon="palette">
-            <div className="space-y-3">
-              {/* Fill */}
-              <div className="space-y-1.5">
-                <span className="text-[9px] font-medium text-muted-foreground/50 uppercase tracking-wider">Fill</span>
-                <ColorField label="Background" value={get("backgroundColor")} onChange={(v) => set("backgroundColor", v)} />
-                <div className="grid grid-cols-2 gap-1">
-                  <Tooltip><TooltipTrigger asChild>
-                    <div className="relative">
-                      <MIcon name="image" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
-                      <Input value={get("backgroundImage")} onChange={(e) => set("backgroundImage", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="url()" />
-                    </div>
-                  </TooltipTrigger><TooltipContent className="text-[10px]">Background Image</TooltipContent></Tooltip>
-                  <SelectField label="" value={get("backgroundSize")} options={selectOptions.backgroundSize} onChange={(v) => set("backgroundSize", v)} />
-                </div>
-              </div>
-
-              <div className="h-px bg-sidebar-border" />
-
-              {/* Border */}
-              <div className="space-y-1.5">
-                <span className="text-[9px] font-medium text-muted-foreground/50 uppercase tracking-wider">Border</span>
-                <div className="grid grid-cols-2 gap-1">
-                  <ColorField label="Color" value={get("borderColor")} onChange={(v) => set("borderColor", v)} />
-                  <Tooltip><TooltipTrigger asChild>
-                    <div className="relative">
-                      <MIcon name="line_weight" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
-                      <Input value={get("borderWidth")} onChange={(e) => set("borderWidth", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="0px" />
-                    </div>
-                  </TooltipTrigger><TooltipContent className="text-[10px]">Border Width</TooltipContent></Tooltip>
-                </div>
-                <IconToggle value={get("borderStyle")} options={borderStyleOpts} onChange={(v) => set("borderStyle", v)} />
-                <Tooltip><TooltipTrigger asChild>
-                  <div className="relative">
-                    <MIcon name="rounded_corner" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
-                    <Input value={get("borderRadius")} onChange={(e) => set("borderRadius", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="0px" />
-                  </div>
-                </TooltipTrigger><TooltipContent className="text-[10px]">Border Radius</TooltipContent></Tooltip>
-              </div>
-
-              <div className="h-px bg-sidebar-border" />
-
-              {/* Effects */}
-              <div className="space-y-1.5">
-                <span className="text-[9px] font-medium text-muted-foreground/50 uppercase tracking-wider">Effects</span>
-                <div className="flex items-center gap-2">
-                  <MIcon name="opacity" size={12} className="text-muted-foreground/40 shrink-0" />
-                  <Slider value={[parseFloat(get("opacity") || "1")]} min={0} max={1} step={0.05} onValueChange={([v]) => set("opacity", String(v))} className="flex-1" />
-                  <span className="text-[9px] w-6 text-right text-muted-foreground/50 tabular-nums">{get("opacity") || "1"}</span>
-                </div>
-                <Tooltip><TooltipTrigger asChild>
-                  <div className="relative">
-                    <MIcon name="blur_on" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
-                    <Input value={get("boxShadow")} onChange={(e) => set("boxShadow", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="0 2px 4px rgba(0,0,0,.1)" />
-                  </div>
-                </TooltipTrigger><TooltipContent className="text-[10px]">Box Shadow</TooltipContent></Tooltip>
-                <div className="grid grid-cols-2 gap-1">
-                  <SelectField label="" value={get("cursor")} options={selectOptions.cursor} onChange={(v) => set("cursor", v)} />
-                  <Tooltip><TooltipTrigger asChild>
-                    <div className="relative">
-                      <MIcon name="animation" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
-                      <Input value={get("transition")} onChange={(e) => set("transition", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="all 0.2s" />
-                    </div>
-                  </TooltipTrigger><TooltipContent className="text-[10px]">Transition</TooltipContent></Tooltip>
-                </div>
-              </div>
-            </div>
-          </Section>
-
+          <AppearanceSection get={get} set={set} />
           {/* Quick Columns — for row containers */}
           {Array.isArray(selected.content) && (get("flexDirection") === "row" || get("flexDirection") === "row-reverse") && (
             <Section title="Columns" icon="view_column">
@@ -408,70 +226,8 @@ export default function SettingsTab() {
 
           {/* Flexbox */}
           {/* Position */}
-          <Section title="Position" icon="open_with" defaultOpen={false}>
-            <div className="space-y-2">
-              {/* Align self */}
-              <div className="flex gap-1">
-                <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden flex-1">
-                  {(["flex-start","center","flex-end"] as const).map((v, i) => (
-                    <Tooltip key={v}><TooltipTrigger asChild>
-                      <button onClick={() => set("alignSelf", v)} className={cn("flex flex-1 h-6 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("alignSelf") === v && "bg-primary/10 text-primary")}>
-                        <MIcon name={["align_horizontal_left","align_horizontal_center","align_horizontal_right"][i]} size={14} />
-                      </button>
-                    </TooltipTrigger><TooltipContent className="text-[10px]">{["Align Left","Align Center","Align Right"][i]}</TooltipContent></Tooltip>
-                  ))}
-                </div>
-                <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden flex-1">
-                  {(["flex-start","center","flex-end"] as const).map((v, i) => (
-                    <Tooltip key={v}><TooltipTrigger asChild>
-                      <button onClick={() => set("justifySelf", v)} className={cn("flex flex-1 h-6 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("justifySelf") === v && "bg-primary/10 text-primary")}>
-                        <MIcon name={["align_vertical_top","align_vertical_center","align_vertical_bottom"][i]} size={14} />
-                      </button>
-                    </TooltipTrigger><TooltipContent className="text-[10px]">{["Align Top","Align Middle","Align Bottom"][i]}</TooltipContent></Tooltip>
-                  ))}
-                </div>
-              </div>
+          <PositionSection get={get} set={set} />
 
-              {/* Position type as icon toggle */}
-              <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden">
-                {(["static","relative","absolute","fixed","sticky"] as const).map((v) => (
-                  <Tooltip key={v}><TooltipTrigger asChild>
-                    <button onClick={() => set("position", v)} className={cn("flex flex-1 h-6 items-center justify-center text-[9px] text-muted-foreground transition-colors hover:text-foreground", get("position") === v && "bg-primary/10 text-primary font-medium")}>
-                      {v.slice(0, 3)}
-                    </button>
-                  </TooltipTrigger><TooltipContent className="text-[10px]">{v}</TooltipContent></Tooltip>
-                ))}
-              </div>
-
-              {/* Offsets */}
-              <div className="grid grid-cols-4 gap-1">
-                {([["top","arrow_upward","Top"],["right","arrow_forward","Right"],["bottom","arrow_downward","Bottom"],["left","arrow_back","Left"]] as const).map(([p, ic, label]) => (
-                  <Tooltip key={p}><TooltipTrigger asChild>
-                    <div className="relative">
-                      <MIcon name={ic} size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
-                      <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-6 text-[10px] pl-5 text-center" placeholder="—" />
-                    </div>
-                  </TooltipTrigger><TooltipContent className="text-[10px]">{label}</TooltipContent></Tooltip>
-                ))}
-              </div>
-
-              {/* Z-index + Rotate */}
-              <div className="grid grid-cols-2 gap-1">
-                <Tooltip><TooltipTrigger asChild>
-                  <div className="relative">
-                    <MIcon name="layers" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
-                    <Input value={get("zIndex")} onChange={(e) => set("zIndex", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="auto" />
-                  </div>
-                </TooltipTrigger><TooltipContent className="text-[10px]">Z-Index</TooltipContent></Tooltip>
-                <Tooltip><TooltipTrigger asChild>
-                  <div className="relative">
-                    <MIcon name="rotate_right" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
-                    <Input value={get("transform")} onChange={(e) => set("transform", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="0deg" />
-                  </div>
-                </TooltipTrigger><TooltipContent className="text-[10px]">Rotate</TooltipContent></Tooltip>
-              </div>
-            </div>
-          </Section>
           </TooltipProvider>
         </TabsContent>
       </Tabs>
