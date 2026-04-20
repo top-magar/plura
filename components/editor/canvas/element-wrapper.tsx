@@ -136,11 +136,14 @@ function Toolbar({ element, dispatch, elements }: { element: El; dispatch: Retur
 
 // ─── Box Handles ────────────────────────────────────────────
 
+const MIN_HIT = 8; // minimum hit area in px (Penpot uses 8-10)
+const TINY_THRESH = 25; // below this, show dot indicator
+
 function BoxZone({ id, val, color, style, h }: { id: string; val: number; color: 'emerald' | 'orange'; style: Record<string, number>; h: ReturnType<typeof useHandles> }) {
   if (val <= 0 || !(h.active === id || h.hovered === id)) return null;
   return (
     <div className={cn('absolute pointer-events-none z-[13]', h.active === id ? (color === 'emerald' ? 'bg-emerald-400/25' : 'bg-orange-400/25') : (color === 'emerald' ? 'bg-emerald-400/10' : 'bg-orange-400/10'))} style={style}>
-      <span className={cn('absolute inset-0 flex items-center justify-center text-[8px] font-mono', color === 'emerald' ? 'text-emerald-700/60' : 'text-orange-700/60')}>{val}</span>
+      {val >= 16 && <span className={cn('absolute inset-0 flex items-center justify-center text-[8px] font-mono', color === 'emerald' ? 'text-emerald-700/60' : 'text-orange-700/60')}>{val}</span>}
     </div>
   );
 }
@@ -149,11 +152,22 @@ function BoxHandle({ element, id, prop, val, dir, sign, color, style, cls, h }: 
   element: El; id: string; prop: string; val: number; dir: 'x' | 'y'; sign: number; color: 'emerald' | 'orange';
   style: Record<string, number>; cls: string; h: ReturnType<typeof useHandles>;
 }) {
-  // Render even when val=0 with a thin 4px hit area so users can drag from zero
-  const minSize = val > 0 ? val : 4;
-  const adjustedStyle = dir === 'y' ? { ...style, height: minSize } : { ...style, width: minSize };
+  const hitSize = Math.max(val, MIN_HIT);
+  const isTiny = val < TINY_THRESH;
+  const adjustedStyle: Record<string, number> = dir === 'y' ? { ...style, height: hitSize } : { ...style, width: hitSize };
+  // For zero-value handles, offset outward so the hit area extends outside the element
+  if (val === 0) {
+    if (dir === 'y' && sign === -1 && adjustedStyle.top !== undefined) adjustedStyle.top = -MIN_HIT / 2;
+    if (dir === 'y' && sign === 1 && adjustedStyle.bottom !== undefined) adjustedStyle.bottom = -MIN_HIT / 2;
+    if (dir === 'x' && sign === 1 && adjustedStyle.right !== undefined) adjustedStyle.right = -MIN_HIT / 2;
+    if (dir === 'x' && sign === -1 && adjustedStyle.left !== undefined) adjustedStyle.left = -MIN_HIT / 2;
+  }
   return (
     <div className={cn('absolute z-[14]', cls)} style={adjustedStyle} onPointerDown={(e) => h.drag(element, id, prop, dir, sign, 4, e)} onPointerEnter={() => h.hover(id)} onPointerLeave={() => h.hover(null)}>
+      {/* Visible dot indicator for tiny/zero values — like Penpot's show-handler for tiny elements */}
+      {isTiny && (h.hovered === id || h.active === id) && (
+        <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full', color === 'emerald' ? 'bg-emerald-500' : 'bg-orange-500', h.active === id ? 'size-2' : 'size-1.5')} />
+      )}
       {h.active === id && <span className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', color === 'emerald' ? 'bg-emerald-600' : 'bg-orange-500')}>{val}px</span>}
     </div>
   );
@@ -193,6 +207,7 @@ export default function ElementWrapper({ element, children, className, style, is
   const { state, dispatch } = useEditor();
   const { selected, preview, hovered, dropTarget, device } = state.editor;
   const elements = state.editor.elements;
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const isBody = element.type === '__body';
   const isSel = selected?.id === element.id;
@@ -200,6 +215,11 @@ export default function ElementWrapper({ element, children, className, style, is
   const isDrop = dropTarget === element.id && isContainer;
   const resolved = style ?? resolveStyles(element, device);
   const h = useHandles(dispatch);
+
+  // Measured dimensions for hover badge
+  const dims = isHov && wrapperRef.current
+    ? `${Math.round(wrapperRef.current.offsetWidth)} × ${Math.round(wrapperRef.current.offsetHeight)}`
+    : '';
 
   if (element.hidden && preview) return null;
   if (element.hidden && !preview) return <div className="relative opacity-20 pointer-events-none" style={resolved}>{children}</div>;
@@ -215,6 +235,7 @@ export default function ElementWrapper({ element, children, className, style, is
     <ContextMenu>
     <ContextMenuTrigger disabled={isBody} asChild>
     <div
+      ref={wrapperRef}
       data-wrapper
       className={cn(
         'relative group/el min-w-0',
@@ -232,7 +253,7 @@ export default function ElementWrapper({ element, children, className, style, is
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
     >
       {isSel && !isBody && <Toolbar element={element} dispatch={dispatch} elements={elements} />}
-      {isHov && !isBody && <span className="absolute -top-4 left-1 text-[8px] leading-none px-1 py-0.5 rounded-sm bg-muted/80 text-muted-foreground/70 z-10 pointer-events-none">{element.name} <span className="text-muted-foreground/40">{element.styles.width ?? 'auto'} × {element.styles.height ?? 'auto'}</span></span>}
+      {isHov && !isBody && <span className="absolute -top-4 left-1 text-[8px] leading-none px-1 py-0.5 rounded-sm bg-muted/80 text-muted-foreground/70 z-10 pointer-events-none">{element.name} <span className="text-muted-foreground/40">{dims}</span></span>}
 
       {!isBody && !element.locked && (isSel || isHov) && (
         <>
