@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, type ReactNode } from 'react';
+import { useState, useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { MIcon } from '../../ui/m-icon';
 
 function rgbToHex(rgb: string): string {
@@ -12,40 +12,48 @@ function rgbToHex(rgb: string): string {
 
 export default function Eyedropper({ onPick, onClose }: { onPick: (color: string) => void; onClose: () => void }): ReactNode {
   const [preview, setPreview] = useState<{ color: string; x: number; y: number } | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Escape key to close
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const onMove = useCallback((e: React.PointerEvent) => {
-    const target = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
-    if (!target) return;
+  const sampleAt = useCallback((x: number, y: number): string | null => {
+    const el = overlayRef.current;
+    if (!el) return null;
+    // Hide overlay so elementFromPoint hits the actual canvas elements
+    el.style.pointerEvents = 'none';
+    const target = document.elementFromPoint(x, y) as HTMLElement | null;
+    el.style.pointerEvents = '';
+    if (!target) return null;
     const style = window.getComputedStyle(target);
-    const color = style.backgroundColor !== 'rgba(0, 0, 0, 0)' && style.backgroundColor !== 'transparent'
-      ? style.backgroundColor
-      : style.color;
-    setPreview({ color: rgbToHex(color), x: e.clientX, y: e.clientY });
+    const bg = style.backgroundColor;
+    const color = bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent' ? bg : style.color;
+    return rgbToHex(color);
   }, []);
+
+  const onMove = useCallback((e: React.PointerEvent) => {
+    const color = sampleAt(e.clientX, e.clientY);
+    if (color) setPreview({ color, x: e.clientX, y: e.clientY });
+  }, [sampleAt]);
 
   const onClick = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (preview) {
-      onPick(preview.color);
-      // Copy to clipboard
-      navigator.clipboard.writeText(preview.color).catch(() => {});
+    const color = sampleAt(e.clientX, e.clientY);
+    if (color) {
+      onPick(color);
+      navigator.clipboard.writeText(color).catch(() => {});
     }
     onClose();
-  }, [preview, onPick, onClose]);
+  }, [sampleAt, onPick, onClose]);
 
   return (
-    <div className="fixed inset-0 z-[200] cursor-crosshair" onPointerMove={onMove} onPointerDown={onClick} onContextMenu={(e) => { e.preventDefault(); onClose(); }}>
+    <div ref={overlayRef} className="fixed inset-0 z-[200] cursor-crosshair" onPointerMove={onMove} onPointerDown={onClick} onContextMenu={(e) => { e.preventDefault(); onClose(); }}>
       {preview && (
         <div className="fixed pointer-events-none z-[201]" style={{ left: preview.x + 20, top: preview.y + 20 }}>
-          {/* Magnifier loupe */}
           <div className="rounded-lg border border-border bg-popover shadow-lg overflow-hidden">
             <div className="size-12 border-b border-border" style={{ backgroundColor: preview.color }} />
             <div className="px-2 py-1 flex items-center gap-1.5">
