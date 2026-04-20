@@ -15,6 +15,7 @@ import {
   Minus, Minus as MinusIcon, SquareDashed, SeparatorHorizontal,
   BoxSelect, Scan, Palette, Radius, LayoutGrid, Move, Sparkles, Layers, Space,
   Pencil, Copy, Trash2, Star, Lock as LockIcon, Eye as EyeIcon,
+  Columns2,
 } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -494,6 +495,61 @@ export default function SettingsTab() {
               <Field label="Box Shadow" value={get("boxShadow")} onChange={(v) => set("boxShadow", v)} placeholder="0 2px 4px rgba(0,0,0,.1)" />
             </div>
           </Section>
+
+          {/* Quick Columns — for row containers */}
+          {Array.isArray(selected.content) && (get("flexDirection") === "row" || get("flexDirection") === "row-reverse") && (
+            <Section title="Columns" icon={Columns2}>
+              <div className="space-y-2">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4].map((n) => (
+                    <button
+                      key={n}
+                      onClick={() => {
+                        const cols = Array.isArray(selected.content) ? selected.content as El[] : [];
+                        const current = cols.length;
+                        if (n === current) return;
+                        if (n > current) {
+                          let updated = selected;
+                          for (let i = current; i < n; i++) {
+                            const col: El = { id: crypto.randomUUID(), type: "column", name: `Col ${i + 1}`, styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] };
+                            updated = { ...updated, content: [...(updated.content as El[]), col] };
+                          }
+                          onUpdate(updated);
+                        } else {
+                          onUpdate({ ...selected, content: cols.slice(0, n) });
+                        }
+                      }}
+                      className={cn(
+                        "flex-1 h-8 rounded border text-[10px] font-medium transition-colors",
+                        (selected.content as El[]).length === n
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-sidebar-border hover:bg-sidebar-accent"
+                      )}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-1">
+                  {(selected.content as El[]).map((col, i) => (
+                    <div key={col.id} className="flex-1">
+                      <label className="text-[9px] text-sidebar-foreground/40 mb-0.5 block">Col {i + 1}</label>
+                      <Input
+                        value={col.styles.flex ?? "1"}
+                        onChange={(e) => {
+                          const cols = [...(selected.content as El[])];
+                          cols[i] = { ...cols[i], styles: { ...cols[i].styles, flex: e.target.value } };
+                          onUpdate({ ...selected, content: cols });
+                        }}
+                        className="h-6 text-[10px]"
+                        placeholder="1"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Section>
+          )}
 
           {/* Flexbox */}
           <Section title="Flexbox" icon={LayoutGrid}>
