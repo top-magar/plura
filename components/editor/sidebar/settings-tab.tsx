@@ -1,22 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties, type ReactNode } from "react";
-import {
-  Type, ChevronRight, ChevronDown,
-  AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  AlignHorizontalJustifyCenter, AlignHorizontalJustifyEnd,
-  AlignHorizontalJustifyStart, AlignHorizontalSpaceBetween, AlignHorizontalSpaceAround,
-  AlignVerticalJustifyCenter, AlignVerticalJustifyStart, AlignVerticalJustifyEnd,
-  ChevronsLeftRight,
-  ArrowRight, ArrowDown, ArrowLeft, ArrowUp,
-  WrapText,
-  Italic, Underline, Strikethrough,
-  CaseUpper, CaseLower, CaseSensitive,
-  Minus, Minus as MinusIcon, SquareDashed, SeparatorHorizontal,
-  BoxSelect, Scan, Palette, Radius, LayoutGrid, Move, Sparkles, Layers, Space,
-  Pencil, Copy, Trash2, Star, Lock as LockIcon, Eye as EyeIcon,
-  Columns2,
-} from "lucide-react";
+import { MIcon } from "../m-icon";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -67,13 +52,13 @@ function IconToggle({ value, options, onChange }: { value: string; options: Icon
   );
 }
 
-function Section({ title, icon: Icon, defaultOpen = true, children }: { title: string; icon: React.ComponentType<{ size?: number }>; defaultOpen?: boolean; children: ReactNode }) {
+function Section({ title, icon, defaultOpen = true, children }: { title: string; icon: string; defaultOpen?: boolean; children: ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="border-b border-sidebar-border">
       <CollapsibleTrigger className="flex w-full items-center gap-1.5 bg-transparent px-3 py-2 text-[11px] font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground cursor-pointer">
-        {open ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
-        <Icon size={12} />
+        <MIcon name={open ? "expand_more" : "chevron_right"} size={12} />
+        <MIcon name={icon} size={14} />
         {title}
       </CollapsibleTrigger>
       <CollapsibleContent className="px-3 pb-3">
@@ -173,53 +158,53 @@ function FourSideInput({ label, color, props, get, set, icon }: { label: string;
 // ── Icon option sets ────────────────────────────────────
 
 const textAlignOpts: IconOpt[] = [
-  { value: "left", label: "Left", icon: <AlignLeft size={14} /> },
-  { value: "center", label: "Center", icon: <AlignCenter size={14} /> },
-  { value: "right", label: "Right", icon: <AlignRight size={14} /> },
-  { value: "justify", label: "Justify", icon: <AlignJustify size={14} /> },
+  { value: "left", label: "Left", icon: <MIcon name="format_align_left" /> },
+  { value: "center", label: "Center", icon: <MIcon name="format_align_center" /> },
+  { value: "right", label: "Right", icon: <MIcon name="format_align_right" /> },
+  { value: "justify", label: "Justify", icon: <MIcon name="format_align_justify" /> },
 ];
 const fontStyleOpts: IconOpt[] = [
-  { value: "normal", label: "Normal", icon: <Type size={14} /> },
-  { value: "italic", label: "Italic", icon: <Italic size={14} /> },
+  { value: "normal", label: "Normal", icon: <MIcon name="text_fields" /> },
+  { value: "italic", label: "Italic", icon: <MIcon name="format_italic" /> },
 ];
 const textDecoOpts: IconOpt[] = [
-  { value: "none", label: "None", icon: <Type size={14} /> },
-  { value: "underline", label: "Underline", icon: <Underline size={14} /> },
-  { value: "line-through", label: "Strike", icon: <Strikethrough size={14} /> },
+  { value: "none", label: "None", icon: <MIcon name="text_fields" /> },
+  { value: "underline", label: "Underline", icon: <MIcon name="format_underlined" /> },
+  { value: "line-through", label: "Strike", icon: <MIcon name="format_strikethrough" /> },
 ];
 const textTransOpts: IconOpt[] = [
-  { value: "none", label: "None", icon: <MinusIcon size={14} /> },
-  { value: "uppercase", label: "Upper", icon: <CaseUpper size={14} /> },
-  { value: "lowercase", label: "Lower", icon: <CaseLower size={14} /> },
-  { value: "capitalize", label: "Cap", icon: <CaseSensitive size={14} /> },
+  { value: "none", label: "None", icon: <MIcon name="horizontal_rule" /> },
+  { value: "uppercase", label: "Upper", icon: <MIcon name="title" /> },
+  { value: "lowercase", label: "Lower", icon: <MIcon name="text_fields" /> },
+  { value: "capitalize", label: "Cap", icon: <MIcon name="format_size" /> },
 ];
 const justifyOpts: IconOpt[] = [
-  { value: "flex-start", label: "Start", icon: <AlignHorizontalJustifyStart size={14} /> },
-  { value: "center", label: "Center", icon: <AlignHorizontalJustifyCenter size={14} /> },
-  { value: "flex-end", label: "End", icon: <AlignHorizontalJustifyEnd size={14} /> },
-  { value: "space-between", label: "Between", icon: <AlignHorizontalSpaceBetween size={14} /> },
-  { value: "space-around", label: "Around", icon: <AlignHorizontalSpaceAround size={14} /> },
+  { value: "flex-start", label: "Start", icon: <MIcon name="align_horizontal_left" /> },
+  { value: "center", label: "Center", icon: <MIcon name="align_horizontal_center" /> },
+  { value: "flex-end", label: "End", icon: <MIcon name="align_horizontal_right" /> },
+  { value: "space-between", label: "Between", icon: <MIcon name="horizontal_distribute" /> },
+  { value: "space-around", label: "Around", icon: <MIcon name="horizontal_distribute" /> },
 ];
 const alignOpts: IconOpt[] = [
-  { value: "flex-start", label: "Start", icon: <AlignVerticalJustifyStart size={14} /> },
-  { value: "center", label: "Center", icon: <AlignVerticalJustifyCenter size={14} /> },
-  { value: "flex-end", label: "End", icon: <AlignVerticalJustifyEnd size={14} /> },
-  { value: "stretch", label: "Stretch", icon: <ChevronsLeftRight size={14} className="rotate-90" /> },
+  { value: "flex-start", label: "Start", icon: <MIcon name="align_vertical_top" /> },
+  { value: "center", label: "Center", icon: <MIcon name="align_vertical_center" /> },
+  { value: "flex-end", label: "End", icon: <MIcon name="align_vertical_bottom" /> },
+  { value: "stretch", label: "Stretch", icon: <MIcon name="expand" /> },
 ];
 const directionOpts: IconOpt[] = [
-  { value: "row", label: "Row", icon: <ArrowRight size={14} /> },
-  { value: "column", label: "Column", icon: <ArrowDown size={14} /> },
-  { value: "row-reverse", label: "Row Rev", icon: <ArrowLeft size={14} /> },
-  { value: "column-reverse", label: "Col Rev", icon: <ArrowUp size={14} /> },
+  { value: "row", label: "Row", icon: <MIcon name="arrow_forward" /> },
+  { value: "column", label: "Column", icon: <MIcon name="arrow_downward" /> },
+  { value: "row-reverse", label: "Row Rev", icon: <MIcon name="arrow_back" /> },
+  { value: "column-reverse", label: "Col Rev", icon: <MIcon name="arrow_upward" /> },
 ];
 const wrapOpts: IconOpt[] = [
-  { value: "nowrap", label: "No Wrap", icon: <ArrowRight size={14} /> },
-  { value: "wrap", label: "Wrap", icon: <WrapText size={14} /> },
+  { value: "nowrap", label: "No Wrap", icon: <MIcon name="arrow_forward" /> },
+  { value: "wrap", label: "Wrap", icon: <MIcon name="wrap_text" /> },
 ];
 const borderStyleOpts: IconOpt[] = [
-  { value: "none", label: "None", icon: <MinusIcon size={14} /> },
-  { value: "solid", label: "Solid", icon: <Minus size={14} /> },
-  { value: "dashed", label: "Dashed", icon: <SquareDashed size={14} /> },
+  { value: "none", label: "None", icon: <MIcon name="horizontal_rule" /> },
+  { value: "solid", label: "Solid", icon: <MIcon name="remove" /> },
+  { value: "dashed", label: "Dashed", icon: <MIcon name="line_style" /> },
 ];
 
 // ── Main component ──────────────────────────────────────
@@ -283,7 +268,7 @@ export default function SettingsTab() {
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-1.5 border-b border-sidebar-border px-3 py-2">
-        <Pencil size={11} className="shrink-0 text-sidebar-foreground/50" />
+        <MIcon name="edit" size={12} className="shrink-0 text-sidebar-foreground/50" />
         <input className="h-7 min-w-0 flex-1 rounded-md border border-sidebar-border bg-transparent px-2 text-xs outline-none focus:border-primary" value={selected.name} onChange={(e) => onUpdate({ ...selected, name: e.target.value })} />
         <Badge variant="outline" className="shrink-0 px-1.5 py-0 text-[9px] h-4">{selected.type}</Badge>
         {device !== "Desktop" && <Badge className="shrink-0 px-1.5 py-0 text-[9px] h-4 bg-primary/10 text-primary border-primary/20">{device}</Badge>}
@@ -292,19 +277,19 @@ export default function SettingsTab() {
       {/* Actions */}
       <TooltipProvider delayDuration={200}>
         <div className="flex gap-1 border-b border-sidebar-border px-3 py-1.5">
-          <Tooltip><TooltipTrigger asChild><Button variant="outline" size="icon" className="size-7" onClick={onDuplicate}><Copy size={13} /></Button></TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">Duplicate</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><Button variant="outline" size="icon" className="size-7" onClick={onDuplicate}><MIcon name="content_copy" size={14} /></Button></TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">Duplicate</TooltipContent></Tooltip>
           <Tooltip><TooltipTrigger asChild>
             <Button variant="outline" size="icon" className={cn("size-7", selected.locked && "bg-amber-500/10 text-amber-500 border-amber-500/30")} onClick={() => onUpdate({ ...selected, locked: !selected.locked })}>
-              <LockIcon size={13} />
+              <MIcon name="lock" size={14} />
             </Button>
           </TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">{selected.locked ? "Unlock" : "Lock"}</TooltipContent></Tooltip>
           <Tooltip><TooltipTrigger asChild>
             <Button variant="outline" size="icon" className={cn("size-7", selected.hidden && "bg-muted text-muted-foreground")} onClick={() => onUpdate({ ...selected, hidden: !selected.hidden })}>
-              <EyeIcon size={13} />
+              <MIcon name="visibility" size={14} />
             </Button>
           </TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">{selected.hidden ? "Show" : "Hide"}</TooltipContent></Tooltip>
           {selected.type !== "__body" && (
-            <Tooltip><TooltipTrigger asChild><Button variant="outline" size="icon" className="size-7 hover:bg-destructive/10 hover:text-destructive hover:border-destructive" onClick={() => dispatch({ type: "DELETE_ELEMENT", payload: { id: selected.id } })}><Trash2 size={13} /></Button></TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">Delete</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild><Button variant="outline" size="icon" className="size-7 hover:bg-destructive/10 hover:text-destructive hover:border-destructive" onClick={() => dispatch({ type: "DELETE_ELEMENT", payload: { id: selected.id } })}><MIcon name="delete" size={14} /></Button></TooltipTrigger><TooltipContent side="bottom" className="text-[10px]">Delete</TooltipContent></Tooltip>
           )}
         </div>
       </TooltipProvider>
@@ -312,8 +297,8 @@ export default function SettingsTab() {
       {/* Tabs */}
       <Tabs value={propsTab} onValueChange={(v) => setPropsTab(v as "design" | "content")} className="flex flex-1 flex-col min-h-0">
         <TabsList className="w-full rounded-none border-b border-sidebar-border h-8 bg-transparent p-0">
-          <TabsTrigger value="design" className="flex-1 rounded-none h-full text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary gap-1"><Star size={11} /> Design</TabsTrigger>
-          <TabsTrigger value="content" className="flex-1 rounded-none h-full text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary gap-1"><Type size={11} /> Content</TabsTrigger>
+          <TabsTrigger value="design" className="flex-1 rounded-none h-full text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary gap-1"><MIcon name="design_services" size={12} /> Design</TabsTrigger>
+          <TabsTrigger value="content" className="flex-1 rounded-none h-full text-xs data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary gap-1"><MIcon name="text_fields" size={12} /> Content</TabsTrigger>
         </TabsList>
 
         {/* Content tab */}
@@ -349,7 +334,7 @@ export default function SettingsTab() {
 
           {/* Custom */}
           {!Array.isArray(selected.content) && Object.keys(selected.content as Record<string, string>).some((k) => k === "href" || k === "src") && (
-            <Section title="Custom" icon={Pencil}>
+            <Section title="Custom" icon="edit">
               {(selected.content as Record<string, string>).href !== undefined && (
                 <Field label="Link URL" value={(selected.content as Record<string, string>).href ?? ""} onChange={(v) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), href: v } })} placeholder="https://..." />
               )}
@@ -360,7 +345,7 @@ export default function SettingsTab() {
           )}
 
           {/* Typography */}
-          <Section title="Typography" icon={Type}>
+          <Section title="Typography" icon="text_fields">
             <div className="space-y-2">
               {/* Font Family */}
               <div>
@@ -413,7 +398,7 @@ export default function SettingsTab() {
           </Section>
 
           {/* Dimensions */}
-          <Section title="Layout" icon={LayoutGrid}>
+          <Section title="Layout" icon="grid_view">
             <div className="space-y-2.5">
               {/* Sizing Mode */}
               <div>
@@ -421,9 +406,9 @@ export default function SettingsTab() {
                 <IconToggle
                   value={get("width") === "fit-content" ? "hug" : get("width") === "100%" || get("flex") === "1" ? "fill" : "fixed"}
                   options={[
-                    { value: "hug", label: "Hug Content", icon: <ArrowRight size={14} className="-mx-0.5" /> },
-                    { value: "fill", label: "Fill Container", icon: <ChevronsLeftRight size={14} /> },
-                    { value: "fixed", label: "Fixed Width", icon: <Minus size={14} /> },
+                    { value: "hug", label: "Hug Content", icon: <MIcon name="fit_screen" /> },
+                    { value: "fill", label: "Fill Container", icon: <MIcon name="expand" /> },
+                    { value: "fixed", label: "Fixed Width", icon: <MIcon name="remove" /> },
                   ]}
                   onChange={(v) => {
                     if (v === "hug") { set("width", "fit-content"); set("flex", ""); }
@@ -473,7 +458,7 @@ export default function SettingsTab() {
               {/* Padding — 4 inputs in a row */}
               <div>
                 <div className="flex items-center gap-1 mb-1">
-                  <Space size={10} className="text-emerald-500/60" />
+                  <MIcon name="padding" size={12} className="text-emerald-500/60" />
                   <span className="text-[10px] text-sidebar-foreground/50">Padding</span>
                 </div>
                 <div className="flex gap-1">
@@ -489,7 +474,7 @@ export default function SettingsTab() {
               {/* Margin — 4 inputs in a row */}
               <div>
                 <div className="flex items-center gap-1 mb-1">
-                  <BoxSelect size={10} className="text-primary/60" />
+                  <MIcon name="select_all" size={12} className="text-primary/60" />
                   <span className="text-[10px] text-sidebar-foreground/50">Margin</span>
                 </div>
                 <div className="flex gap-1">
@@ -530,7 +515,7 @@ export default function SettingsTab() {
           </Section>
 
           {/* Decorations */}
-          <Section title="Appearance" icon={Palette}>
+          <Section title="Appearance" icon="palette">
             <div className="space-y-2">
               <ColorField label="Background" value={get("backgroundColor")} onChange={(v) => set("backgroundColor", v)} />
               <Field label="Background Image" value={get("backgroundImage")} onChange={(v) => set("backgroundImage", v)} placeholder="url()" />
@@ -562,7 +547,7 @@ export default function SettingsTab() {
 
           {/* Quick Columns — for row containers */}
           {Array.isArray(selected.content) && (get("flexDirection") === "row" || get("flexDirection") === "row-reverse") && (
-            <Section title="Columns" icon={Columns2}>
+            <Section title="Columns" icon="view_column">
               <div className="space-y-2">
                 <div className="flex gap-1">
                   {[1, 2, 3, 4].map((n) => (
@@ -617,7 +602,7 @@ export default function SettingsTab() {
 
           {/* Flexbox */}
           {/* Position */}
-          <Section title="Position" icon={Move} defaultOpen={false}>
+          <Section title="Position" icon="open_with" defaultOpen={false}>
             <div className="space-y-2">
               {/* Alignment buttons */}
               <div className="flex gap-1">
