@@ -6,26 +6,12 @@ import {
 } from 'lucide-react';
 import { useEditor } from './editor-provider';
 import { findParentId } from './tree-helpers';
+import { useDragOverlay } from './drag-overlay';
 import { cn } from '@/lib/utils';
 import type { El } from './types';
 import { resolveStyles } from './types';
 
 // ─── Types ──────────────────────────────────────────────────
-
-/** Create a clean drag ghost label instead of the blurry browser screenshot */
-export function setDragPreview(e: React.DragEvent, label: string) {
-  const ghost = document.createElement('div');
-  ghost.textContent = label;
-  Object.assign(ghost.style, {
-    position: 'fixed', left: '-9999px', top: '-9999px',
-    padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '500',
-    background: 'hsl(var(--primary))', color: 'hsl(var(--primary-foreground))',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)', whiteSpace: 'nowrap',
-  });
-  document.body.appendChild(ghost);
-  e.dataTransfer.setDragImage(ghost, 0, 0);
-  requestAnimationFrame(() => ghost.remove());
-}
 
 type Props = {
   element: El;
@@ -117,6 +103,7 @@ function Toolbar({
   elements: El[];
 }) {
   const parentId = findParentId(elements, element.id);
+  const { start: startOverlay } = useDragOverlay();
 
   return (
     <div
@@ -130,7 +117,7 @@ function Toolbar({
         onDragStart={(e) => {
           e.stopPropagation();
           e.dataTransfer.setData('moveElementId', element.id);
-          setDragPreview(e, element.name);
+          startOverlay(element.name, e);
         }}
       >
         <GripVertical className="size-3" />

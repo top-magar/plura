@@ -11,6 +11,7 @@ import Recursive from "./recursive";
 import { EditorProvider, useEditor } from "./editor-provider";
 import EditorNavigation from "./editor-navigation";
 import { LeftPanel, RightPanel } from "./sidebar";
+import { DragOverlayProvider } from "./drag-overlay";
 
 
 export default function FunnelEditor(props: EditorProps) {
@@ -143,6 +144,7 @@ function EditorInner() {
   const deviceWidth = device === "Desktop" ? "100%" : device === "Tablet" ? 768 : 420;
 
   return (
+    <DragOverlayProvider>
     <div className="fixed inset-0 z-20 flex flex-col bg-background text-foreground text-sm leading-snug outline-none antialiased" onKeyDown={handleKeyDown} tabIndex={0}>
       {!preview && (
         <EditorNavigation
@@ -194,5 +196,6 @@ function EditorInner() {
         </button>
       )}
     </div>
+    </DragOverlayProvider>
   );
 }
