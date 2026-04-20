@@ -81,7 +81,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={cn(
-          "min-h-[40px] transition-colors",
+          "min-h-[40px] transition-colors flex-1",
           isActive && !isEmpty && "bg-primary/[0.02]"
         )}
       >
@@ -94,8 +94,8 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         {isActive && dropIdx === children.length && !isEmpty && indicator}
         {isEmpty && !preview && (
           <div className={cn(
-            "flex items-center justify-center border-2 border-dashed rounded-md text-xs transition-all",
-            isBody ? "min-h-[calc(100vh-56px)]" : "min-h-[48px]",
+            "flex items-center justify-center border-2 border-dashed rounded-md text-xs transition-all flex-1",
+            isBody ? "min-h-[calc(100vh-56px)]" : "min-h-[48px] min-w-[48px]",
             isActive
               ? "border-primary/50 text-primary bg-primary/[0.04] scale-[1.01]"
               : "border-border/40 text-muted-foreground/50"
