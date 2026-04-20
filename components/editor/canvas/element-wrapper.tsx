@@ -10,6 +10,12 @@ import { cn } from '@/lib/utils';
 import type { El } from '../core/types';
 import { resolveStyles } from '../core/types';
 import { parseBox, useHandles, BoxZone, BoxHandle, RadiusCorners } from './handles/index';
+import { ResizeHandles } from './handles/resize-handles';
+import { DimensionsBadge } from './handles/dimensions-badge';
+import { FontSizeHandle } from './handles/font-size-handle';
+
+const CONTAINER_TYPES = new Set(['__body', 'container', 'section', '2Col', '3Col', '4Col', 'row', 'column', 'grid', 'hero', 'footer', 'header', 'card', 'sidebar', 'modal', 'form']);
+const TEXT_TYPES = new Set(['text', 'heading', 'subheading', 'quote', 'code', 'badge', 'list']);
 
 // ─── Toolbar ────────────────────────────────────────────
 
@@ -48,8 +54,6 @@ export default function ElementWrapper({ element, children, className, style, is
   const resolved = style ?? resolveStyles(element, device);
   const h = useHandles(dispatch);
 
-  const dims = isHov && wrapperRef.current ? `${Math.round(wrapperRef.current.offsetWidth)} × ${Math.round(wrapperRef.current.offsetHeight)}` : '';
-
   if (element.hidden && preview) return null;
   if (element.hidden && !preview) return <div className="relative opacity-20 pointer-events-none" style={resolved}>{children}</div>;
   if (preview) return <div style={resolved} className={className}>{children}</div>;
@@ -81,7 +85,7 @@ export default function ElementWrapper({ element, children, className, style, is
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
     >
       {isSel && !isBody && <Toolbar element={element} dispatch={dispatch} elements={elements} />}
-      {isHov && !isBody && <span className="absolute -top-4 left-1 text-[8px] leading-none px-1 py-0.5 rounded-sm bg-muted/80 text-muted-foreground/70 z-10 pointer-events-none">{element.name} <span className="text-muted-foreground/40">{dims}</span></span>}
+      {isHov && !isBody && <span className="absolute -top-4 left-1 text-[8px] leading-none px-1 py-0.5 rounded-sm bg-muted/80 text-muted-foreground/70 z-10 pointer-events-none">{element.name}</span>}
 
       {!isBody && !element.locked && (isSel || isHov) && (
         <>
@@ -107,8 +111,12 @@ export default function ElementWrapper({ element, children, className, style, is
           <BoxHandle element={element} id="m-B" prop="marginBottom" val={mb} dir="y" sign={1} color="orange" style={{ bottom: -mb, left: 0, right: 0, height: mb }} cls="cursor-ns-resize" h={h} />
           <BoxHandle element={element} id="m-L" prop="marginLeft" val={ml} dir="x" sign={-1} color="orange" style={{ top: 0, left: -ml, bottom: 0, width: ml }} cls="cursor-ew-resize" h={h} />
           <RadiusCorners element={element} h={h} />
+          {!CONTAINER_TYPES.has(element.type) && <ResizeHandles element={element} wrapperRef={wrapperRef} dispatch={dispatch} />}
+          {TEXT_TYPES.has(element.type) && <FontSizeHandle element={element} dispatch={dispatch} />}
         </>
       )}
+
+      {(isSel || isHov) && !isBody && <DimensionsBadge wrapperRef={wrapperRef} isSelected={isSel} />}
 
       {children}
     </div>
