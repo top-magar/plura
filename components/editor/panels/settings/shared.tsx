@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HexColorPicker } from "react-colorful";
 import { Input } from "@/components/ui/input";
 
 export type IconOpt = { value: string; label: string; icon: ReactNode };
@@ -68,8 +69,8 @@ export function ColorField({ label, value, onChange }: { label: string; value: s
             <span className="text-[10px] text-sidebar-foreground/60 truncate">{value || "none"}</span>
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-52 p-3" side="left" align="start">
-          <input type="color" value={value || "#000000"} onChange={(e) => onChange(e.target.value)} className="w-full h-8 border-0 cursor-pointer bg-transparent" />
+        <PopoverContent className="w-56 p-3" side="left" align="start">
+          <HexColorPicker color={value || "#000000"} onChange={onChange} style={{ width: "100%", height: 140 }} />
           <div className="grid grid-cols-8 gap-1 mt-2">
             {["#000000","#ffffff","#ef4444","#f97316","#eab308","#22c55e","#3b82f6","#6366f1","#8b5cf6","#ec4899","#14b8a6","#64748b","#1e293b","#f1f5f9","#fef2f2","#fefce8"].map((c) => (
               <button key={c} onClick={() => onChange(c)} className="size-5 rounded-sm border border-sidebar-border cursor-pointer hover:scale-110 transition-transform" style={{ background: c }} />
