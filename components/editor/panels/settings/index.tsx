@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties, type ReactNode } from "react";
-import { MIcon } from "../ui/m-icon";
+import { MIcon } from "../../ui/m-icon";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,19 +9,19 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { El } from "../core/types";
+import type { El } from "../../core/types";
 import { cn } from "@/lib/utils";
-import { useEditor } from "../core/provider";
-import { findParentId } from "../core/tree-helpers";
+import { useEditor } from "../../core/provider";
+import { findParentId } from "../../core/tree-helpers";
 import {
   IconToggle, Section, ColorField, Field, SelectField,
   selectOptions, textAlignOpts, fontStyleOpts, textDecoOpts, textTransOpts,
   justifyOpts, alignOpts, directionOpts, wrapOpts, borderStyleOpts,
-} from "./settings-shared";
-import TypographySection from "./settings-typography";
-import LayoutSection from "./settings-layout";
-import AppearanceSection from "./settings-appearance";
-import PositionSection from "./settings-position";
+} from "./shared";
+import TypographySection from "./typography";
+import LayoutSection from "./layout";
+import AppearanceSection from "./appearance";
+import PositionSection from "./position";
 
 // ── Shared ──────────────────────────────────────────────
 

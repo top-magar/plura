@@ -1,10 +1,10 @@
 "use client";
 
-import { MIcon } from "../ui/m-icon";
+import { MIcon } from "../../ui/m-icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Section, ColorField, IconToggle, textAlignOpts, fontStyleOpts, textDecoOpts, textTransOpts, type StyleProps } from "./settings-shared";
+import { Section, ColorField, IconToggle, textAlignOpts, fontStyleOpts, textDecoOpts, textTransOpts, type StyleProps } from "./shared";
 
 const fonts = ["Inter","Roboto","Open Sans","Lato","Montserrat","Poppins","Raleway","Nunito","Playfair Display","Merriweather","Source Sans 3","DM Sans","Space Grotesk","Outfit","Sora","Geist"];
 

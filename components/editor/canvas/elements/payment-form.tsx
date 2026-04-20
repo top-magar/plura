@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import ElementWrapper from "./element-wrapper";
-import type { El } from "../core/types";
+import ElementWrapper from "../element-wrapper";
+import type { El } from "../../core/types";
 
 const inputCls = "h-8 w-full rounded border border-border bg-muted px-3 text-[13px] text-foreground outline-none placeholder:text-muted-foreground";
 

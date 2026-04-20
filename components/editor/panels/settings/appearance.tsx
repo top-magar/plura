@@ -1,10 +1,10 @@
 "use client";
 
-import { MIcon } from "../ui/m-icon";
+import { MIcon } from "../../ui/m-icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import { Section, ColorField, IconToggle, SelectField, selectOptions, borderStyleOpts, type StyleProps } from "./settings-shared";
+import { Section, ColorField, IconToggle, SelectField, selectOptions, borderStyleOpts, type StyleProps } from "./shared";
 
 export default function AppearanceSection({ get, set }: StyleProps) {
   return (

@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEditor } from "../core/provider";
-import ElementWrapper from "./element-wrapper";
-import type { El } from "../core/types";
+import { useEditor } from "../../core/provider";
+import ElementWrapper from "../element-wrapper";
+import type { El } from "../../core/types";
 
 export default function VideoElement({ element }: { element: El }): ReactNode {
   const c = element.content as Record<string, string>;

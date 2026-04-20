@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { MIcon } from "../ui/m-icon";
-import ElementWrapper from "./element-wrapper";
-import type { El } from "../core/types";
+import { MIcon } from "../../ui/m-icon";
+import ElementWrapper from "../element-wrapper";
+import type { El } from "../../core/types";
 
 export default function ImageElement({ element }: { element: El }): ReactNode {
   const c = element.content as Record<string, string>;

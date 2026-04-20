@@ -1,10 +1,10 @@
 "use client";
 
-import { MIcon } from "../ui/m-icon";
+import { MIcon } from "../../ui/m-icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Section, type StyleProps } from "./settings-shared";
+import { Section, type StyleProps } from "./shared";
 
 export default function PositionSection({ get, set }: StyleProps) {
   return (

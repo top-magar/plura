@@ -1,9 +1,9 @@
 "use client";
 
-import { MIcon } from "../ui/m-icon";
+import { MIcon } from "../../ui/m-icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
-import { Section, IconToggle, SelectField, selectOptions, justifyOpts, alignOpts, directionOpts, wrapOpts, type StyleProps } from "./settings-shared";
+import { Section, IconToggle, SelectField, selectOptions, justifyOpts, alignOpts, directionOpts, wrapOpts, type StyleProps } from "./shared";
 
 export default function LayoutSection({ get, set }: StyleProps) {
   return (

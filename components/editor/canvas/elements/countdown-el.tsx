@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, type ReactNode } from "react";
-import ElementWrapper from "./element-wrapper";
-import type { El } from "../core/types";
+import ElementWrapper from "../element-wrapper";
+import type { El } from "../../core/types";
 
 function CountdownDisplay({ content }: { content: Record<string, string> }) {
   const [now, setNow] = useState(Date.now());

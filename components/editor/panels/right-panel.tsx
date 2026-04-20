@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { MIcon } from "../ui/m-icon";
 import { cn } from "@/lib/utils";
 import { useEditor } from "../core/provider";
-import SettingsTab from "./settings-tab";
+import SettingsTab from "./settings";
 
 export default function RightPanel() {
   const { state } = useEditor();

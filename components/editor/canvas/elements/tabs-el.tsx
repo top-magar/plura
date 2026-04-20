@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import ElementWrapper from "./element-wrapper";
-import type { El } from "../core/types";
+import ElementWrapper from "../element-wrapper";
+import type { El } from "../../core/types";
 
 function TabsDisplay({ items }: { items: { title: string; body: string }[] }) {
   const [active, setActive] = useState(0);
