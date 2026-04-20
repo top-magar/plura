@@ -41,10 +41,13 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
 
         if (inVerticalRange) {
           const edgeZone = Math.max(rect.width * 0.35, 40); // 35% or at least 40px
-          if (e.clientX < rect.left + edgeZone) {
+          const isLeft = e.clientX < rect.left + edgeZone;
+          const isRight = e.clientX > rect.right - edgeZone;
+          if (isLeft || isRight) console.log(`[SIDE] child=${i} side=${isLeft ? "L" : "R"} x=${Math.round(e.clientX)} zone=${Math.round(edgeZone)} rect=[${Math.round(rect.left)},${Math.round(rect.right)}]`);
+          if (isLeft) {
             return { index: i, side: "left" as const, siblingId: els[i].getAttribute("data-el-id") ?? undefined };
           }
-          if (e.clientX > rect.right - edgeZone) {
+          if (isRight) {
             return { index: i, side: "right" as const, siblingId: els[i].getAttribute("data-el-id") ?? undefined };
           }
         }
