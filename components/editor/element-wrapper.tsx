@@ -292,46 +292,144 @@ function PaddingHandles({ element, dispatch }: { element: El; dispatch: ReturnTy
   );
 }
 
-// ─── Border Radius Handle ───────────────────────────────────
+// ─── Margin Handles ─────────────────────────────────────────
 
-function BorderRadiusHandle({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
-  const [active, setActive] = useState(false);
-  const r = parseInt(String(element.styles.borderRadius ?? '0')) || 0;
+function MarginHandles({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
+  const [active, setActive] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const s = element.styles;
+  const mt = parseInt(String(s.marginTop ?? s.margin ?? '0')) || 0;
+  const mr = parseInt(String(s.marginRight ?? s.margin ?? '0')) || 0;
+  const mb = parseInt(String(s.marginBottom ?? s.margin ?? '0')) || 0;
+  const ml = parseInt(String(s.marginLeft ?? s.margin ?? '0')) || 0;
 
-  const onPointerDown = (e: React.PointerEvent) => {
+  const sides = [
+    { key: 'Top', dir: 'y' as const, sign: -1, val: mt, handle: { top: -Math.max(mt, 6), left: 0, right: 0, height: Math.max(mt, 6) }, zone: { top: -mt, left: 0, right: 0, height: mt } },
+    { key: 'Right', dir: 'x' as const, sign: 1, val: mr, handle: { top: 0, right: -Math.max(mr, 6), bottom: 0, width: Math.max(mr, 6) }, zone: { top: 0, right: -mr, bottom: 0, width: mr } },
+    { key: 'Bottom', dir: 'y' as const, sign: 1, val: mb, handle: { bottom: -Math.max(mb, 6), left: 0, right: 0, height: Math.max(mb, 6) }, zone: { bottom: -mb, left: 0, right: 0, height: mb } },
+    { key: 'Left', dir: 'x' as const, sign: -1, val: ml, handle: { top: 0, left: -Math.max(ml, 6), bottom: 0, width: Math.max(ml, 6) }, zone: { top: 0, left: -ml, bottom: 0, width: ml } },
+  ];
+
+  const onPointerDown = (side: string, dir: 'x' | 'y', sign: number) => (e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const startX = e.clientX;
-    const startVal = r;
-    setActive(true);
+    const prop = `margin${side}` as keyof CSSProperties;
+    const startPos = dir === 'y' ? e.clientY : e.clientX;
+    const startVal = parseInt(String(element.styles[prop] ?? '0')) || 0;
+    setActive(side);
 
     const onMove = (ev: PointerEvent) => {
-      const delta = startX - ev.clientX;
-      const val = Math.max(0, Math.round((startVal + delta) / 2) * 2);
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, borderRadius: `${val}px` } } } });
+      const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - startPos) * sign;
+      const val = Math.max(0, Math.round((startVal + delta) / 4) * 4);
+      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, [prop]: `${val}px` } } } });
     };
-    const onUp = () => { setActive(false); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+    const onUp = () => { setActive(null); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
   };
 
-  if (r === 0 && !active) return null;
+  const show = active || hovered;
 
   return (
-    <div
-      className="absolute top-[2px] left-[2px] z-20 cursor-nwse-resize"
-      onPointerDown={onPointerDown}
-      style={{ width: Math.max(12, Math.min(r, 32)), height: Math.max(12, Math.min(r, 32)) }}
-    >
-      <svg viewBox="0 0 24 24" className={cn("w-full h-full transition-colors", active ? "text-orange-500" : "text-primary/40 hover:text-primary")}>
-        <path d="M 24 0 A 24 24 0 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      </svg>
-      {active && (
-        <span className="absolute -top-4 left-0 rounded bg-orange-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none">
-          {r}px
-        </span>
-      )}
-    </div>
+    <>
+      {show && sides.map(({ key, val, zone }) => (
+        val > 0 && (active === key || hovered === key || active === null) && (
+          <div
+            key={`mzone-${key}`}
+            className={cn(
+              'absolute pointer-events-none z-[13] transition-opacity',
+              (active === key || hovered === key) ? 'bg-orange-400/25' : 'bg-orange-400/10'
+            )}
+            style={zone}
+          >
+            <span className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-orange-700/60">
+              {val}
+            </span>
+          </div>
+        )
+      ))}
+      {sides.map(({ key, dir, sign, handle }) => (
+        <div
+          key={`m-${key}`}
+          className={cn('absolute z-[14]', dir === 'y' ? 'cursor-ns-resize' : 'cursor-ew-resize')}
+          style={handle}
+          onPointerDown={onPointerDown(key, dir, sign)}
+          onPointerEnter={() => setHovered(key)}
+          onPointerLeave={() => setHovered(null)}
+        >
+          {active === key && (
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-orange-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow">
+              {parseInt(String(element.styles[`margin${key}` as keyof CSSProperties] ?? '0')) || 0}px
+            </span>
+          )}
+        </div>
+      ))}
+    </>
+  );
+}
+
+// ─── Border Radius Handle ───────────────────────────────────
+
+function BorderRadiusHandle({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
+  const [active, setActive] = useState<string | null>(null);
+  const corners = [
+    { key: 'TopLeft', prop: 'borderTopLeftRadius', pos: 'top-[2px] left-[2px]', rotate: '' },
+    { key: 'TopRight', prop: 'borderTopRightRadius', pos: 'top-[2px] right-[2px]', rotate: 'rotate-90' },
+    { key: 'BottomRight', prop: 'borderBottomRightRadius', pos: 'bottom-[2px] right-[2px]', rotate: 'rotate-180' },
+    { key: 'BottomLeft', prop: 'borderBottomLeftRadius', pos: 'bottom-[2px] left-[2px]', rotate: '-rotate-90' },
+  ] as const;
+
+  // Use individual corner or fallback to borderRadius
+  const getR = (prop: string) => parseInt(String((element.styles as Record<string, unknown>)[prop] ?? element.styles.borderRadius ?? '0')) || 0;
+
+  const onPointerDown = (prop: string) => (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startVal = getR(prop);
+    setActive(prop);
+
+    const onMove = (ev: PointerEvent) => {
+      const dx = startX - ev.clientX;
+      const dy = startY - ev.clientY;
+      const delta = Math.max(Math.abs(dx), Math.abs(dy)) * (dx + dy > 0 ? 1 : -1);
+      const val = Math.max(0, Math.round((startVal + delta) / 2) * 2);
+      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, [prop]: `${val}px` } } } });
+    };
+    const onUp = () => { setActive(null); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  };
+
+  const anyRadius = corners.some(c => getR(c.prop) > 0);
+  if (!anyRadius && !active) return null;
+
+  return (
+    <>
+      {corners.map(({ key, prop, pos, rotate }) => {
+        const r = getR(prop);
+        if (r === 0 && !active) return null;
+        const size = Math.max(10, Math.min(r, 28));
+        return (
+          <div
+            key={key}
+            className={cn('absolute z-20 cursor-nwse-resize', pos)}
+            onPointerDown={onPointerDown(prop)}
+            style={{ width: size, height: size }}
+          >
+            <svg viewBox="0 0 24 24" className={cn('w-full h-full transition-colors', rotate, active === prop ? 'text-orange-500' : 'text-primary/30 hover:text-primary/70')}>
+              <path d="M 24 0 A 24 24 0 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+            {active === prop && (
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-orange-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none shadow">
+                {r}
+              </span>
+            )}
+          </div>
+        );
+      })}
+    </>
   );
 }
 
@@ -400,6 +498,7 @@ export default function ElementWrapper({ element, children, className, style, is
         <>
           <ResizeHandles onResizeX={onResizeX} onResizeY={onResizeY} onResizeXY={onResizeXY} />
           <PaddingHandles element={element} dispatch={dispatch} />
+          <MarginHandles element={element} dispatch={dispatch} />
           <BorderRadiusHandle element={element} dispatch={dispatch} />
         </>
       )}
