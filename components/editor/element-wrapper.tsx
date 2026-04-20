@@ -12,25 +12,8 @@ import { resolveStyles } from './types';
 
 // ─── Types ──────────────────────────────────────────────────
 
-/** Create a clean drag ghost. For elements, clones the actual DOM node scaled down. */
+/** Create a clean drag ghost label instead of the blurry browser screenshot */
 export function setDragPreview(e: React.DragEvent, label: string) {
-  // Try to clone the actual element being dragged
-  const wrapper = (e.currentTarget as HTMLElement).closest('[data-wrapper]');
-  if (wrapper) {
-    const clone = wrapper.cloneNode(true) as HTMLElement;
-    Object.assign(clone.style, {
-      position: 'fixed', left: '-9999px', top: '-9999px',
-      transform: 'scale(0.5)', transformOrigin: 'top left',
-      opacity: '0.85', borderRadius: '8px', overflow: 'hidden',
-      maxWidth: '400px', maxHeight: '300px', pointerEvents: 'none',
-      boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-    });
-    document.body.appendChild(clone);
-    e.dataTransfer.setDragImage(clone, 0, 0);
-    requestAnimationFrame(() => clone.remove());
-    return;
-  }
-  // Fallback: pill label (for palette items)
   const ghost = document.createElement('div');
   ghost.textContent = label;
   Object.assign(ghost.style, {
