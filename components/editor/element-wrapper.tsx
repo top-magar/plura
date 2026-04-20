@@ -34,14 +34,35 @@ function useHandles(element: El, dispatch: ReturnType<typeof useEditor>['dispatc
   const drag = useCallback((id: string, prop: string, dir: 'x' | 'y', sign: number, snap: number, e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    ref.current = { pos: dir === 'y' ? e.clientY : e.clientX, val: parseInt(String((element.styles as Record<string, unknown>)[prop] ?? '0')) || 0 };
+    const startPos = dir === 'y' ? e.clientY : e.clientX;
+    const startVal = parseInt(String((element.styles as Record<string, unknown>)[prop] ?? '0')) || 0;
+    ref.current = { pos: startPos, val: startVal };
     setState(s => ({ ...s, active: id }));
+
+    // Determine opposite and all-sides props for Alt/Shift modifiers
+    const prefix = prop.replace(/(Top|Right|Bottom|Left)$/, '');
+    const sideName = prop.replace(prefix, '');
+    const opposite: Record<string, string> = { Top: 'Bottom', Bottom: 'Top', Left: 'Right', Right: 'Left' };
+    const oppProp = `${prefix}${opposite[sideName] ?? ''}`;
+    const allProps = ['Top', 'Right', 'Bottom', 'Left'].map(s => `${prefix}${s}`);
 
     const onMove = (ev: PointerEvent) => {
       if (!ref.current) return;
       const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - ref.current.pos) * sign;
       const val = Math.max(0, Math.round((ref.current.val + delta) / snap) * snap);
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, [prop]: `${val}px` } } } });
+
+      const updates: Record<string, string> = { [prop]: `${val}px` };
+
+      // Alt = opposite side too
+      if (ev.altKey && !ev.shiftKey) {
+        updates[oppProp] = `${val}px`;
+      }
+      // Alt+Shift = all 4 sides
+      if (ev.altKey && ev.shiftKey) {
+        for (const p of allProps) updates[p] = `${val}px`;
+      }
+
+      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, ...updates } as CSSProperties } } });
     };
     const onUp = () => { ref.current = null; setState(s => ({ ...s, active: null })); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
     document.addEventListener('pointermove', onMove);
@@ -189,9 +210,10 @@ export default function ElementWrapper({ element, children, className, style, is
       {isSel && !isBody && <Toolbar element={element} dispatch={dispatch} elements={elements} />}
       {isHov && !isBody && <span className="absolute -top-5 left-1 text-[9px] leading-none px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground z-10 pointer-events-none">{element.name}</span>}
 
-      {isSel && !isBody && !isLocked && (
+      {/* Handles: show on selection (full) or hover (padding only, Figma-style) */}
+      {!isBody && !isLocked && (isSel || isHov) && (
         <>
-          {/* Padding handles */}
+          {/* Padding handles — visible on hover AND selection */}
           <BoxZone id="p-T" val={pt} color="emerald" style={{ top: 0, left: 0, right: 0, height: pt }} h={h} />
           <BoxZone id="p-R" val={pr} color="emerald" style={{ top: 0, right: 0, bottom: 0, width: pr }} h={h} />
           <BoxZone id="p-B" val={pb} color="emerald" style={{ bottom: 0, left: 0, right: 0, height: pb }} h={h} />
@@ -200,8 +222,12 @@ export default function ElementWrapper({ element, children, className, style, is
           <BoxHandle id="p-R" prop="paddingRight" val={pr} dir="x" sign={1} color="emerald" style={{ top: 0, right: 0, bottom: 0, width: pr }} cls="cursor-ew-resize" h={h} />
           <BoxHandle id="p-B" prop="paddingBottom" val={pb} dir="y" sign={1} color="emerald" style={{ bottom: 0, left: 0, right: 0, height: pb }} cls="cursor-ns-resize" h={h} />
           <BoxHandle id="p-L" prop="paddingLeft" val={pl} dir="x" sign={-1} color="emerald" style={{ top: 0, left: 0, bottom: 0, width: pl }} cls="cursor-ew-resize" h={h} />
+        </>
+      )}
 
-          {/* Margin handles */}
+      {/* Margin + radius — only on selection */}
+      {isSel && !isBody && !isLocked && (
+        <>
           <BoxZone id="m-T" val={mt} color="orange" style={{ top: -mt, left: 0, right: 0, height: mt }} h={h} />
           <BoxZone id="m-R" val={mr} color="orange" style={{ top: 0, right: -mr, bottom: 0, width: mr }} h={h} />
           <BoxZone id="m-B" val={mb} color="orange" style={{ bottom: -mb, left: 0, right: 0, height: mb }} h={h} />
@@ -210,8 +236,6 @@ export default function ElementWrapper({ element, children, className, style, is
           <BoxHandle id="m-R" prop="marginRight" val={mr} dir="x" sign={1} color="orange" style={{ top: 0, right: -mr, bottom: 0, width: mr }} cls="cursor-ew-resize" h={h} />
           <BoxHandle id="m-B" prop="marginBottom" val={mb} dir="y" sign={1} color="orange" style={{ bottom: -mb, left: 0, right: 0, height: mb }} cls="cursor-ns-resize" h={h} />
           <BoxHandle id="m-L" prop="marginLeft" val={ml} dir="x" sign={-1} color="orange" style={{ top: 0, left: -ml, bottom: 0, width: ml }} cls="cursor-ew-resize" h={h} />
-
-          {/* Border radius */}
           <RadiusCorners element={element} dispatch={dispatch} h={h} />
         </>
       )}
