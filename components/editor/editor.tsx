@@ -9,7 +9,6 @@ import { getAncestorPath } from "./core/tree-helpers";
 import { cn } from "@/lib/utils";
 import Recursive from "./canvas/recursive";
 import SnapDistances from "./canvas/overlays/snap-distances";
-import SnapGuides from "./canvas/overlays/snap-guides";
 import Rulers from "./canvas/overlays/rulers";
 import PixelGrid from "./canvas/overlays/pixel-grid";
 import Guides from "./canvas/overlays/guides";
@@ -137,19 +136,27 @@ function EditorInner() {
             <div className="p-4">
             <div data-canvas className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200 relative" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
             {body && <Recursive element={body} />}
-            {/* ── Overlays with Penpot-style conditional flags ── */}
+            {/* ── Smart Overlays (priority chain) ──
+              
+              Thought chain:
+              1. Dragging? → hide ALL measurement overlays (they flicker during drag)
+              2. No selection? → show nothing
+              3. Selected + Alt held? → show distance measurements (red lines)
+              4. Selected + CSS grid? → show grid track editor
+              5. High zoom (800%+)? → show pixel grid
+              
+              What we DON'T auto-show:
+              - LayoutGrid (8px grid) — too noisy, covers content
+              - GradientEditor — should be explicit user action
+              - SnapGuides on static selection — only useful during drag
+            */}
             {(() => {
               const isDragging = !!state.editor.dropTarget;
               const hasSel = !!selected;
               const isGrid = hasSel && selected.styles.display === "grid";
               return (<>
-                {/* Distance indicators — Alt key only (Figma behavior) */}
-                {!isDragging && hasSel && <SnapDistances altHeld={altHeld} />}
-                {/* Alignment guides — visible on selection for sibling alignment */}
-                {!isDragging && hasSel && <SnapGuides />}
-                {/* Grid editor — only on CSS grid containers */}
+                {!isDragging && hasSel && altHeld && <SnapDistances altHeld={altHeld} />}
                 {!isDragging && isGrid && <GridEditor />}
-                {/* Pixel grid — only at very high zoom */}
                 <PixelGrid zoom={zoom} />
               </>);
             })()}
