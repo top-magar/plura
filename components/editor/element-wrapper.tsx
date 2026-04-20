@@ -13,6 +13,21 @@ import { resolveStyles } from './types';
 
 // ─── Types ──────────────────────────────────────────────────
 
+/** Parse CSS shorthand (e.g. "16px", "80px 24px", "8px 16px 24px 32px") into [top, right, bottom, left] */
+function parseBox(shorthand: string | undefined, top: string | undefined, right: string | undefined, bottom: string | undefined, left: string | undefined): [number, number, number, number] {
+  const t = parseInt(String(top ?? '')) || 0;
+  const r = parseInt(String(right ?? '')) || 0;
+  const b = parseInt(String(bottom ?? '')) || 0;
+  const l = parseInt(String(left ?? '')) || 0;
+  if (t || r || b || l) return [t, r, b, l];
+  if (!shorthand) return [0, 0, 0, 0];
+  const parts = String(shorthand).split(/\s+/).map(v => parseInt(v) || 0);
+  if (parts.length === 1) return [parts[0], parts[0], parts[0], parts[0]];
+  if (parts.length === 2) return [parts[0], parts[1], parts[0], parts[1]];
+  if (parts.length === 3) return [parts[0], parts[1], parts[2], parts[1]];
+  return [parts[0], parts[1], parts[2], parts[3]];
+}
+
 type Props = {
   element: El;
   children: ReactNode;
@@ -220,10 +235,7 @@ function PaddingHandles({ element, dispatch }: { element: El; dispatch: ReturnTy
   const [active, setActive] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const s = element.styles;
-  const pt = parseInt(String(s.paddingTop ?? s.padding ?? '0')) || 0;
-  const pr = parseInt(String(s.paddingRight ?? s.padding ?? '0')) || 0;
-  const pb = parseInt(String(s.paddingBottom ?? s.padding ?? '0')) || 0;
-  const pl = parseInt(String(s.paddingLeft ?? s.padding ?? '0')) || 0;
+  const [pt, pr, pb, pl] = parseBox(s.padding as string | undefined, s.paddingTop as string | undefined, s.paddingRight as string | undefined, s.paddingBottom as string | undefined, s.paddingLeft as string | undefined);
 
   const sides = [
     { key: 'Top', cls: 'top-0 left-0 right-0 cursor-ns-resize', dir: 'y' as const, sign: -1, val: pt, zone: { top: 0, left: 0, right: 0, height: pt } },
@@ -300,16 +312,13 @@ function MarginHandles({ element, dispatch }: { element: El; dispatch: ReturnTyp
   const [active, setActive] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
   const s = element.styles;
-  const mt = parseInt(String(s.marginTop ?? s.margin ?? '0')) || 0;
-  const mr = parseInt(String(s.marginRight ?? s.margin ?? '0')) || 0;
-  const mb = parseInt(String(s.marginBottom ?? s.margin ?? '0')) || 0;
-  const ml = parseInt(String(s.marginLeft ?? s.margin ?? '0')) || 0;
+  const [mt, mr, mb, ml] = parseBox(s.margin as string | undefined, s.marginTop as string | undefined, s.marginRight as string | undefined, s.marginBottom as string | undefined, s.marginLeft as string | undefined);
 
   const sides = [
-    { key: 'Top', dir: 'y' as const, sign: -1, val: mt, handle: { top: -Math.max(mt, 6), left: 0, right: 0, height: Math.max(mt, 6) }, zone: { top: -mt, left: 0, right: 0, height: mt } },
-    { key: 'Right', dir: 'x' as const, sign: 1, val: mr, handle: { top: 0, right: -Math.max(mr, 6), bottom: 0, width: Math.max(mr, 6) }, zone: { top: 0, right: -mr, bottom: 0, width: mr } },
-    { key: 'Bottom', dir: 'y' as const, sign: 1, val: mb, handle: { bottom: -Math.max(mb, 6), left: 0, right: 0, height: Math.max(mb, 6) }, zone: { bottom: -mb, left: 0, right: 0, height: mb } },
-    { key: 'Left', dir: 'x' as const, sign: -1, val: ml, handle: { top: 0, left: -Math.max(ml, 6), bottom: 0, width: Math.max(ml, 6) }, zone: { top: 0, left: -ml, bottom: 0, width: ml } },
+    { key: 'Top', dir: 'y' as const, sign: -1, val: mt, handle: { top: -mt, left: 0, right: 0, height: mt }, zone: { top: -mt, left: 0, right: 0, height: mt } },
+    { key: 'Right', dir: 'x' as const, sign: 1, val: mr, handle: { top: 0, right: -mr, bottom: 0, width: mr }, zone: { top: 0, right: -mr, bottom: 0, width: mr } },
+    { key: 'Bottom', dir: 'y' as const, sign: 1, val: mb, handle: { bottom: -mb, left: 0, right: 0, height: mb }, zone: { bottom: -mb, left: 0, right: 0, height: mb } },
+    { key: 'Left', dir: 'x' as const, sign: -1, val: ml, handle: { top: 0, left: -ml, bottom: 0, width: ml }, zone: { top: 0, left: -ml, bottom: 0, width: ml } },
   ];
 
   const onPointerDown = (side: string, dir: 'x' | 'y', sign: number) => (e: React.PointerEvent) => {
