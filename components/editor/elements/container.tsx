@@ -43,36 +43,39 @@ function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; 
   const show = dragging || hovered;
 
   // Render a single absolute overlay covering the entire container, only interactive in gap areas
+  // Render a handle between each pair of children
+  const childEls = (Array.isArray(element.content) ? element.content : []) as El[];
+
   return (
-    <div
-      className="absolute inset-0 z-10 pointer-events-none"
-      style={{ display: 'flex', flexDirection: isRow ? 'row' : 'column', gap: `${gap}px` }}
-    >
-      {/* Invisible spacers matching children, gap areas between them are interactive */}
-      <div className="flex-1 pointer-events-none" />
-      <div
-        className={cn(
-          'pointer-events-auto flex items-center justify-center',
-          isRow ? 'cursor-ew-resize' : 'cursor-ns-resize',
-        )}
-        style={isRow ? { width: gap || 4, alignSelf: 'stretch' } : { height: gap || 4, width: '100%' }}
-        onPointerDown={onPointerDown}
-        onPointerEnter={() => setHovered(true)}
-        onPointerLeave={() => setHovered(false)}
-      >
-        {show && (
-          <>
-            <div className={cn('absolute inset-0 rounded-sm', dragging ? 'bg-pink-400/30' : 'bg-pink-400/15')} />
-            <div className={cn('rounded-full', dragging ? 'bg-pink-500 scale-110' : 'bg-pink-400', isRow ? 'w-[4px] h-5' : 'h-[4px] w-5')} />
-          </>
-        )}
-        {dragging && (
-          <span className={cn('absolute rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', isRow ? '-top-5' : '-right-10')}>
-            {gap}px
-          </span>
-        )}
-      </div>
-      <div className="flex-1 pointer-events-none" />
+    <div className="absolute inset-0 z-10 pointer-events-none" style={{ display: 'flex', flexDirection: isRow ? 'row' : 'column' }}>
+      {childEls.map((child, i) => (
+        <div key={child.id} className="contents">
+          {/* Spacer matching child size */}
+          <div className="flex-1 pointer-events-none" />
+          {/* Gap handle between children */}
+          {i < childEls.length - 1 && (
+            <div
+              className={cn('pointer-events-auto flex items-center justify-center relative', isRow ? 'cursor-ew-resize self-stretch' : 'cursor-ns-resize w-full')}
+              style={isRow ? { width: gap || 4 } : { height: gap || 4 }}
+              onPointerDown={onPointerDown}
+              onPointerEnter={() => setHovered(true)}
+              onPointerLeave={() => setHovered(false)}
+            >
+              {show && (
+                <>
+                  <div className={cn('absolute inset-0 rounded-sm', dragging ? 'bg-pink-400/30' : 'bg-pink-400/15')} />
+                  <div className={cn('rounded-full', dragging ? 'bg-pink-500 scale-110' : 'bg-pink-400', isRow ? 'w-[4px] h-5' : 'h-[4px] w-5')} />
+                </>
+              )}
+              {dragging && i === 0 && (
+                <span className={cn('absolute rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', isRow ? '-top-5' : '-right-10')}>
+                  {gap}px
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
