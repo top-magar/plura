@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, ChevronDown } from "lucide-react";
+import { MIcon } from "../m-icon";
 import { componentGroups } from "../element-factory";
 import { useDragOverlay } from "../drag-overlay";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,7 @@ export default function ComponentsTab() {
     <div className="flex flex-1 flex-col overflow-hidden">
       {/* Search */}
       <div className="relative px-2 py-1.5">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground/50" />
+        <MIcon name="search" size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -39,7 +39,7 @@ export default function ComponentsTab() {
                 onClick={() => !q && setCollapsed(p => ({ ...p, [group.label]: !p[group.label] }))}
                 className="flex w-full items-center gap-1 px-1 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
               >
-                <ChevronDown className={cn("size-3 transition-transform", isCollapsed && "-rotate-90")} />
+                <MIcon name="expand_more" size={14} className={cn("transition-transform", isCollapsed && "-rotate-90")} />
                 {group.label}
                 <span className="ml-auto text-[9px] font-normal tabular-nums">{items.length}</span>
               </button>

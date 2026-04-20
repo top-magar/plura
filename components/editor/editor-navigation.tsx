@@ -1,10 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowLeft, Save, Undo2, Redo2, Eye, Laptop, Tablet, Smartphone,
-  ZoomIn, ZoomOut, Globe2, FileCode, Settings,
-} from "lucide-react";
+import { MIcon } from "./m-icon";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -14,10 +11,10 @@ import { cn } from "@/lib/utils";
 import type { Device } from "./types";
 import { useEditor } from "./editor-provider";
 
-const devices: [Device, typeof Laptop][] = [
-  ["Desktop", Laptop],
-  ["Tablet", Tablet],
-  ["Mobile", Smartphone],
+const devices: [Device, string][] = [
+  ["Desktop", "laptop_mac"],
+  ["Tablet", "tablet_mac"],
+  ["Mobile", "smartphone"],
 ];
 
 interface EditorNavigationProps {
@@ -56,7 +53,7 @@ export default function EditorNavigation({
           <Tooltip><TooltipTrigger asChild>
             <Button asChild variant="ghost" size="icon" className="size-7 shrink-0">
               <Link href={`/sub-account/${subAccountId}/funnels/${funnelId}`}>
-                <ArrowLeft className="size-3.5" />
+                <MIcon name="arrow_back" size={14} />
               </Link>
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Back to funnel</TooltipContent></Tooltip>
@@ -72,13 +69,13 @@ export default function EditorNavigation({
           {/* Undo/Redo */}
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-7" onClick={() => dispatch({ type: "UNDO" })} disabled={!canUndo}>
-              <Undo2 className="size-3.5" />
+              <MIcon name="undo" size={14} />
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Undo</TooltipContent></Tooltip>
           <span className="text-[9px] font-mono text-muted-foreground/50 tabular-nums w-5 text-center select-none">{state.history.currentIndex}</span>
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-7" onClick={() => dispatch({ type: "REDO" })} disabled={!canRedo}>
-              <Redo2 className="size-3.5" />
+              <MIcon name="redo" size={14} />
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Redo</TooltipContent></Tooltip>
 
@@ -86,7 +83,7 @@ export default function EditorNavigation({
 
           {/* Device toggle */}
           <div className="flex items-center gap-px rounded-md border border-sidebar-border p-px">
-            {devices.map(([d, Icon]) => (
+            {devices.map(([d, icon]) => (
               <Tooltip key={d}><TooltipTrigger asChild>
                 <button
                   onClick={() => dispatch({ type: "CHANGE_DEVICE", payload: { device: d } })}
@@ -95,7 +92,7 @@ export default function EditorNavigation({
                     device === d && "bg-primary/10 text-primary"
                   )}
                 >
-                  <Icon className="size-3" />
+                  <MIcon name={icon} size={14} />
                 </button>
               </TooltipTrigger><TooltipContent className="text-[10px]">{d}</TooltipContent></Tooltip>
             ))}
@@ -106,13 +103,13 @@ export default function EditorNavigation({
           {/* Zoom */}
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-7" onClick={onZoomOut}>
-              <ZoomOut className="size-3" />
+              <MIcon name="zoom_out" size={14} />
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Zoom out</TooltipContent></Tooltip>
           <span className="w-7 text-center text-[10px] text-muted-foreground/60 tabular-nums select-none">{zoom}%</span>
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-7" onClick={onZoomIn}>
-              <ZoomIn className="size-3" />
+              <MIcon name="zoom_in" size={14} />
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Zoom in</TooltipContent></Tooltip>
         </div>
@@ -121,14 +118,14 @@ export default function EditorNavigation({
         <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-7" onClick={() => dispatch({ type: "TOGGLE_PREVIEW" })}>
-              <Eye className="size-3.5" />
+              <MIcon name="visibility" size={14} />
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Preview</TooltipContent></Tooltip>
           <Dialog>
             <Tooltip><TooltipTrigger asChild>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="icon" className="size-7">
-                  <Settings className="size-3.5" />
+                  <MIcon name="settings" size={14} />
                 </Button>
               </DialogTrigger>
             </TooltipTrigger><TooltipContent className="text-[10px]">Page Settings</TooltipContent></Tooltip>
@@ -156,19 +153,19 @@ export default function EditorNavigation({
           </Dialog>
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-7" onClick={onExportHTML}>
-              <FileCode className="size-3.5" />
+              <MIcon name="code" size={14} />
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Export HTML</TooltipContent></Tooltip>
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-7" onClick={onPublish}>
-              <Globe2 className="size-3.5" />
+              <MIcon name="public" size={14} />
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Publish</TooltipContent></Tooltip>
 
           <Separator orientation="vertical" className="!h-3 !self-auto" />
 
           <Button size="sm" onClick={onSave} className="relative h-7 gap-1 px-3 text-xs">
-            <Save className="size-3" />
+            <MIcon name="save" size={14} />
             {saving ? "Saving" : "Save"}
             {dirty && !saving && <span className="absolute -right-0.5 -top-0.5 size-1.5 rounded-full bg-destructive" />}
           </Button>

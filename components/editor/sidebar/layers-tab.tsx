@@ -1,50 +1,53 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ChevronRight, ChevronDown, Search,
-  Type, Link2, Image, Video, Layout, Columns2, Minus, Square,
-  Quote, Star, Code, List, MapPin, Timer, Navigation,
-  PanelBottom, Share2, CodeXml, ImageIcon, CreditCard, Contact,
-  Heading1, CheckSquare, Rows3, Globe,
-} from "lucide-react";
+import { MIcon } from "../m-icon";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { El } from "../types";
 import { useEditor } from "../editor-provider";
 
-const typeConfig: Record<string, { icon: React.ComponentType<{ size?: number; className?: string }>; color: string; label: string }> = {
-  __body:       { icon: Globe,       color: "#6366f1", label: "Body" },
-  container:    { icon: Square,      color: "#8b5cf6", label: "Container" },
-  "2Col":       { icon: Columns2,    color: "#7c3aed", label: "2 Columns" },
-  "3Col":       { icon: Columns2,    color: "#6d28d9", label: "3 Columns" },
-  "4Col":       { icon: Columns2,    color: "#5b21b6", label: "4 Columns" },
-  text:         { icon: Type,        color: "#3b82f6", label: "Text" },
-  link:         { icon: Link2,       color: "#0ea5e9", label: "Link" },
-  button:       { icon: CheckSquare, color: "#2563eb", label: "Button" },
-  image:        { icon: Image,       color: "#22c55e", label: "Image" },
-  video:        { icon: Video,       color: "#ef4444", label: "Video" },
-  divider:      { icon: Minus,       color: "#94a3b8", label: "Divider" },
-  spacer:       { icon: Layout,      color: "#64748b", label: "Spacer" },
-  quote:        { icon: Quote,       color: "#f59e0b", label: "Quote" },
-  badge:        { icon: Star,        color: "#eab308", label: "Badge" },
-  icon:         { icon: Star,        color: "#ec4899", label: "Icon" },
-  list:         { icon: List,        color: "#06b6d4", label: "List" },
-  code:         { icon: Code,        color: "#10b981", label: "Code" },
-  accordion:    { icon: ChevronDown, color: "#f97316", label: "Accordion" },
-  tabs:         { icon: Rows3,       color: "#fb923c", label: "Tabs" },
-  countdown:    { icon: Timer,       color: "#e11d48", label: "Countdown" },
-  navbar:       { icon: Navigation,  color: "#4f46e5", label: "Navbar" },
-  footer:       { icon: PanelBottom, color: "#475569", label: "Footer" },
-  embed:        { icon: CodeXml,     color: "#a855f7", label: "Embed" },
-  socialIcons:  { icon: Share2,      color: "#14b8a6", label: "Social" },
-  map:          { icon: MapPin,      color: "#16a34a", label: "Map" },
-  gallery:      { icon: ImageIcon,   color: "#84cc16", label: "Gallery" },
-  contactForm:  { icon: Contact,     color: "#0891b2", label: "Form" },
-  paymentForm:  { icon: CreditCard,  color: "#d97706", label: "Payment" },
+const typeConfig: Record<string, { icon: string; color: string; label: string }> = {
+  __body:       { icon: "public",           color: "#6366f1", label: "Body" },
+  container:    { icon: "check_box_outline_blank", color: "#8b5cf6", label: "Container" },
+  section:      { icon: "view_agenda",      color: "#7c3aed", label: "Section" },
+  row:          { icon: "view_column",       color: "#6d28d9", label: "Row" },
+  column:       { icon: "view_stream",       color: "#5b21b6", label: "Column" },
+  "2Col":       { icon: "view_column",       color: "#7c3aed", label: "2 Columns" },
+  "3Col":       { icon: "view_column",       color: "#6d28d9", label: "3 Columns" },
+  "4Col":       { icon: "view_column",       color: "#5b21b6", label: "4 Columns" },
+  grid:         { icon: "grid_view",         color: "#5b21b6", label: "Grid" },
+  header:       { icon: "web_asset",         color: "#7c3aed", label: "Header" },
+  card:         { icon: "crop_portrait",     color: "#8b5cf6", label: "Card" },
+  hero:         { icon: "featured_video",    color: "#6366f1", label: "Hero" },
+  text:         { icon: "text_fields",       color: "#3b82f6", label: "Text" },
+  heading:      { icon: "title",             color: "#3b82f6", label: "Heading" },
+  subheading:   { icon: "text_format",       color: "#60a5fa", label: "Subheading" },
+  link:         { icon: "link",              color: "#0ea5e9", label: "Link" },
+  button:       { icon: "smart_button",      color: "#2563eb", label: "Button" },
+  image:        { icon: "image",             color: "#22c55e", label: "Image" },
+  video:        { icon: "videocam",          color: "#ef4444", label: "Video" },
+  divider:      { icon: "horizontal_rule",   color: "#94a3b8", label: "Divider" },
+  spacer:       { icon: "space_bar",         color: "#64748b", label: "Spacer" },
+  quote:        { icon: "format_quote",      color: "#f59e0b", label: "Quote" },
+  badge:        { icon: "verified",          color: "#eab308", label: "Badge" },
+  icon:         { icon: "star",              color: "#ec4899", label: "Icon" },
+  list:         { icon: "format_list_bulleted", color: "#06b6d4", label: "List" },
+  code:         { icon: "code",              color: "#10b981", label: "Code" },
+  accordion:    { icon: "expand_more",       color: "#f97316", label: "Accordion" },
+  tabs:         { icon: "tab",               color: "#fb923c", label: "Tabs" },
+  countdown:    { icon: "timer",             color: "#e11d48", label: "Countdown" },
+  navbar:       { icon: "menu",              color: "#4f46e5", label: "Navbar" },
+  footer:       { icon: "call_to_action",    color: "#475569", label: "Footer" },
+  embed:        { icon: "code",              color: "#a855f7", label: "Embed" },
+  socialIcons:  { icon: "share",             color: "#14b8a6", label: "Social" },
+  map:          { icon: "location_on",       color: "#16a34a", label: "Map" },
+  gallery:      { icon: "photo_library",     color: "#84cc16", label: "Gallery" },
+  contactForm:  { icon: "contact_mail",      color: "#0891b2", label: "Form" },
+  paymentForm:  { icon: "credit_card",       color: "#d97706", label: "Payment" },
 };
 
-const fallback = { icon: Square, color: "#64748b", label: "Element" };
+const fallback = { icon: "widgets", color: "#64748b", label: "Element" };
 
 function matchesChild(el: El, filter: string): boolean {
   if (!filter) return true;
@@ -64,7 +67,7 @@ function LayerNode({ el, depth, filter }: { el: El; depth: number; filter: strin
   const [expanded, setExpanded] = useState(depth < 2 || !!filter);
   const isSel = selected?.id === el.id;
   const config = typeConfig[el.type] || fallback;
-  const Icon = config.icon;
+  const iconName = config.icon;
 
   if (filter && !matchesFilter && !childrenMatch) return null;
 
@@ -80,12 +83,12 @@ function LayerNode({ el, depth, filter }: { el: El; depth: number; filter: strin
       >
         {hasChildren ? (
           <span onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }} className="flex size-4 shrink-0 items-center justify-center">
-            {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
+            {expanded ? <MIcon name="expand_more" size={12} /> : <MIcon name="chevron_right" size={12} />}
           </span>
         ) : (
           <span className="size-4 shrink-0" />
         )}
-        <span style={{ color: config.color }} className="flex shrink-0"><Icon size={12} /></span>
+        <span style={{ color: config.color }} className="flex shrink-0"><MIcon name={iconName} size={12} /></span>
         <span className="truncate">{el.name}</span>
         {hasChildren && <span className="ml-auto shrink-0 text-[9px] text-muted-foreground">{children.length}</span>}
       </button>
@@ -103,7 +106,7 @@ export default function LayersTab() {
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="p-2 pb-1">
         <div className="relative">
-          <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <MIcon name="search" size={12} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}

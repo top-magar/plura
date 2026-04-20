@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PanelRightClose, PanelRightOpen } from "lucide-react";
+import { MIcon } from "../m-icon";
 import { cn } from "@/lib/utils";
 import { useEditor } from "../editor-provider";
 import SettingsTab from "./settings-tab";
@@ -24,7 +24,7 @@ export default function RightPanel() {
           <div className="flex h-10 items-center justify-between border-b border-sidebar-border px-3">
             <span className="text-xs font-medium">{selected ? "Properties" : "Shortcuts"}</span>
             <button onClick={() => setCollapsed(true)} className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent">
-              <PanelRightClose className="size-4" />
+              <MIcon name="right_panel_close" size={16} />
             </button>
           </div>
 
@@ -53,7 +53,7 @@ export default function RightPanel() {
       {collapsed && (
         <div className="flex w-12 flex-col items-center border-l border-sidebar-border bg-sidebar py-2">
           <button onClick={() => setCollapsed(false)} className="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent">
-            <PanelRightOpen className="size-4" />
+            <MIcon name="right_panel_open" size={16} />
           </button>
         </div>
       )}

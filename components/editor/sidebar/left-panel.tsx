@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Layout, Layers, Bookmark } from "lucide-react";
+import { MIcon } from "../m-icon";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import ComponentsTab from "./components-tab";
@@ -10,10 +10,10 @@ import TemplatesTab from "./templates-tab";
 
 type Tab = "components" | "layers" | "templates";
 
-const tabs: { id: Tab; label: string; icon: typeof Layout }[] = [
-  { id: "components", label: "Components", icon: Layout },
-  { id: "layers", label: "Layers", icon: Layers },
-  { id: "templates", label: "Templates", icon: Bookmark },
+const tabs: { id: Tab; label: string; icon: string }[] = [
+  { id: "components", label: "Components", icon: "dashboard" },
+  { id: "layers", label: "Layers", icon: "layers" },
+  { id: "templates", label: "Templates", icon: "bookmark" },
 ];
 
 export default function LeftPanel() {
@@ -26,7 +26,7 @@ export default function LeftPanel() {
       {/* Icon rail */}
       <TooltipProvider delayDuration={200}>
         <div className="flex w-12 flex-col items-center gap-1 bg-sidebar py-2">
-          {tabs.map(({ id, label, icon: Icon }) => (
+          {tabs.map(({ id, label, icon }) => (
             <Tooltip key={id}>
               <TooltipTrigger asChild>
                 <button
@@ -36,7 +36,7 @@ export default function LeftPanel() {
                     active === id && "bg-primary/10 text-primary"
                   )}
                 >
-                  <Icon className="size-4" />
+                  <MIcon name={icon} size={16} />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right" className="text-[10px]">{label}</TooltipContent>

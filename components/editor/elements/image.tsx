@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ImageIcon } from "lucide-react";
+import { MIcon } from "../m-icon";
 import ElementWrapper from "../element-wrapper";
 import type { El } from "../types";
 
@@ -14,7 +14,7 @@ export default function ImageElement({ element }: { element: El }): ReactNode {
         <img src={c.src} alt={element.name} className="block w-full" />
       ) : (
         <div className="flex w-full flex-col items-center justify-center gap-2 bg-muted/50 py-12 text-muted-foreground">
-          <ImageIcon size={24} />
+          <MIcon name="image" size={24} />
           <span className="text-xs">Add image</span>
         </div>
       )}

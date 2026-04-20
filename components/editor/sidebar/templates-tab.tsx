@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bookmark, Trash2 } from "lucide-react";
+import { MIcon } from "../m-icon";
 import { toast } from "sonner";
 import { savePageTemplate, getPageTemplates, deletePageTemplate } from "@/lib/queries";
 import { useEditor } from "../editor-provider";
@@ -53,7 +53,7 @@ export default function TemplatesTab() {
         onClick={handleSave}
         className="mb-2 flex w-full items-center justify-center gap-2 rounded-md border border-sidebar-border bg-sidebar p-2 text-xs transition-colors hover:bg-sidebar-accent"
       >
-        <Bookmark size={14} /> Save Current Page
+        <MIcon name="bookmark" size={14} /> Save Current Page
       </button>
       {templates.length === 0 && (
         <div className="py-8 text-center text-xs text-muted-foreground">No saved templates yet.</div>
@@ -65,7 +65,7 @@ export default function TemplatesTab() {
             <div className="text-[10px] text-muted-foreground">{t.category}</div>
           </button>
           <button onClick={() => handleDelete(t.id)} className="shrink-0 p-1 text-destructive hover:text-destructive/80">
-            <Trash2 size={12} />
+            <MIcon name="delete" size={12} />
           </button>
         </div>
       ))}

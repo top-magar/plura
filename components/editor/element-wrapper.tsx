@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { GripVertical, Trash2, Copy, ChevronUp, ChevronDown, Lock, Clipboard, ClipboardPaste, Eye, EyeOff as EyeOffIcon, LockOpen } from 'lucide-react';
+import { MIcon } from './m-icon';
 import { useEditor } from './editor-provider';
 import { findParentId, cloneEl } from './tree-helpers';
 import { useDragOverlay } from './drag-overlay';
@@ -113,15 +113,15 @@ function Toolbar({ element, dispatch, elements }: { element: El; dispatch: Retur
   const { start } = useDragOverlay();
   return (
     <div className="absolute -top-7 left-0 z-30 flex items-center gap-px rounded-md bg-primary text-primary-foreground shadow-md text-[9px] leading-none overflow-hidden" onClick={(e) => e.stopPropagation()}>
-      <span className="flex items-center px-1 py-1 cursor-grab hover:bg-primary-foreground/10 active:cursor-grabbing" draggable onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); start(element.name, e); }}><GripVertical className="size-3" /></span>
-      {element.locked && <Lock className="size-2.5 mx-0.5 text-amber-300" />}
+      <span className="flex items-center px-1 py-1 cursor-grab hover:bg-primary-foreground/10 active:cursor-grabbing" draggable onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); start(element.name, e); }}><MIcon name="drag_indicator" size={14} /></span>
+      {element.locked && <MIcon name="lock" size={12} className="mx-0.5 text-amber-300" />}
       <span className="px-1 py-1 max-w-[80px] truncate pointer-events-none select-none">{element.name}</span>
       <span className="w-px h-3 bg-primary-foreground/20" />
-      <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'up' } })}><ChevronUp className="size-3" /></button>
-      <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'down' } })}><ChevronDown className="size-3" /></button>
+      <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'up' } })}><MIcon name="expand_less" size={14} /></button>
+      <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'down' } })}><MIcon name="expand_more" size={14} /></button>
       <span className="w-px h-3 bg-primary-foreground/20" />
-      {parentId && <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'DUPLICATE_ELEMENT', payload: { elId: element.id, containerId: parentId } })}><Copy className="size-2.5" /></button>}
-      <button className="flex items-center px-1 py-1 hover:bg-destructive/80 hover:text-destructive-foreground" onClick={() => dispatch({ type: 'DELETE_ELEMENT', payload: { id: element.id } })}><Trash2 className="size-2.5" /></button>
+      {parentId && <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'DUPLICATE_ELEMENT', payload: { elId: element.id, containerId: parentId } })}><MIcon name="content_copy" size={12} /></button>}
+      <button className="flex items-center px-1 py-1 hover:bg-destructive/80 hover:text-destructive-foreground" onClick={() => dispatch({ type: 'DELETE_ELEMENT', payload: { id: element.id } })}><MIcon name="delete" size={12} /></button>
     </div>
   );
 }
@@ -278,10 +278,10 @@ export default function ElementWrapper({ element, children, className, style, is
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={() => dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, locked: !element.locked } } })}>
-          {element.locked ? <><LockOpen className="size-3.5 mr-2" /> Unlock</> : <><Lock className="size-3.5 mr-2" /> Lock</>}
+          {element.locked ? <><MIcon name="lock_open" size={14} className="mr-2" /> Unlock</> : <><MIcon name="lock" size={14} className="mr-2" /> Lock</>}
         </ContextMenuItem>
         <ContextMenuItem onClick={() => dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, hidden: !element.hidden } } })}>
-          {element.hidden ? <><Eye className="size-3.5 mr-2" /> Show</> : <><EyeOffIcon className="size-3.5 mr-2" /> Hide</>}
+          {element.hidden ? <><MIcon name="visibility" size={14} className="mr-2" /> Show</> : <><MIcon name="visibility_off" size={14} className="mr-2" /> Hide</>}
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem className="text-destructive focus:text-destructive" onClick={() => dispatch({ type: 'DELETE_ELEMENT', payload: { id: element.id } })}>

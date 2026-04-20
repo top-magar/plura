@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef, type CSSProperties } from "react";
-import { EyeOff } from "lucide-react";
+import { MIcon } from "./m-icon";
 import { toast } from "sonner";
 import { upsertFunnelPage, upsertFunnel } from "@/lib/queries";
 import type { El, EditorProps } from "./types";
@@ -225,7 +225,7 @@ function EditorInner() {
 
       {preview && (
         <button onClick={() => dispatch({ type: "TOGGLE_PREVIEW" })} className="fixed left-4 top-4 z-[100] flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-90">
-          <EyeOff size={14} /> Exit Preview
+          <MIcon name="visibility_off" size={14} /> Exit Preview
         </button>
       )}
     </div>
