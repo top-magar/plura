@@ -36,15 +36,17 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         // Row: left/right of midpoint = before/after
         if (e.clientX < rect.left + rect.width / 2) return { index: i, side: null };
       } else {
-        // Column: check if cursor is on left/right edge (within 25% of width)
-        const edgeZone = rect.width * 0.25;
+        // Column: check if cursor is on left/right edge first
         const inVerticalRange = e.clientY >= rect.top && e.clientY <= rect.bottom;
 
-        if (inVerticalRange && e.clientX < rect.left + edgeZone) {
-          return { index: i, side: "left", siblingId: els[i].getAttribute("data-el-id") ?? undefined };
-        }
-        if (inVerticalRange && e.clientX > rect.right - edgeZone) {
-          return { index: i, side: "right", siblingId: els[i].getAttribute("data-el-id") ?? undefined };
+        if (inVerticalRange) {
+          const edgeZone = Math.max(rect.width * 0.35, 40); // 35% or at least 40px
+          if (e.clientX < rect.left + edgeZone) {
+            return { index: i, side: "left" as const, siblingId: els[i].getAttribute("data-el-id") ?? undefined };
+          }
+          if (e.clientX > rect.right - edgeZone) {
+            return { index: i, side: "right" as const, siblingId: els[i].getAttribute("data-el-id") ?? undefined };
+          }
         }
         // Normal top/bottom
         if (e.clientY < rect.top + rect.height / 2) return { index: i, side: null };
