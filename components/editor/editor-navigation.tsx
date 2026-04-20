@@ -22,6 +22,7 @@ interface EditorNavigationProps {
   pageTitle: string;
   onPageTitleChange: (v: string) => void;
   dirty: boolean;
+  saving: boolean;
   zoom: number;
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -31,7 +32,7 @@ interface EditorNavigationProps {
 }
 
 export default function EditorNavigation({
-  pageTitle, onPageTitleChange, dirty, zoom,
+  pageTitle, onPageTitleChange, dirty, saving, zoom,
   onZoomIn, onZoomOut, onSave, onExportHTML, onPublish,
 }: EditorNavigationProps) {
   const { state, dispatch, subAccountId, funnelId } = useEditor();
@@ -124,8 +125,10 @@ export default function EditorNavigation({
 
           <Button size="sm" onClick={onSave} className="relative gap-1 text-xs">
             <Save className="size-3.5" /> Save
-            {dirty && <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-destructive" />}
+            {dirty && !saving && <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-destructive" />}
           </Button>
+          {saving && <span className="text-[10px] text-muted-foreground animate-pulse">Saving...</span>}
+          {!saving && !dirty && <span className="text-[10px] text-emerald-500">Saved</span>}
         </div>
       </TooltipProvider>
     </div>

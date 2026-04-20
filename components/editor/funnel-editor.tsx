@@ -29,6 +29,7 @@ function EditorInner() {
   const preview = state.editor.preview;
 
   const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [clipboard, setClipboard] = useState<El | null>(null);
   const [styleClipboard, setStyleClipboard] = useState<CSSProperties | null>(null);
   const [pageTitle, setPageTitle] = useState(pageName);
@@ -40,9 +41,10 @@ function EditorInner() {
     if (!dirty) return;
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => {
+      setSaving(true);
       upsertFunnelPage({ id: pageId, name: pageTitle, funnelId, order: 0, content: JSON.stringify(elements) })
-        .then(() => { setDirty(false); toast.success("Auto-saved"); })
-        .catch(() => {});
+        .then(() => { setDirty(false); setSaving(false); })
+        .catch(() => { setSaving(false); });
     }, 5000);
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
   }, [dirty, elements, pageTitle, pageId, funnelId]);
@@ -147,6 +149,7 @@ function EditorInner() {
           pageTitle={pageTitle}
           onPageTitleChange={(v) => { setPageTitle(v); setDirty(true); }}
           dirty={dirty}
+          saving={saving}
           zoom={zoom}
           onZoomIn={() => setZoom((z) => Math.min(200, z + 10))}
           onZoomOut={() => setZoom((z) => Math.max(50, z - 10))}

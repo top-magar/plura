@@ -5,6 +5,7 @@ import {
   ChevronDown, GripVertical, Heading1, Heading2, List, SeparatorHorizontal,
   Square, Code, Quote, Star, MapPin, Phone, Globe, CheckSquare, Minus, Timer,
   PanelBottom, Share2, CodeXml, ImageIcon, Navigation, Rows3, Bookmark,
+  LayoutGrid, PanelTop, RectangleHorizontal,
 } from "lucide-react";
 
 export function makeEl(type: string): El | null {
@@ -18,8 +19,8 @@ export function makeEl(type: string): El | null {
     image: () => ({ id, type: "image", name: "Image", styles: { width: "100%", objectFit: "cover" }, content: { src: "", alt: "Image" } }),
     video: () => ({ id, type: "video", name: "Video", styles: { width: "100%" }, content: { src: "https://www.youtube.com/embed/dQw4w9WgXcQ" } }),
     container: () => ({ id, type: "container", name: "Container", styles: { display: "flex", flexDirection: "column", gap: "8px", padding: "16px", width: "100%" }, content: [] }),
-    row: () => ({ id, type: "container", name: "Row", styles: { display: "flex", flexDirection: "row", gap: "16px", width: "100%", alignItems: "center" }, content: [] }),
-    column: () => ({ id, type: "container", name: "Column", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] }),
+    row: () => ({ id, type: "row", name: "Row", styles: { display: "flex", flexDirection: "row", gap: "16px", width: "100%", alignItems: "center" }, content: [] }),
+    column: () => ({ id, type: "column", name: "Column", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] }),
     section: () => ({ id, type: "container", name: "Section", styles: { display: "flex", flexDirection: "column", gap: "16px", padding: "64px 24px", maxWidth: "1200px", margin: "0 auto", width: "100%" }, content: [] }),
     "2Col": () => ({ id, type: "2Col", name: "2 Columns", styles: { display: "flex", gap: "16px", width: "100%" }, content: [
       { id: v4(), type: "container", name: "Col 1", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
@@ -36,7 +37,7 @@ export function makeEl(type: string): El | null {
       { id: v4(), type: "container", name: "Col 3", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
       { id: v4(), type: "container", name: "Col 4", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
     ]}),
-    divider: () => ({ id, type: "divider", name: "Divider", styles: { borderTop: "1px solid #333", margin: "16px 0" }, content: {} }),
+    divider: () => ({ id, type: "divider", name: "Divider", styles: { borderTop: "1px solid currentColor", margin: "16px 0", opacity: "0.2" }, content: {} }),
     spacer: () => ({ id, type: "spacer", name: "Spacer", styles: { height: "48px" }, content: {} }),
     quote: () => ({ id, type: "quote", name: "Quote", styles: { padding: "16px 24px", borderLeft: "3px solid #6366f1", fontStyle: "italic", fontSize: "18px" }, content: { innerText: "This is a quote block" } }),
     badge: () => ({ id, type: "badge", name: "Badge", styles: { display: "inline-block", padding: "4px 12px", fontSize: "12px", fontWeight: "600", backgroundColor: "#6366f1", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.5px" }, content: { innerText: "New" } }),
@@ -44,7 +45,7 @@ export function makeEl(type: string): El | null {
     code: () => ({ id, type: "code", name: "Code Block", styles: { padding: "16px", backgroundColor: "#111", fontFamily: "monospace", fontSize: "13px", whiteSpace: "pre-wrap", overflow: "auto" }, content: { innerText: "const hello = 'world';" } }),
     contactForm: () => ({ id, type: "contactForm", name: "Contact Form", styles: { padding: "16px" }, content: {} }),
     paymentForm: () => ({ id, type: "paymentForm", name: "Payment", styles: { padding: "16px" }, content: {} }),
-    hero: () => ({ id, type: "container", name: "Hero", styles: { padding: "80px 24px", textAlign: "center" }, content: [
+    hero: () => ({ id, type: "hero", name: "Hero", styles: { padding: "80px 24px", textAlign: "center" }, content: [
       { id: v4(), type: "text", name: "Hero Title", styles: { fontSize: "48px", fontWeight: "800", lineHeight: "1.1", marginBottom: "16px" }, content: { innerText: "Build Something Amazing" } },
       { id: v4(), type: "text", name: "Hero Subtitle", styles: { fontSize: "18px", opacity: "0.6", maxWidth: "600px", margin: "0 auto 32px" }, content: { innerText: "Create beautiful websites and funnels with our drag-and-drop builder." } },
       { id: v4(), type: "button", name: "Hero CTA", styles: { padding: "14px 32px", backgroundColor: "#6366f1", color: "#ffffff", fontSize: "16px", fontWeight: "600", display: "inline-block" }, content: { innerText: "Get Started", href: "#" } },
@@ -77,7 +78,12 @@ export function makeEl(type: string): El | null {
       { title: "Tab 3", body: "Content for the third tab." },
     ])} }),
     navbar: () => ({ id, type: "navbar", name: "Navbar", styles: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 24px" }, content: { brand: "Brand", links: "Home,About,Services,Contact" } }),
-    footer: () => ({ id, type: "footer", name: "Footer", styles: { padding: "32px 24px", textAlign: "center", fontSize: "13px", opacity: "0.5" }, content: { innerText: "© 2026 Your Company. All rights reserved." } }),
+    footer: () => ({ id, type: "footer", name: "Footer", styles: { display: "flex", flexDirection: "column", gap: "8px", padding: "32px 24px", textAlign: "center", width: "100%", marginTop: "auto" }, content: [
+      { id: v4(), type: "text", name: "Copyright", styles: { fontSize: "13px", opacity: "0.5", width: "100%" }, content: { innerText: "© 2026 Your Company. All rights reserved." } },
+    ] as El[] }),
+    grid: () => ({ id, type: "grid", name: "Grid", styles: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", padding: "16px", width: "100%" }, content: [] }),
+    header: () => ({ id, type: "header", name: "Header", styles: { display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", width: "100%", position: "sticky", top: "0", zIndex: "10", backgroundColor: "#ffffff" }, content: [] }),
+    card: () => ({ id, type: "card", name: "Card", styles: { display: "flex", flexDirection: "column", gap: "12px", padding: "24px", borderRadius: "12px", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }, content: [] }),
     embed: () => ({ id, type: "embed", name: "Embed", styles: { padding: "16px", minHeight: "60px" }, content: { code: "<p style='color:#888;text-align:center'>Paste HTML here</p>" } }),
     socialIcons: () => ({ id, type: "socialIcons", name: "Social Icons", styles: { display: "flex", gap: "12px", justifyContent: "center", padding: "16px", fontSize: "20px" }, content: { platforms: "X,Facebook,Instagram,LinkedIn,YouTube" } }),
     map: () => ({ id, type: "map", name: "Map", styles: { width: "100%", height: "300px" }, content: { address: "New York, NY", zoom: "13" } }),
@@ -165,6 +171,9 @@ export const componentGroups = [
     { type: "2Col", label: "2 Columns", icon: Columns2, color: "#6d28d9" },
     { type: "3Col", label: "3 Columns", icon: Columns3, color: "#6d28d9" },
     { type: "4Col", label: "4 Columns", icon: GripVertical, color: "#5b21b6" },
+    { type: "grid", label: "Grid", icon: LayoutGrid, color: "#5b21b6" },
+    { type: "header", label: "Header", icon: PanelTop, color: "#7c3aed" },
+    { type: "card", label: "Card", icon: RectangleHorizontal, color: "#8b5cf6" },
     { type: "divider", label: "Divider", icon: Minus, color: "#94a3b8" },
     { type: "spacer", label: "Spacer", icon: SeparatorHorizontal, color: "#64748b" },
   ]},
