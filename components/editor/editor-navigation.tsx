@@ -75,7 +75,7 @@ export default function EditorNavigation({
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Redo</TooltipContent></Tooltip>
 
-          <Separator orientation="vertical" className="h-3" />
+          <Separator orientation="vertical" className="!h-3 !self-auto" />
 
           {/* Device toggle */}
           <div className="flex items-center gap-px rounded-md border border-sidebar-border p-px">
@@ -94,7 +94,7 @@ export default function EditorNavigation({
             ))}
           </div>
 
-          <Separator orientation="vertical" className="h-3" />
+          <Separator orientation="vertical" className="!h-3 !self-auto" />
 
           {/* Zoom */}
           <Tooltip><TooltipTrigger asChild>
@@ -128,7 +128,7 @@ export default function EditorNavigation({
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Publish</TooltipContent></Tooltip>
 
-          <Separator orientation="vertical" className="h-3" />
+          <Separator orientation="vertical" className="!h-3 !self-auto" />
 
           <Button size="sm" onClick={onSave} className="relative h-7 gap-1 px-3 text-xs">
             <Save className="size-3" />
