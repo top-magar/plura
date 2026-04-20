@@ -16,12 +16,15 @@ function rgbToHsv(r: number, g: number, b: number): [number, number, number] {
   const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
   let h = 0;
   if (d) { if (max === r) h = ((g - b) / d + 6) % 6; else if (max === g) h = (b - r) / d + 2; else h = (r - g) / d + 4; h *= 60; }
-  return [h, max ? d / max : 0, max];
+  return [h || 0, max ? d / max : 0, max || 0];
 }
 
 function hexToRgb(hex: string): [number, number, number] {
-  const m = hex.replace('#', '').match(/.{2}/g);
-  return m ? [parseInt(m[0], 16), parseInt(m[1], 16), parseInt(m[2], 16)] : [0, 0, 0];
+  const clean = (hex || '').replace('#', '');
+  if (clean.length !== 6) return [0, 0, 0];
+  const m = clean.match(/.{2}/g);
+  if (!m) return [0, 0, 0];
+  return [parseInt(m[0], 16) || 0, parseInt(m[1], 16) || 0, parseInt(m[2], 16) || 0];
 }
 
 function rgbToHex(r: number, g: number, b: number): string {
@@ -217,27 +220,28 @@ function HSVASliders({ h, s, v, alpha, onChange }: { h: number; s: number; v: nu
 
 function ColorInputs({ hex, r, g, b, alpha, onChange }: { hex: string; r: number; g: number; b: number; alpha: number; onChange: (c: { hex?: string; r?: number; g?: number; b?: number; alpha?: number }) => void }) {
   const inp = "h-5 w-full rounded border border-border bg-background px-1 text-[9px] text-center tabular-nums focus:outline-none focus:ring-1 focus:ring-primary/50";
+  const safe = (v: number, fallback = 0) => (Number.isFinite(v) ? v : fallback);
   return (
     <div className="flex gap-1.5 items-end">
       <div className="flex-[2]">
         <label className="text-[8px] text-muted-foreground/50 block mb-0.5">HEX</label>
-        <input className={inp} defaultValue={hex} onBlur={(e) => { const v = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value; if (/^#[0-9a-f]{6}$/i.test(v)) onChange({ hex: v }); }} />
+        <input className={inp} defaultValue={hex || '#000000'} onBlur={(e) => { const v = e.target.value.startsWith('#') ? e.target.value : '#' + e.target.value; if (/^#[0-9a-f]{6}$/i.test(v)) onChange({ hex: v }); }} />
       </div>
       <div className="flex-1">
         <label className="text-[8px] text-muted-foreground/50 block mb-0.5">R</label>
-        <input type="number" min={0} max={255} className={inp} defaultValue={r} onChange={(e) => onChange({ r: +e.target.value })} />
+        <input type="number" min={0} max={255} className={inp} defaultValue={safe(r)} onChange={(e) => onChange({ r: +e.target.value })} />
       </div>
       <div className="flex-1">
         <label className="text-[8px] text-muted-foreground/50 block mb-0.5">G</label>
-        <input type="number" min={0} max={255} className={inp} defaultValue={g} onChange={(e) => onChange({ g: +e.target.value })} />
+        <input type="number" min={0} max={255} className={inp} defaultValue={safe(g)} onChange={(e) => onChange({ g: +e.target.value })} />
       </div>
       <div className="flex-1">
         <label className="text-[8px] text-muted-foreground/50 block mb-0.5">B</label>
-        <input type="number" min={0} max={255} className={inp} defaultValue={b} onChange={(e) => onChange({ b: +e.target.value })} />
+        <input type="number" min={0} max={255} className={inp} defaultValue={safe(b)} onChange={(e) => onChange({ b: +e.target.value })} />
       </div>
       <div className="flex-1">
         <label className="text-[8px] text-muted-foreground/50 block mb-0.5">A</label>
-        <input type="number" min={0} max={100} className={inp} defaultValue={Math.round(alpha * 100)} onChange={(e) => onChange({ alpha: +e.target.value / 100 })} />
+        <input type="number" min={0} max={100} className={inp} defaultValue={Math.round(safe(alpha, 1) * 100)} onChange={(e) => onChange({ alpha: +e.target.value / 100 })} />
       </div>
     </div>
   );
