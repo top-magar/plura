@@ -16,10 +16,10 @@ export default function ComponentsTab() {
                 key={type}
                 draggable
                 onDragStart={(e) => e.dataTransfer.setData("componentType", type)}
-                className="flex cursor-grab items-center gap-2 rounded-md border border-sidebar-border bg-sidebar p-2 text-xs transition-colors hover:bg-sidebar-accent active:cursor-grabbing"
+                className="flex cursor-grab items-center gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-xs shadow-sm transition-all hover:shadow-md hover:border-border active:cursor-grabbing active:scale-[0.97]"
               >
-                <span style={{ color }}><Icon size={14} /></span>
-                <span className="truncate">{label}</span>
+                <span className="text-muted-foreground"><Icon size={14} /></span>
+                <span className="truncate font-medium">{label}</span>
               </div>
             ))}
           </div>
