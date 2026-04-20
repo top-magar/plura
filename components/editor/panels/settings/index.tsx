@@ -189,7 +189,24 @@ export default function SettingsTab() {
                       )}
                       {m.type === "url" && (
                         <>
-                          <Input value={val} onChange={(e) => setVal(e.target.value)} className="h-6 text-[10px]" placeholder="https://..." />
+                          <div className="flex gap-1">
+                            <Input value={val} onChange={(e) => setVal(e.target.value)} className="h-6 text-[10px] flex-1" placeholder="https://..." />
+                            <label className="flex h-6 items-center gap-1 rounded-md border border-sidebar-border px-2 text-[9px] text-muted-foreground hover:bg-sidebar-accent cursor-pointer transition-colors shrink-0">
+                              <MIcon name="upload" size={12} />
+                              <input type="file" accept="image/*,video/*" className="hidden" onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                try {
+                                  const fd = new FormData();
+                                  fd.append("file", file);
+                                  const res = await fetch("/api/upload", { method: "POST", body: fd });
+                                  const data = await res.json();
+                                  if (data.url) setVal(data.url);
+                                } catch { /* ignore */ }
+                                e.target.value = "";
+                              }} />
+                            </label>
+                          </div>
                           {key === "src" && val && (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img src={val} alt="" className="mt-1.5 rounded border border-sidebar-border max-h-20 w-full object-cover" />
