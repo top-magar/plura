@@ -392,88 +392,49 @@ export default function SettingsTab() {
           <Section title="Layout" icon="grid_view">
             <div className="space-y-2.5">
               {/* Sizing Mode */}
-              <div>
-                <label className="mb-1 block text-[10px] text-sidebar-foreground/50">Width Sizing</label>
-                <IconToggle
-                  value={get("width") === "fit-content" ? "hug" : get("width") === "100%" || get("flex") === "1" ? "fill" : "fixed"}
-                  options={[
-                    { value: "hug", label: "Hug Content", icon: <MIcon name="fit_screen" /> },
-                    { value: "fill", label: "Fill Container", icon: <MIcon name="expand" /> },
-                    { value: "fixed", label: "Fixed Width", icon: <MIcon name="remove" /> },
-                  ]}
-                  onChange={(v) => {
-                    if (v === "hug") { set("width", "fit-content"); set("flex", ""); }
-                    else if (v === "fill") { set("width", "100%"); set("flex", ""); }
-                    else { set("width", "auto"); set("flex", ""); }
-                  }}
-                />
-              </div>
-              {/* W × H */}
-              <div className="flex gap-1.5">
-                <div className="flex-1">
-                  <div className="flex items-center gap-1 mb-0.5">
-                    <span className="text-[9px] font-medium text-sidebar-foreground/40 w-3">W</span>
-                  </div>
-                  <Input value={get("width")} onChange={(e) => set("width", e.target.value)} className="h-7 text-xs" placeholder="auto" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-1 mb-0.5">
-                    <span className="text-[9px] font-medium text-sidebar-foreground/40 w-3">H</span>
-                  </div>
-                  <Input value={get("height")} onChange={(e) => set("height", e.target.value)} className="h-7 text-xs" placeholder="auto" />
-                </div>
-              </div>
+              <IconToggle
+                value={get("width") === "fit-content" ? "hug" : get("width") === "100%" || get("flex") === "1" ? "fill" : "fixed"}
+                options={[
+                  { value: "hug", label: "Hug Content", icon: <MIcon name="fit_screen" /> },
+                  { value: "fill", label: "Fill Container", icon: <MIcon name="expand" /> },
+                  { value: "fixed", label: "Fixed Width", icon: <MIcon name="remove" /> },
+                ]}
+                onChange={(v) => {
+                  if (v === "hug") { set("width", "fit-content"); set("flex", ""); }
+                  else if (v === "fill") { set("width", "100%"); set("flex", ""); }
+                  else { set("width", "auto"); set("flex", ""); }
+                }}
+              />
 
-              {/* Min / Max row */}
-              <div className="flex gap-1.5">
-                <div className="flex-1">
-                  <span className="text-[8px] text-sidebar-foreground/35 mb-0.5 block">Min W</span>
-                  <Input value={get("minWidth")} onChange={(e) => set("minWidth", e.target.value)} className="h-6 text-[10px]" placeholder="—" />
-                </div>
-                <div className="flex-1">
-                  <span className="text-[8px] text-sidebar-foreground/35 mb-0.5 block">Max W</span>
-                  <Input value={get("maxWidth")} onChange={(e) => set("maxWidth", e.target.value)} className="h-6 text-[10px]" placeholder="—" />
-                </div>
-                <div className="flex-1">
-                  <span className="text-[8px] text-sidebar-foreground/35 mb-0.5 block">Min H</span>
-                  <Input value={get("minHeight")} onChange={(e) => set("minHeight", e.target.value)} className="h-6 text-[10px]" placeholder="—" />
-                </div>
-                <div className="flex-1">
-                  <span className="text-[8px] text-sidebar-foreground/35 mb-0.5 block">Max H</span>
-                  <Input value={get("maxHeight")} onChange={(e) => set("maxHeight", e.target.value)} className="h-6 text-[10px]" placeholder="—" />
-                </div>
+              {/* W × H — icon-labeled */}
+              <div className="grid grid-cols-2 gap-1">
+                <Tooltip><TooltipTrigger asChild>
+                  <div className="relative">
+                    <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[9px] font-medium text-muted-foreground/40">W</span>
+                    <Input value={get("width")} onChange={(e) => set("width", e.target.value)} className="h-6 text-[10px] pl-6 text-center" placeholder="auto" />
+                  </div>
+                </TooltipTrigger><TooltipContent className="text-[10px]">Width</TooltipContent></Tooltip>
+                <Tooltip><TooltipTrigger asChild>
+                  <div className="relative">
+                    <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[9px] font-medium text-muted-foreground/40">H</span>
+                    <Input value={get("height")} onChange={(e) => set("height", e.target.value)} className="h-6 text-[10px] pl-6 text-center" placeholder="auto" />
+                  </div>
+                </TooltipTrigger><TooltipContent className="text-[10px]">Height</TooltipContent></Tooltip>
               </div>
 
               <div className="h-px bg-sidebar-border" />
 
-              {/* Padding — 4 inputs in a row */}
+              {/* Padding — 2x2 grid with arrow icons */}
               <div>
-                <div className="flex items-center gap-1 mb-1">
-                  <MIcon name="padding" size={12} className="text-emerald-500/60" />
-                  <span className="text-[10px] text-sidebar-foreground/50">Padding</span>
-                </div>
-                <div className="flex gap-1">
-                  {(["paddingTop", "paddingRight", "paddingBottom", "paddingLeft"] as const).map((p, i) => (
-                    <div key={p} className="flex-1 relative">
-                      <span className="absolute left-1 top-0.5 text-[7px] text-emerald-500/40 pointer-events-none">{"↑→↓←"[i]}</span>
-                      <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-7 text-[10px] text-center pt-2" placeholder="0" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Margin — 4 inputs in a row */}
-              <div>
-                <div className="flex items-center gap-1 mb-1">
-                  <MIcon name="select_all" size={12} className="text-primary/60" />
-                  <span className="text-[10px] text-sidebar-foreground/50">Margin</span>
-                </div>
-                <div className="flex gap-1">
-                  {(["marginTop", "marginRight", "marginBottom", "marginLeft"] as const).map((p, i) => (
-                    <div key={p} className="flex-1 relative">
-                      <span className="absolute left-1 top-0.5 text-[7px] text-primary/40 pointer-events-none">{"↑→↓←"[i]}</span>
-                      <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-7 text-[10px] text-center pt-2" placeholder="0" />
-                    </div>
+                <span className="text-[9px] font-medium text-emerald-500/60 uppercase tracking-wider mb-1 block">Padding</span>
+                <div className="grid grid-cols-2 gap-1">
+                  {([["paddingTop","arrow_upward"],["paddingRight","arrow_forward"],["paddingBottom","arrow_downward"],["paddingLeft","arrow_back"]] as const).map(([p, ic]) => (
+                    <Tooltip key={p}><TooltipTrigger asChild>
+                      <div className="relative">
+                        <MIcon name={ic} size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-emerald-500/40" />
+                        <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-6 text-[10px] pl-5 text-center" placeholder="0" />
+                      </div>
+                    </TooltipTrigger><TooltipContent className="text-[10px]">{{paddingTop:"Top",paddingRight:"Right",paddingBottom:"Bottom",paddingLeft:"Left"}[p]}</TooltipContent></Tooltip>
                   ))}
                 </div>
               </div>
@@ -481,26 +442,28 @@ export default function SettingsTab() {
               <div className="h-px bg-sidebar-border" />
 
               {/* Overflow / Object Fit */}
-              <div className="grid grid-cols-2 gap-1.5">
-                <SelectField label="Overflow" value={get("overflow")} options={selectOptions.overflow} onChange={(v) => set("overflow", v)} />
-                <SelectField label="Object Fit" value={get("objectFit")} options={selectOptions.objectFit} onChange={(v) => set("objectFit", v)} />
+              <div className="grid grid-cols-2 gap-1">
+                <SelectField label="" value={get("overflow")} options={selectOptions.overflow} onChange={(v) => set("overflow", v)} />
+                <SelectField label="" value={get("objectFit")} options={selectOptions.objectFit} onChange={(v) => set("objectFit", v)} />
               </div>
 
               <div className="h-px bg-sidebar-border" />
 
               {/* Flex */}
-              <SelectField label="Display" value={get("display")} options={selectOptions.display} onChange={(v) => set("display", v)} />
-              <div>
-                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Direction</label>
-                <IconToggle value={get("flexDirection")} options={directionOpts} onChange={(v) => set("flexDirection", v)} />
+              <SelectField label="" value={get("display")} options={selectOptions.display} onChange={(v) => set("display", v)} />
+              <IconToggle value={get("flexDirection")} options={directionOpts} onChange={(v) => set("flexDirection", v)} />
+              <div className="grid grid-cols-2 gap-1">
+                <IconToggle value={get("justifyContent")} options={justifyOpts} onChange={(v) => set("justifyContent", v)} />
+                <IconToggle value={get("alignItems")} options={alignOpts} onChange={(v) => set("alignItems", v)} />
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <div><label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Justify</label><IconToggle value={get("justifyContent")} options={justifyOpts} onChange={(v) => set("justifyContent", v)} /></div>
-                <div><label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Align</label><IconToggle value={get("alignItems")} options={alignOpts} onChange={(v) => set("alignItems", v)} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <div><label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Wrap</label><IconToggle value={get("flexWrap")} options={wrapOpts} onChange={(v) => set("flexWrap", v)} /></div>
-                <Field label="Gap" value={get("gap")} onChange={(v) => set("gap", v)} placeholder="0px" />
+              <div className="grid grid-cols-2 gap-1">
+                <IconToggle value={get("flexWrap")} options={wrapOpts} onChange={(v) => set("flexWrap", v)} />
+                <Tooltip><TooltipTrigger asChild>
+                  <div className="relative">
+                    <MIcon name="space_bar" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+                    <Input value={get("gap")} onChange={(e) => set("gap", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="0px" />
+                  </div>
+                </TooltipTrigger><TooltipContent className="text-[10px]">Gap</TooltipContent></Tooltip>
               </div>
             </div>
           </Section>
