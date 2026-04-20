@@ -34,6 +34,8 @@ function EditorInner() {
   const [clipboard, setClipboard] = useState<El | null>(null);
   const [styleClipboard, setStyleClipboard] = useState<CSSProperties | null>(null);
   const [pageTitle, setPageTitle] = useState(pageName);
+  const [metaDescription, setMetaDescription] = useState("");
+  const [ogImage, setOgImage] = useState("");
   const [zoom, setZoom] = useState(100);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -162,6 +164,10 @@ function EditorInner() {
           dirty={dirty}
           saving={saving}
           zoom={zoom}
+          metaDescription={metaDescription}
+          onMetaDescriptionChange={(v) => { setMetaDescription(v); setDirty(true); }}
+          ogImage={ogImage}
+          onOgImageChange={(v) => { setOgImage(v); setDirty(true); }}
           onZoomIn={() => setZoom((z) => Math.min(200, z + 10))}
           onZoomOut={() => setZoom((z) => Math.max(50, z - 10))}
           onSave={handleSave}
@@ -197,6 +203,23 @@ function EditorInner() {
             </span>
           ))}
           <span className="ml-auto text-[9px] text-sidebar-foreground/30 tabular-nums shrink-0">{JSON.stringify(elements).split('"id"').length - 1} elements</span>
+        </div>
+      )}
+
+      {preview && (
+        <div className="flex-1 overflow-auto bg-muted p-6">
+          <div className="flex items-start justify-center gap-6 min-h-full">
+            {([["Desktop", "100%", 0.4], ["Tablet", "768px", 0.5], ["Mobile", "420px", 0.5]] as const).map(([label, w, scale]) => (
+              <div key={label} className="flex flex-col items-center gap-2 shrink-0">
+                <span className="text-[10px] font-medium text-muted-foreground">{label}</span>
+                <div className="bg-background rounded-lg shadow-lg overflow-hidden" style={{ width: label === "Desktop" ? 960 : label === "Tablet" ? 768 * scale : 420 * scale, transform: label === "Desktop" ? "scale(0.4)" : `scale(${scale})`, transformOrigin: "top center", height: "80vh" }}>
+                  <div style={{ width: label === "Desktop" ? 2400 : label === "Tablet" ? 768 : 420, transformOrigin: "top left" }}>
+                    {body && <Recursive element={body} />}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

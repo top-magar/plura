@@ -3,11 +3,13 @@
 import Link from "next/link";
 import {
   ArrowLeft, Save, Undo2, Redo2, Eye, Laptop, Tablet, Smartphone,
-  ZoomIn, ZoomOut, Globe2, FileCode,
+  ZoomIn, ZoomOut, Globe2, FileCode, Settings,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { Device } from "./types";
 import { useEditor } from "./editor-provider";
@@ -24,6 +26,10 @@ interface EditorNavigationProps {
   dirty: boolean;
   saving: boolean;
   zoom: number;
+  metaDescription: string;
+  onMetaDescriptionChange: (v: string) => void;
+  ogImage: string;
+  onOgImageChange: (v: string) => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onSave: () => void;
@@ -33,6 +39,7 @@ interface EditorNavigationProps {
 
 export default function EditorNavigation({
   pageTitle, onPageTitleChange, dirty, saving, zoom,
+  metaDescription, onMetaDescriptionChange, ogImage, onOgImageChange,
   onZoomIn, onZoomOut, onSave, onExportHTML, onPublish,
 }: EditorNavigationProps) {
   const { state, dispatch, subAccountId, funnelId } = useEditor();
@@ -117,6 +124,36 @@ export default function EditorNavigation({
               <Eye className="size-3.5" />
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Preview</TooltipContent></Tooltip>
+          <Dialog>
+            <Tooltip><TooltipTrigger asChild>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="size-7">
+                  <Settings className="size-3.5" />
+                </Button>
+              </DialogTrigger>
+            </TooltipTrigger><TooltipContent className="text-[10px]">Page Settings</TooltipContent></Tooltip>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader><DialogTitle className="text-sm">Page Settings</DialogTitle></DialogHeader>
+              <div className="space-y-3 py-2">
+                <div>
+                  <label className="text-xs font-medium mb-1 block">Page Title</label>
+                  <Input value={pageTitle} onChange={(e) => onPageTitleChange(e.target.value)} className="h-8 text-xs" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block">Meta Description</label>
+                  <textarea value={metaDescription} onChange={(e) => onMetaDescriptionChange(e.target.value)} className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs outline-none resize-y min-h-[60px] focus:border-primary" placeholder="Brief description for search engines..." />
+                </div>
+                <div>
+                  <label className="text-xs font-medium mb-1 block">OG Image URL</label>
+                  <Input value={ogImage} onChange={(e) => onOgImageChange(e.target.value)} className="h-8 text-xs" placeholder="https://..." />
+                  {ogImage && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={ogImage} alt="OG Preview" className="mt-2 rounded border max-h-32 object-cover w-full" />
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-7" onClick={onExportHTML}>
               <FileCode className="size-3.5" />
