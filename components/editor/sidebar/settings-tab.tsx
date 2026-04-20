@@ -348,51 +348,41 @@ export default function SettingsTab() {
           <Section title="Typography" icon="text_fields">
             <div className="space-y-2">
               {/* Font Family */}
-              <div>
-                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Font Family</label>
-                <Select value={get("fontFamily") || undefined} onValueChange={(v) => {
-                  set("fontFamily", v);
-                  // Load Google Font
-                  if (typeof document !== 'undefined' && !document.querySelector(`link[data-font="${v}"]`)) {
-                    const link = document.createElement('link');
-                    link.rel = 'stylesheet';
-                    link.href = `https://fonts.googleapis.com/css2?family=${v.replace(/\s+/g, '+')}&display=swap`;
-                    link.setAttribute('data-font', v);
-                    document.head.appendChild(link);
-                  }
-                }}>
-                  <SelectTrigger className="h-7 text-xs px-2"><SelectValue placeholder="Default" /></SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {["Inter","Roboto","Open Sans","Lato","Montserrat","Poppins","Raleway","Nunito","Playfair Display","Merriweather","Source Sans 3","DM Sans","Space Grotesk","Outfit","Sora","Geist"].map((f) => (
-                      <SelectItem key={f} value={f} className="text-xs" style={{ fontFamily: f }}>{f}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <Field label="Font Size" value={get("fontSize")} onChange={(v) => set("fontSize", v)} placeholder="16px" />
-                <Field label="Weight" value={get("fontWeight")} onChange={(v) => set("fontWeight", v)} placeholder="400" />
-                <Field label="Line Height" value={get("lineHeight")} onChange={(v) => set("lineHeight", v)} placeholder="1.5" />
-                <Field label="Letter Spacing" value={get("letterSpacing")} onChange={(v) => set("letterSpacing", v)} placeholder="0px" />
+              <Select value={get("fontFamily") || undefined} onValueChange={(v) => {
+                set("fontFamily", v);
+                if (typeof document !== 'undefined' && !document.querySelector(`link[data-font="${v}"]`)) {
+                  const link = document.createElement('link');
+                  link.rel = 'stylesheet';
+                  link.href = `https://fonts.googleapis.com/css2?family=${v.replace(/\s+/g, '+')}&display=swap`;
+                  link.setAttribute('data-font', v);
+                  document.head.appendChild(link);
+                }
+              }}>
+                <SelectTrigger className="h-6 text-[10px] px-2"><SelectValue placeholder="Default font" /></SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {["Inter","Roboto","Open Sans","Lato","Montserrat","Poppins","Raleway","Nunito","Playfair Display","Merriweather","Source Sans 3","DM Sans","Space Grotesk","Outfit","Sora","Geist"].map((f) => (
+                    <SelectItem key={f} value={f} className="text-xs" style={{ fontFamily: f }}>{f}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {/* Size / Weight / Height / Spacing — icon-labeled 4-col */}
+              <div className="grid grid-cols-4 gap-1">
+                {([["fontSize","format_size","16px"],["fontWeight","line_weight","400"],["lineHeight","format_line_spacing","1.5"],["letterSpacing","space_bar","0"]] as const).map(([p, ic, ph]) => (
+                  <Tooltip key={p}><TooltipTrigger asChild>
+                    <div className="relative">
+                      <MIcon name={ic} size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+                      <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-6 text-[10px] pl-5 text-center" placeholder={ph} />
+                    </div>
+                  </TooltipTrigger><TooltipContent className="text-[10px]">{{fontSize:"Font Size",fontWeight:"Weight",lineHeight:"Line Height",letterSpacing:"Spacing"}[p]}</TooltipContent></Tooltip>
+                ))}
               </div>
               <ColorField label="Color" value={get("color")} onChange={(v) => set("color", v)} />
-              <div>
-                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Text Align</label>
+              {/* Align + Style + Deco + Transform — 2 rows */}
+              <div className="grid grid-cols-2 gap-1">
                 <IconToggle value={get("textAlign")} options={textAlignOpts} onChange={(v) => set("textAlign", v)} />
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <div>
-                  <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Style</label>
-                  <IconToggle value={get("fontStyle")} options={fontStyleOpts} onChange={(v) => set("fontStyle", v)} />
-                </div>
-                <div>
-                  <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Decoration</label>
-                  <IconToggle value={get("textDecoration")} options={textDecoOpts} onChange={(v) => set("textDecoration", v)} />
-                </div>
-              </div>
-              <div>
-                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Transform</label>
                 <IconToggle value={get("textTransform")} options={textTransOpts} onChange={(v) => set("textTransform", v)} />
+                <IconToggle value={get("fontStyle")} options={fontStyleOpts} onChange={(v) => set("fontStyle", v)} />
+                <IconToggle value={get("textDecoration")} options={textDecoOpts} onChange={(v) => set("textDecoration", v)} />
               </div>
             </div>
           </Section>
@@ -517,31 +507,44 @@ export default function SettingsTab() {
           {/* Decorations */}
           <Section title="Appearance" icon="palette">
             <div className="space-y-2">
-              <ColorField label="Background" value={get("backgroundColor")} onChange={(v) => set("backgroundColor", v)} />
-              <Field label="Background Image" value={get("backgroundImage")} onChange={(v) => set("backgroundImage", v)} placeholder="url()" />
-              <div className="grid grid-cols-2 gap-1.5">
-                <SelectField label="BG Size" value={get("backgroundSize")} options={selectOptions.backgroundSize} onChange={(v) => set("backgroundSize", v)} />
-                <SelectField label="BG Position" value={get("backgroundPosition")} options={selectOptions.backgroundPosition} onChange={(v) => set("backgroundPosition", v)} />
+              <div className="grid grid-cols-2 gap-1">
+                <ColorField label="Background" value={get("backgroundColor")} onChange={(v) => set("backgroundColor", v)} />
+                <ColorField label="Border" value={get("borderColor")} onChange={(v) => set("borderColor", v)} />
               </div>
-              <div>
-                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Border Style</label>
-                <IconToggle value={get("borderStyle")} options={borderStyleOpts} onChange={(v) => set("borderStyle", v)} />
+              <IconToggle value={get("borderStyle")} options={borderStyleOpts} onChange={(v) => set("borderStyle", v)} />
+              <div className="grid grid-cols-3 gap-1">
+                {([["borderWidth","line_weight","0px"],["borderRadius","rounded_corner","0px"],["boxShadow","blur_on","none"]] as const).map(([p, ic, ph]) => (
+                  <Tooltip key={p}><TooltipTrigger asChild>
+                    <div className="relative">
+                      <MIcon name={ic} size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+                      <Input value={get(p)} onChange={(e) => set(p, e.target.value)} className="h-6 text-[10px] pl-5" placeholder={ph} />
+                    </div>
+                  </TooltipTrigger><TooltipContent className="text-[10px]">{{borderWidth:"Border Width",borderRadius:"Radius",boxShadow:"Shadow"}[p]}</TooltipContent></Tooltip>
+                ))}
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <Field label="Border Width" value={get("borderWidth")} onChange={(v) => set("borderWidth", v)} placeholder="0px" />
-                <ColorField label="Border Color" value={get("borderColor")} onChange={(v) => set("borderColor", v)} />
+              <div className="flex items-center gap-2">
+                <MIcon name="opacity" size={12} className="text-muted-foreground/40 shrink-0" />
+                <Slider value={[parseFloat(get("opacity") || "1")]} min={0} max={1} step={0.05} onValueChange={([v]) => set("opacity", String(v))} className="flex-1" />
+                <span className="text-[9px] w-6 text-right text-muted-foreground/50 tabular-nums">{get("opacity") || "1"}</span>
               </div>
-              <Field label="Border Radius" value={get("borderRadius")} onChange={(v) => set("borderRadius", v)} placeholder="0px" />
-              <div>
-                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Opacity</label>
-                <div className="flex items-center gap-2">
-                  <Slider value={[parseFloat(get("opacity") || "1")]} min={0} max={1} step={0.05} onValueChange={([v]) => set("opacity", String(v))} className="flex-1" />
-                  <span className="text-[10px] w-6 text-right text-sidebar-foreground/50">{get("opacity") || "1"}</span>
-                </div>
+              <div className="grid grid-cols-2 gap-1">
+                <Tooltip><TooltipTrigger asChild>
+                  <div className="relative">
+                    <MIcon name="image" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+                    <Input value={get("backgroundImage")} onChange={(e) => set("backgroundImage", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="url()" />
+                  </div>
+                </TooltipTrigger><TooltipContent className="text-[10px]">Background Image</TooltipContent></Tooltip>
+                <SelectField label="" value={get("backgroundSize")} options={selectOptions.backgroundSize} onChange={(v) => set("backgroundSize", v)} />
               </div>
-              <Field label="Box Shadow" value={get("boxShadow")} onChange={(v) => set("boxShadow", v)} placeholder="0 2px 4px rgba(0,0,0,.1)" />
-              <SelectField label="Cursor" value={get("cursor")} options={selectOptions.cursor} onChange={(v) => set("cursor", v)} />
-              <Field label="Transition" value={get("transition")} onChange={(v) => set("transition", v)} placeholder="all 0.2s" />
+              <div className="grid grid-cols-2 gap-1">
+                <SelectField label="" value={get("cursor")} options={selectOptions.cursor} onChange={(v) => set("cursor", v)} />
+                <Tooltip><TooltipTrigger asChild>
+                  <div className="relative">
+                    <MIcon name="animation" size={10} className="absolute left-1 top-1/2 -translate-y-1/2 text-muted-foreground/40" />
+                    <Input value={get("transition")} onChange={(e) => set("transition", e.target.value)} className="h-6 text-[10px] pl-5" placeholder="all 0.2s" />
+                  </div>
+                </TooltipTrigger><TooltipContent className="text-[10px]">Transition</TooltipContent></Tooltip>
+              </div>
             </div>
           </Section>
 
