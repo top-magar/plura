@@ -165,22 +165,20 @@ function RadiusCorners({ element, h }: { element: El; h: ReturnType<typeof useHa
   const s = element.styles;
   const getR = (prop: string) => parseInt(String((s as Record<string, unknown>)[prop] ?? s.borderRadius ?? '0')) || 0;
   const corners = [
-    { id: 'r-TL', prop: 'borderTopLeftRadius', pos: 'top-[2px] left-[2px]', rot: '' },
-    { id: 'r-TR', prop: 'borderTopRightRadius', pos: 'top-[2px] right-[2px]', rot: 'rotate-90' },
-    { id: 'r-BR', prop: 'borderBottomRightRadius', pos: 'bottom-[2px] right-[2px]', rot: 'rotate-180' },
-    { id: 'r-BL', prop: 'borderBottomLeftRadius', pos: 'bottom-[2px] left-[2px]', rot: '-rotate-90' },
+    { id: 'r-TL', prop: 'borderTopLeftRadius', pos: 'top-1 left-1' },
+    { id: 'r-TR', prop: 'borderTopRightRadius', pos: 'top-1 right-1' },
+    { id: 'r-BR', prop: 'borderBottomRightRadius', pos: 'bottom-1 right-1' },
+    { id: 'r-BL', prop: 'borderBottomLeftRadius', pos: 'bottom-1 left-1' },
   ];
   if (!corners.some(c => getR(c.prop) > 0) && !h.active?.startsWith('r-')) return null;
 
-  return <>{corners.map(({ id, prop, pos, rot }) => {
+  return <>{corners.map(({ id, prop, pos }) => {
     const r = getR(prop);
     if (r === 0 && h.active !== id) return null;
     return (
-      <div key={id} className={cn('absolute z-20 cursor-nwse-resize size-4', pos)}
+      <div key={id} className={cn('absolute z-20 cursor-nwse-resize flex items-center justify-center size-5', pos)}
         onPointerDown={(e) => h.dragRadius(element, id, prop, e)}>
-        <svg viewBox="0 0 24 24" className={cn('w-full h-full transition-colors', rot, h.active === id ? 'text-orange-500' : 'text-primary/40 hover:text-primary')}>
-          <path d="M 24 0 A 24 24 0 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-        </svg>
+        <div className={cn('size-2 rounded-full transition-colors', h.active === id ? 'bg-orange-500 scale-125' : 'bg-primary/40 hover:bg-primary')} />
         {h.active === id && <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded bg-orange-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none shadow">{r}</span>}
       </div>
     );
