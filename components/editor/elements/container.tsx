@@ -83,6 +83,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
           "min-h-[40px] transition-colors flex-1",
           isActive && !isEmpty && "bg-primary/[0.02]"
         )}
+        style={{ display: resolved.display, flexDirection: resolved.flexDirection, gap: resolved.gap, flexWrap: resolved.flexWrap, alignItems: resolved.alignItems, justifyContent: resolved.justifyContent }}
       >
         {children.map((child, i) => (
           <div key={child.id} data-el-id={child.id}>
