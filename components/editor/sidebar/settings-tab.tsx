@@ -623,18 +623,18 @@ export default function SettingsTab() {
               <div className="flex gap-1">
                 <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden">
                   {[
-                    { v: "flex-start", icon: <AlignHorizontalJustifyStart size={13} />, tip: "Align left" },
-                    { v: "center", icon: <AlignHorizontalJustifyCenter size={13} />, tip: "Align center" },
-                    { v: "flex-end", icon: <AlignHorizontalJustifyEnd size={13} />, tip: "Align right" },
+                    { v: "flex-start", icon: <AlignHorizontalJustifyStart size={14} />, tip: "Align left" },
+                    { v: "center", icon: <AlignHorizontalJustifyCenter size={14} />, tip: "Align center" },
+                    { v: "flex-end", icon: <AlignHorizontalJustifyEnd size={14} />, tip: "Align right" },
                   ].map(({ v, icon }) => (
                     <button key={v} onClick={() => set("alignSelf", v)} className={cn("flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("alignSelf") === v && "bg-primary/10 text-primary")}>{icon}</button>
                   ))}
                 </div>
                 <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden">
                   {[
-                    { v: "flex-start", icon: <AlignVerticalJustifyStart size={13} />, tip: "Align top" },
-                    { v: "center", icon: <AlignVerticalJustifyCenter size={13} />, tip: "Align middle" },
-                    { v: "flex-end", icon: <AlignVerticalJustifyEnd size={13} />, tip: "Align bottom" },
+                    { v: "flex-start", icon: <AlignVerticalJustifyStart size={14} />, tip: "Align top" },
+                    { v: "center", icon: <AlignVerticalJustifyCenter size={14} />, tip: "Align middle" },
+                    { v: "flex-end", icon: <AlignVerticalJustifyEnd size={14} />, tip: "Align bottom" },
                   ].map(({ v, icon }) => (
                     <button key={`v-${v}`} onClick={() => set("justifySelf", v)} className={cn("flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("justifySelf") === v && "bg-primary/10 text-primary")}>{icon}</button>
                   ))}
