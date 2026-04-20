@@ -143,7 +143,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
 
   const indicator = (
     <div className={cn(
-      "shrink-0 rounded-full bg-primary/70 transition-all",
+      "shrink-0 rounded-full bg-primary/70 transition-opacity",
       isRow ? "w-0.5 self-stretch min-h-[20px]" : "h-0.5 w-full"
     )} />
   );
@@ -174,7 +174,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         )}
         {isEmpty && !preview && (
           <div className={cn(
-            "flex items-center justify-center border-2 border-dashed rounded-md text-xs transition-all flex-1",
+            "flex items-center justify-center border-2 border-dashed rounded-md text-xs transition-colors flex-1",
             isBody ? "min-h-[calc(100vh-56px)]" : "min-h-[48px] min-w-[48px]",
             isActive
               ? "border-primary/40 text-primary/70 bg-primary/[0.02]"
