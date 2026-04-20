@@ -102,31 +102,6 @@ function useResize(
   return { onResizeX: onPointerDown('x'), onResizeY: onPointerDown('y'), onResizeXY: onPointerDown('xy'), resizeInfo };
 }
 
-// ─── Spacing Overlay ────────────────────────────────────────
-
-function SpacingViz({ styles }: { styles: CSSProperties }) {
-  const mt = styles.marginTop, mr = styles.marginRight, mb = styles.marginBottom, ml = styles.marginLeft;
-  const pt = styles.paddingTop, pr = styles.paddingRight, pb = styles.paddingBottom, pl = styles.paddingLeft;
-  const hasMargin = mt || mr || mb || ml;
-  const hasPadding = pt || pr || pb || pl;
-  if (!hasMargin && !hasPadding) return null;
-
-  return (
-    <>
-      {/* Margin — orange */}
-      {mt && <div className="absolute left-0 right-0 bg-orange-400/15 pointer-events-none z-[5]" style={{ top: `-${mt}`, height: mt }} />}
-      {mb && <div className="absolute left-0 right-0 bg-orange-400/15 pointer-events-none z-[5]" style={{ bottom: `-${mb}`, height: mb }} />}
-      {ml && <div className="absolute top-0 bottom-0 bg-orange-400/15 pointer-events-none z-[5]" style={{ left: `-${ml}`, width: ml }} />}
-      {mr && <div className="absolute top-0 bottom-0 bg-orange-400/15 pointer-events-none z-[5]" style={{ right: `-${mr}`, width: mr }} />}
-      {/* Padding — green */}
-      {pt && <div className="absolute left-0 right-0 top-0 bg-emerald-400/15 pointer-events-none z-[5]" style={{ height: pt }} />}
-      {pb && <div className="absolute left-0 right-0 bottom-0 bg-emerald-400/15 pointer-events-none z-[5]" style={{ height: pb }} />}
-      {pl && <div className="absolute top-0 bottom-0 left-0 bg-emerald-400/15 pointer-events-none z-[5]" style={{ width: pl }} />}
-      {pr && <div className="absolute top-0 bottom-0 right-0 bg-emerald-400/15 pointer-events-none z-[5]" style={{ width: pr }} />}
-    </>
-  );
-}
-
 // ─── Floating Toolbar ───────────────────────────────────────
 
 function Toolbar({
@@ -243,12 +218,19 @@ function ResizeHandles({
 
 function PaddingHandles({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
   const [active, setActive] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const s = element.styles;
+  const pt = parseInt(String(s.paddingTop ?? s.padding ?? '0')) || 0;
+  const pr = parseInt(String(s.paddingRight ?? s.padding ?? '0')) || 0;
+  const pb = parseInt(String(s.paddingBottom ?? s.padding ?? '0')) || 0;
+  const pl = parseInt(String(s.paddingLeft ?? s.padding ?? '0')) || 0;
+
   const sides = [
-    { key: 'Top', cls: 'top-0 left-[10%] right-[10%] h-[5px] cursor-ns-resize', dir: 'y', sign: -1 },
-    { key: 'Right', cls: 'right-0 top-[10%] bottom-[10%] w-[5px] cursor-ew-resize', dir: 'x', sign: 1 },
-    { key: 'Bottom', cls: 'bottom-0 left-[10%] right-[10%] h-[5px] cursor-ns-resize', dir: 'y', sign: 1 },
-    { key: 'Left', cls: 'left-0 top-[10%] bottom-[10%] w-[5px] cursor-ew-resize', dir: 'x', sign: -1 },
-  ] as const;
+    { key: 'Top', cls: 'top-0 left-0 right-0 cursor-ns-resize', dir: 'y' as const, sign: -1, val: pt, zone: { top: 0, left: 0, right: 0, height: pt } },
+    { key: 'Right', cls: 'right-0 top-0 bottom-0 cursor-ew-resize', dir: 'x' as const, sign: 1, val: pr, zone: { top: 0, right: 0, bottom: 0, width: pr } },
+    { key: 'Bottom', cls: 'bottom-0 left-0 right-0 cursor-ns-resize', dir: 'y' as const, sign: 1, val: pb, zone: { bottom: 0, left: 0, right: 0, height: pb } },
+    { key: 'Left', cls: 'left-0 top-0 bottom-0 cursor-ew-resize', dir: 'x' as const, sign: -1, val: pl, zone: { top: 0, left: 0, bottom: 0, width: pl } },
+  ];
 
   const onPointerDown = (side: string, dir: 'x' | 'y', sign: number) => (e: React.PointerEvent) => {
     e.preventDefault();
@@ -268,17 +250,40 @@ function PaddingHandles({ element, dispatch }: { element: El; dispatch: ReturnTy
     document.addEventListener('pointerup', onUp);
   };
 
+  const show = active || hovered;
+
   return (
     <>
-      {sides.map(({ key, cls, dir, sign }) => (
-        <div key={key} className={cn('absolute z-[15]', cls)} onPointerDown={onPointerDown(key, dir, sign)}>
-          <div className={cn(
-            'absolute inset-0 rounded-full transition-colors',
-            active === key ? 'bg-emerald-500/60' : 'bg-emerald-500/0 hover:bg-emerald-500/30'
-          )} />
-          {active === key && (
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-emerald-600 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none">
-              {parseInt(String(element.styles[`padding${key}` as keyof CSSProperties] ?? '0')) || 0}
+      {/* Colored padding zones — visible on hover/drag */}
+      {show && sides.map(({ key, val, zone }) => (
+        val > 0 && (active === key || hovered === key || active === null) && (
+          <div
+            key={`zone-${key}`}
+            className={cn(
+              'absolute pointer-events-none z-[14] transition-opacity',
+              (active === key || hovered === key) ? 'bg-emerald-400/25' : 'bg-emerald-400/10'
+            )}
+            style={zone}
+          >
+            <span className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-emerald-700/60">
+              {val}
+            </span>
+          </div>
+        )
+      ))}
+      {/* Drag handles */}
+      {sides.map(({ key, cls, dir, sign, val }) => (
+        <div
+          key={key}
+          className={cn('absolute z-[15]', cls)}
+          style={dir === 'y' ? { height: Math.max(6, val) } : { width: Math.max(6, val) }}
+          onPointerDown={onPointerDown(key, dir, sign)}
+          onPointerEnter={() => setHovered(key)}
+          onPointerLeave={() => setHovered(null)}
+        >
+          {(active === key) && (
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow">
+              {parseInt(String(element.styles[`padding${key}` as keyof CSSProperties] ?? '0')) || 0}px
             </span>
           )}
         </div>
@@ -410,9 +415,6 @@ export default function ElementWrapper({ element, children, className, style, is
           </span>
         </div>
       )}
-
-      {/* Spacing visualization — selected element on hover */}
-      {isSel && !isBody && <SpacingViz styles={resolved} />}
 
       {children}
     </div>
