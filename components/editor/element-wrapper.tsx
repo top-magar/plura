@@ -1,9 +1,7 @@
 'use client';
 
-import { useState, type CSSProperties, type ReactNode } from 'react';
-import {
-  GripVertical, Trash2, Copy, ChevronUp, ChevronDown, Lock,
-} from 'lucide-react';
+import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { GripVertical, Trash2, Copy, ChevronUp, ChevronDown, Lock } from 'lucide-react';
 import { useEditor } from './editor-provider';
 import { findParentId } from './tree-helpers';
 import { useDragOverlay } from './drag-overlay';
@@ -11,332 +9,141 @@ import { cn } from '@/lib/utils';
 import type { El } from './types';
 import { resolveStyles } from './types';
 
-// ─── Types ──────────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────
 
-/** Parse CSS shorthand (e.g. "16px", "80px 24px", "8px 16px 24px 32px") into [top, right, bottom, left] */
-function parseBox(shorthand: string | undefined, top: string | undefined, right: string | undefined, bottom: string | undefined, left: string | undefined): [number, number, number, number] {
-  const t = parseInt(String(top ?? '')) || 0;
-  const r = parseInt(String(right ?? '')) || 0;
-  const b = parseInt(String(bottom ?? '')) || 0;
-  const l = parseInt(String(left ?? '')) || 0;
-  if (t || r || b || l) return [t, r, b, l];
-  if (!shorthand) return [0, 0, 0, 0];
-  const parts = String(shorthand).split(/\s+/).map(v => parseInt(v) || 0);
-  if (parts.length === 1) return [parts[0], parts[0], parts[0], parts[0]];
-  if (parts.length === 2) return [parts[0], parts[1], parts[0], parts[1]];
-  if (parts.length === 3) return [parts[0], parts[1], parts[2], parts[1]];
-  return [parts[0], parts[1], parts[2], parts[3]];
+function parseBox(sh: string | undefined, t: string | undefined, r: string | undefined, b: string | undefined, l: string | undefined): [number, number, number, number] {
+  const tv = parseInt(String(t ?? '')) || 0, rv = parseInt(String(r ?? '')) || 0;
+  const bv = parseInt(String(b ?? '')) || 0, lv = parseInt(String(l ?? '')) || 0;
+  if (tv || rv || bv || lv) return [tv, rv, bv, lv];
+  if (!sh) return [0, 0, 0, 0];
+  const p = String(sh).split(/\s+/).map(v => parseInt(v) || 0);
+  if (p.length === 1) return [p[0], p[0], p[0], p[0]];
+  if (p.length === 2) return [p[0], p[1], p[0], p[1]];
+  if (p.length === 3) return [p[0], p[1], p[2], p[1]];
+  return [p[0], p[1], p[2], p[3]];
 }
 
-type Props = {
-  element: El;
-  children: ReactNode;
-  className?: string;
-  style?: CSSProperties;
-  isContainer?: boolean;
-};
+// ─── Unified Handle Drag ────────────────────────────────────
 
-// ─── Floating Toolbar ───────────────────────────────────────
+type HandleState = { active: string | null; hovered: string | null };
 
-function Toolbar({
-  element,
-  dispatch,
-  elements,
-}: {
-  element: El;
-  dispatch: ReturnType<typeof useEditor>['dispatch'];
-  elements: El[];
-}) {
+function useHandles(element: El, dispatch: ReturnType<typeof useEditor>['dispatch']) {
+  const [state, setState] = useState<HandleState>({ active: null, hovered: null });
+  const ref = useRef<{ pos: number; val: number } | null>(null);
+
+  const drag = useCallback((id: string, prop: string, dir: 'x' | 'y', sign: number, snap: number, e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    ref.current = { pos: dir === 'y' ? e.clientY : e.clientX, val: parseInt(String((element.styles as Record<string, unknown>)[prop] ?? '0')) || 0 };
+    setState(s => ({ ...s, active: id }));
+
+    const onMove = (ev: PointerEvent) => {
+      if (!ref.current) return;
+      const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - ref.current.pos) * sign;
+      const val = Math.max(0, Math.round((ref.current.val + delta) / snap) * snap);
+      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, [prop]: `${val}px` } } } });
+    };
+    const onUp = () => { ref.current = null; setState(s => ({ ...s, active: null })); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  }, [element, dispatch]);
+
+  const hover = useCallback((id: string | null) => setState(s => ({ ...s, hovered: id })), []);
+
+  return { ...state, drag, hover };
+}
+
+// ─── Toolbar ────────────────────────────────────────────────
+
+function Toolbar({ element, dispatch, elements }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch']; elements: El[] }) {
   const parentId = findParentId(elements, element.id);
-  const { start: startOverlay } = useDragOverlay();
-
+  const { start } = useDragOverlay();
   return (
-    <div
-      className="absolute -top-7 left-0 z-20 flex items-center gap-px rounded-md bg-primary text-primary-foreground shadow-md text-[9px] leading-none overflow-hidden"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* Drag handle */}
-      <span
-        className="flex items-center px-1 py-1 cursor-grab hover:bg-primary-foreground/10 active:cursor-grabbing"
-        draggable
-        onDragStart={(e) => {
-          e.stopPropagation();
-          e.dataTransfer.setData('moveElementId', element.id);
-          startOverlay(element.name, e);
-        }}
-      >
-        <GripVertical className="size-3" />
-      </span>
-
-      {/* Lock indicator */}
+    <div className="absolute -top-7 left-0 z-20 flex items-center gap-px rounded-md bg-primary text-primary-foreground shadow-md text-[9px] leading-none overflow-hidden" onClick={(e) => e.stopPropagation()}>
+      <span className="flex items-center px-1 py-1 cursor-grab hover:bg-primary-foreground/10 active:cursor-grabbing" draggable onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); start(element.name, e); }}><GripVertical className="size-3" /></span>
       {element.locked && <Lock className="size-2.5 mx-0.5 text-amber-300" />}
-
-      {/* Name */}
-      <span className="px-1 py-1 max-w-[80px] truncate pointer-events-none select-none">
-        {element.name}
-      </span>
-
-      {/* Divider */}
+      <span className="px-1 py-1 max-w-[80px] truncate pointer-events-none select-none">{element.name}</span>
       <span className="w-px h-3 bg-primary-foreground/20" />
-
-      {/* Move up */}
-      <button
-        className="flex items-center px-1 py-1 hover:bg-primary-foreground/10 disabled:opacity-30"
-        onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'up' } })}
-      >
-        <ChevronUp className="size-3" />
-      </button>
-
-      {/* Move down */}
-      <button
-        className="flex items-center px-1 py-1 hover:bg-primary-foreground/10 disabled:opacity-30"
-        onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'down' } })}
-      >
-        <ChevronDown className="size-3" />
-      </button>
-
-      {/* Divider */}
+      <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'up' } })}><ChevronUp className="size-3" /></button>
+      <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'down' } })}><ChevronDown className="size-3" /></button>
       <span className="w-px h-3 bg-primary-foreground/20" />
-
-      {/* Duplicate */}
-      {parentId && (
-        <button
-          className="flex items-center px-1 py-1 hover:bg-primary-foreground/10"
-          onClick={() => dispatch({ type: 'DUPLICATE_ELEMENT', payload: { elId: element.id, containerId: parentId } })}
-        >
-          <Copy className="size-2.5" />
-        </button>
-      )}
-
-      {/* Delete */}
-      <button
-        className="flex items-center px-1 py-1 hover:bg-destructive/80 hover:text-destructive-foreground"
-        onClick={() => dispatch({ type: 'DELETE_ELEMENT', payload: { id: element.id } })}
-      >
-        <Trash2 className="size-2.5" />
-      </button>
+      {parentId && <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'DUPLICATE_ELEMENT', payload: { elId: element.id, containerId: parentId } })}><Copy className="size-2.5" /></button>}
+      <button className="flex items-center px-1 py-1 hover:bg-destructive/80 hover:text-destructive-foreground" onClick={() => dispatch({ type: 'DELETE_ELEMENT', payload: { id: element.id } })}><Trash2 className="size-2.5" /></button>
     </div>
   );
 }
 
-// ─── Padding Handles ────────────────────────────────────────
+// ─── Box Handle (padding or margin zone) ────────────────────
 
-function PaddingHandles({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
-  const [active, setActive] = useState<string | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-  const s = element.styles;
-  const [pt, pr, pb, pl] = parseBox(s.padding as string | undefined, s.paddingTop as string | undefined, s.paddingRight as string | undefined, s.paddingBottom as string | undefined, s.paddingLeft as string | undefined);
-
-  const sides = [
-    { key: 'Top', cls: 'top-0 left-0 right-0 cursor-ns-resize', dir: 'y' as const, sign: -1, val: pt, zone: { top: 0, left: 0, right: 0, height: pt } },
-    { key: 'Right', cls: 'right-0 top-0 bottom-0 cursor-ew-resize', dir: 'x' as const, sign: 1, val: pr, zone: { top: 0, right: 0, bottom: 0, width: pr } },
-    { key: 'Bottom', cls: 'bottom-0 left-0 right-0 cursor-ns-resize', dir: 'y' as const, sign: 1, val: pb, zone: { bottom: 0, left: 0, right: 0, height: pb } },
-    { key: 'Left', cls: 'left-0 top-0 bottom-0 cursor-ew-resize', dir: 'x' as const, sign: -1, val: pl, zone: { top: 0, left: 0, bottom: 0, width: pl } },
-  ];
-
-  const onPointerDown = (side: string, dir: 'x' | 'y', sign: number) => (e: React.PointerEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const prop = `padding${side}` as keyof CSSProperties;
-    const startPos = dir === 'y' ? e.clientY : e.clientX;
-    const startVal = parseInt(String(element.styles[prop] ?? '0')) || 0;
-    setActive(side);
-
-    const onMove = (ev: PointerEvent) => {
-      const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - startPos) * sign;
-      const val = Math.max(0, Math.round((startVal + delta) / 4) * 4);
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, [prop]: `${val}px` } } } });
-    };
-    const onUp = () => { setActive(null); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
-  };
-
-  const show = active || hovered;
-
+function BoxZone({ id, val, color, style, h }: { id: string; val: number; color: 'emerald' | 'orange'; style: Record<string, number>; h: ReturnType<typeof useHandles> }) {
+  const show = h.active === id || h.hovered === id;
+  if (!show) return null;
+  const bg = color === 'emerald' ? 'bg-emerald-400' : 'bg-orange-400';
+  const text = color === 'emerald' ? 'text-emerald-700/60' : 'text-orange-700/60';
   return (
-    <>
-      {/* Colored padding zones — visible on hover/drag */}
-      {show && sides.map(({ key, val, zone }) => (
-        val > 0 && (active === key || hovered === key || active === null) && (
-          <div
-            key={`zone-${key}`}
-            className={cn(
-              'absolute pointer-events-none z-[14] transition-opacity',
-              (active === key || hovered === key) ? 'bg-emerald-400/25' : 'bg-emerald-400/10'
-            )}
-            style={zone}
-          >
-            <span className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-emerald-700/60">
-              {val}
-            </span>
-          </div>
-        )
-      ))}
-      {/* Drag handles — only when padding exists */}
-      {sides.map(({ key, cls, dir, sign, val }) => (
-        val > 0 ? (
-          <div
-            key={key}
-            className={cn('absolute z-[15]', cls)}
-            style={dir === 'y' ? { height: val } : { width: val }}
-            onPointerDown={onPointerDown(key, dir, sign)}
-            onPointerEnter={() => setHovered(key)}
-            onPointerLeave={() => setHovered(null)}
-          >
-            {(active === key) && (
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-emerald-600 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow">
-                {val}px
-              </span>
-            )}
-          </div>
-        ) : null
-      ))}
-    </>
+    <div className={cn('absolute pointer-events-none z-[13] transition-opacity', h.active === id ? `${bg}/25` : `${bg}/10`)} style={style}>
+      <span className={cn('absolute inset-0 flex items-center justify-center text-[8px] font-mono', text)}>{val}</span>
+    </div>
   );
 }
 
-// ─── Margin Handles ─────────────────────────────────────────
-
-function MarginHandles({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
-  const [active, setActive] = useState<string | null>(null);
-  const [hovered, setHovered] = useState<string | null>(null);
-  const s = element.styles;
-  const [mt, mr, mb, ml] = parseBox(s.margin as string | undefined, s.marginTop as string | undefined, s.marginRight as string | undefined, s.marginBottom as string | undefined, s.marginLeft as string | undefined);
-
-  const sides = [
-    { key: 'Top', dir: 'y' as const, sign: -1, val: mt, handle: { top: -mt, left: 0, right: 0, height: mt }, zone: { top: -mt, left: 0, right: 0, height: mt } },
-    { key: 'Right', dir: 'x' as const, sign: 1, val: mr, handle: { top: 0, right: -mr, bottom: 0, width: mr }, zone: { top: 0, right: -mr, bottom: 0, width: mr } },
-    { key: 'Bottom', dir: 'y' as const, sign: 1, val: mb, handle: { bottom: -mb, left: 0, right: 0, height: mb }, zone: { bottom: -mb, left: 0, right: 0, height: mb } },
-    { key: 'Left', dir: 'x' as const, sign: -1, val: ml, handle: { top: 0, left: -ml, bottom: 0, width: ml }, zone: { top: 0, left: -ml, bottom: 0, width: ml } },
-  ];
-
-  const onPointerDown = (side: string, dir: 'x' | 'y', sign: number) => (e: React.PointerEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const prop = `margin${side}` as keyof CSSProperties;
-    const startPos = dir === 'y' ? e.clientY : e.clientX;
-    const startVal = parseInt(String(element.styles[prop] ?? '0')) || 0;
-    setActive(side);
-
-    const onMove = (ev: PointerEvent) => {
-      const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - startPos) * sign;
-      const val = Math.max(0, Math.round((startVal + delta) / 4) * 4);
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, [prop]: `${val}px` } } } });
-    };
-    const onUp = () => { setActive(null); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
-  };
-
-  const show = active || hovered;
-
+function BoxHandle({ id, prop, val, dir, sign, color, style, cls, h }: {
+  id: string; prop: string; val: number; dir: 'x' | 'y'; sign: number; color: 'emerald' | 'orange';
+  style: Record<string, number>; cls: string; h: ReturnType<typeof useHandles>;
+}) {
+  if (val <= 0) return null;
+  const bg = color === 'emerald' ? 'bg-emerald-600' : 'bg-orange-500';
   return (
-    <>
-      {show && sides.map(({ key, val, zone }) => (
-        val > 0 && (active === key || hovered === key || active === null) && (
-          <div
-            key={`mzone-${key}`}
-            className={cn(
-              'absolute pointer-events-none z-[13] transition-opacity',
-              (active === key || hovered === key) ? 'bg-orange-400/25' : 'bg-orange-400/10'
-            )}
-            style={zone}
-          >
-            <span className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-orange-700/60">
-              {val}
-            </span>
-          </div>
-        )
-      ))}
-      {sides.map(({ key, dir, sign, val, handle }) => (
-        val > 0 ? (
-          <div
-            key={`m-${key}`}
-            className={cn('absolute z-[14]', dir === 'y' ? 'cursor-ns-resize' : 'cursor-ew-resize')}
-            style={handle}
-            onPointerDown={onPointerDown(key, dir, sign)}
-            onPointerEnter={() => setHovered(key)}
-            onPointerLeave={() => setHovered(null)}
-          >
-            {active === key && (
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-orange-500 px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow">
-                {val}px
-              </span>
-            )}
-          </div>
-        ) : null
-      ))}
-    </>
+    <div className={cn('absolute z-[14]', cls)} style={style} onPointerDown={(e) => h.drag(id, prop, dir, sign, 4, e)} onPointerEnter={() => h.hover(id)} onPointerLeave={() => h.hover(null)}>
+      {h.active === id && <span className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', bg)}>{val}px</span>}
+    </div>
   );
 }
 
-// ─── Border Radius Handle ───────────────────────────────────
+// ─── Border Radius Corners ──────────────────────────────────
 
-function BorderRadiusHandle({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
-  const [active, setActive] = useState<string | null>(null);
+function RadiusCorners({ element, dispatch, h }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch']; h: ReturnType<typeof useHandles> }) {
+  const s = element.styles;
+  const getR = (prop: string) => parseInt(String((s as Record<string, unknown>)[prop] ?? s.borderRadius ?? '0')) || 0;
   const corners = [
-    { key: 'TopLeft', prop: 'borderTopLeftRadius', pos: 'top-[2px] left-[2px]', rotate: '' },
-    { key: 'TopRight', prop: 'borderTopRightRadius', pos: 'top-[2px] right-[2px]', rotate: 'rotate-90' },
-    { key: 'BottomRight', prop: 'borderBottomRightRadius', pos: 'bottom-[2px] right-[2px]', rotate: 'rotate-180' },
-    { key: 'BottomLeft', prop: 'borderBottomLeftRadius', pos: 'bottom-[2px] left-[2px]', rotate: '-rotate-90' },
-  ] as const;
+    { id: 'r-TL', prop: 'borderTopLeftRadius', pos: 'top-[2px] left-[2px]', rot: '' },
+    { id: 'r-TR', prop: 'borderTopRightRadius', pos: 'top-[2px] right-[2px]', rot: 'rotate-90' },
+    { id: 'r-BR', prop: 'borderBottomRightRadius', pos: 'bottom-[2px] right-[2px]', rot: 'rotate-180' },
+    { id: 'r-BL', prop: 'borderBottomLeftRadius', pos: 'bottom-[2px] left-[2px]', rot: '-rotate-90' },
+  ];
+  const any = corners.some(c => getR(c.prop) > 0) || h.active?.startsWith('r-');
+  if (!any) return null;
 
-  // Use individual corner or fallback to borderRadius
-  const getR = (prop: string) => parseInt(String((element.styles as Record<string, unknown>)[prop] ?? element.styles.borderRadius ?? '0')) || 0;
-
-  const onPointerDown = (prop: string) => (e: React.PointerEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const startVal = getR(prop);
-    setActive(prop);
-
-    const onMove = (ev: PointerEvent) => {
-      const dx = startX - ev.clientX;
-      const dy = startY - ev.clientY;
-      const delta = Math.max(Math.abs(dx), Math.abs(dy)) * (dx + dy > 0 ? 1 : -1);
-      const val = Math.max(0, Math.round((startVal + delta) / 2) * 2);
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, [prop]: `${val}px` } } } });
-    };
-    const onUp = () => { setActive(null); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
-  };
-
-  const anyRadius = corners.some(c => getR(c.prop) > 0);
-  if (!anyRadius && !active) return null;
-
-  return (
-    <>
-      {corners.map(({ key, prop, pos, rotate }) => {
-        const r = getR(prop);
-        if (r === 0 && !active) return null;
-        const size = Math.max(10, Math.min(r, 28));
-        return (
-          <div
-            key={key}
-            className={cn('absolute z-20 cursor-nwse-resize', pos)}
-            onPointerDown={onPointerDown(prop)}
-            style={{ width: size, height: size }}
-          >
-            <svg viewBox="0 0 24 24" className={cn('w-full h-full transition-colors', rotate, active === prop ? 'text-orange-500' : 'text-primary/30 hover:text-primary/70')}>
-              <path d="M 24 0 A 24 24 0 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
-            {active === prop && (
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-orange-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none shadow">
-                {r}
-              </span>
-            )}
-          </div>
-        );
-      })}
-    </>
-  );
+  return <>{corners.map(({ id, prop, pos, rot }) => {
+    const r = getR(prop);
+    if (r === 0 && h.active !== id) return null;
+    const sz = Math.max(10, Math.min(r, 28));
+    return (
+      <div key={id} className={cn('absolute z-20 cursor-nwse-resize', pos)} style={{ width: sz, height: sz }}
+        onPointerDown={(e) => {
+          e.preventDefault(); e.stopPropagation();
+          const sx = e.clientX, sy = e.clientY, sv = r;
+          h.drag(id, prop, 'x', 1, 2, e); // sets active
+          const onMove = (ev: PointerEvent) => {
+            const d = Math.max(Math.abs(sx - ev.clientX), Math.abs(sy - ev.clientY)) * ((sx - ev.clientX + sy - ev.clientY) > 0 ? 1 : -1);
+            dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, [prop]: `${Math.max(0, Math.round((sv + d) / 2) * 2)}px` } } } });
+          };
+          const onUp = () => { document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+          document.addEventListener('pointermove', onMove); document.addEventListener('pointerup', onUp);
+        }}
+      >
+        <svg viewBox="0 0 24 24" className={cn('w-full h-full transition-colors', rot, h.active === id ? 'text-orange-500' : 'text-primary/30 hover:text-primary/70')}>
+          <path d="M 24 0 A 24 24 0 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+        {h.active === id && <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-orange-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none shadow">{r}</span>}
+      </div>
+    );
+  })}</>;
 }
 
 // ─── Main Wrapper ───────────────────────────────────────────
+
+type Props = { element: El; children: ReactNode; className?: string; style?: CSSProperties; isContainer?: boolean };
 
 export default function ElementWrapper({ element, children, className, style, isContainer }: Props) {
   const { state, dispatch } = useEditor();
@@ -349,23 +156,17 @@ export default function ElementWrapper({ element, children, className, style, is
   const isDrop = dropTarget === element.id && isContainer;
   const isLocked = element.locked;
   const isHidden = element.hidden;
-
   const resolved = style ?? resolveStyles(element, device);
+  const h = useHandles(element, dispatch);
 
-  // Hidden: gone in preview, ghosted in editor
   if (isHidden && preview) return null;
-  if (isHidden && !preview) {
-    return (
-      <div className="relative opacity-20 pointer-events-none" style={resolved}>
-        {children}
-      </div>
-    );
-  }
+  if (isHidden && !preview) return <div className="relative opacity-20 pointer-events-none" style={resolved}>{children}</div>;
+  if (preview) return <div style={resolved} className={className}>{children}</div>;
 
-  // Preview: clean render
-  if (preview) {
-    return <div style={resolved} className={className}>{children}</div>;
-  }
+  // Compute box values for handles
+  const s = element.styles;
+  const [pt, pr, pb, pl] = parseBox(s.padding as string | undefined, s.paddingTop as string | undefined, s.paddingRight as string | undefined, s.paddingBottom as string | undefined, s.paddingLeft as string | undefined);
+  const [mt, mr, mb, ml] = parseBox(s.margin as string | undefined, s.marginTop as string | undefined, s.marginRight as string | undefined, s.marginBottom as string | undefined, s.marginLeft as string | undefined);
 
   return (
     <div
@@ -385,22 +186,33 @@ export default function ElementWrapper({ element, children, className, style, is
       onMouseEnter={() => dispatch({ type: 'SET_HOVERED', payload: { id: element.id } })}
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
     >
-      {/* Floating toolbar — selected non-body elements */}
       {isSel && !isBody && <Toolbar element={element} dispatch={dispatch} elements={elements} />}
+      {isHov && !isBody && <span className="absolute -top-5 left-1 text-[9px] leading-none px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground z-10 pointer-events-none">{element.name}</span>}
 
-      {/* Hover badge — just name */}
-      {isHov && !isBody && (
-        <span className="absolute -top-5 left-1 text-[9px] leading-none px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground z-10 pointer-events-none">
-          {element.name}
-        </span>
-      )}
-
-      {/* Resize handles — selected, non-body, non-locked */}
       {isSel && !isBody && !isLocked && (
         <>
-          <PaddingHandles element={element} dispatch={dispatch} />
-          <MarginHandles element={element} dispatch={dispatch} />
-          <BorderRadiusHandle element={element} dispatch={dispatch} />
+          {/* Padding handles */}
+          <BoxZone id="p-T" val={pt} color="emerald" style={{ top: 0, left: 0, right: 0, height: pt }} h={h} />
+          <BoxZone id="p-R" val={pr} color="emerald" style={{ top: 0, right: 0, bottom: 0, width: pr }} h={h} />
+          <BoxZone id="p-B" val={pb} color="emerald" style={{ bottom: 0, left: 0, right: 0, height: pb }} h={h} />
+          <BoxZone id="p-L" val={pl} color="emerald" style={{ top: 0, left: 0, bottom: 0, width: pl }} h={h} />
+          <BoxHandle id="p-T" prop="paddingTop" val={pt} dir="y" sign={-1} color="emerald" style={{ top: 0, left: 0, right: 0, height: pt }} cls="cursor-ns-resize" h={h} />
+          <BoxHandle id="p-R" prop="paddingRight" val={pr} dir="x" sign={1} color="emerald" style={{ top: 0, right: 0, bottom: 0, width: pr }} cls="cursor-ew-resize" h={h} />
+          <BoxHandle id="p-B" prop="paddingBottom" val={pb} dir="y" sign={1} color="emerald" style={{ bottom: 0, left: 0, right: 0, height: pb }} cls="cursor-ns-resize" h={h} />
+          <BoxHandle id="p-L" prop="paddingLeft" val={pl} dir="x" sign={-1} color="emerald" style={{ top: 0, left: 0, bottom: 0, width: pl }} cls="cursor-ew-resize" h={h} />
+
+          {/* Margin handles */}
+          <BoxZone id="m-T" val={mt} color="orange" style={{ top: -mt, left: 0, right: 0, height: mt }} h={h} />
+          <BoxZone id="m-R" val={mr} color="orange" style={{ top: 0, right: -mr, bottom: 0, width: mr }} h={h} />
+          <BoxZone id="m-B" val={mb} color="orange" style={{ bottom: -mb, left: 0, right: 0, height: mb }} h={h} />
+          <BoxZone id="m-L" val={ml} color="orange" style={{ top: 0, left: -ml, bottom: 0, width: ml }} h={h} />
+          <BoxHandle id="m-T" prop="marginTop" val={mt} dir="y" sign={-1} color="orange" style={{ top: -mt, left: 0, right: 0, height: mt }} cls="cursor-ns-resize" h={h} />
+          <BoxHandle id="m-R" prop="marginRight" val={mr} dir="x" sign={1} color="orange" style={{ top: 0, right: -mr, bottom: 0, width: mr }} cls="cursor-ew-resize" h={h} />
+          <BoxHandle id="m-B" prop="marginBottom" val={mb} dir="y" sign={1} color="orange" style={{ bottom: -mb, left: 0, right: 0, height: mb }} cls="cursor-ns-resize" h={h} />
+          <BoxHandle id="m-L" prop="marginLeft" val={ml} dir="x" sign={-1} color="orange" style={{ top: 0, left: -ml, bottom: 0, width: ml }} cls="cursor-ew-resize" h={h} />
+
+          {/* Border radius */}
+          <RadiusCorners element={element} dispatch={dispatch} h={h} />
         </>
       )}
 
