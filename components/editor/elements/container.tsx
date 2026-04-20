@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, type ReactNode } from "react";
+import { useState, useCallback, useRef, type CSSProperties, type ReactNode } from "react";
 import { useEditor } from "../editor-provider";
 import ElementWrapper from "../element-wrapper";
 import { makeElInContext } from "../element-factory";
@@ -9,10 +9,18 @@ import type { El } from "../types";
 import { resolveStyles } from "../types";
 import Recursive from "../recursive";
 
+/** Split styles: layout props go to wrapRef, visual props go to ElementWrapper */
+function splitStyles(styles: CSSProperties) {
+  const { display, flexDirection, gap, flexWrap, alignItems, justifyContent, gridTemplateColumns, gridTemplateRows, ...visual } = styles as Record<string, unknown>;
+  const layout = { display, flexDirection, gap, flexWrap, alignItems, justifyContent, gridTemplateColumns, gridTemplateRows } as CSSProperties;
+  return { layout, visual: visual as CSSProperties };
+}
+
 export default function ContainerElement({ element }: { element: El }): ReactNode {
   const { state, dispatch } = useEditor();
   const { preview, dropTarget, device } = state.editor;
   const resolved = resolveStyles(element, device);
+  const { layout, visual } = splitStyles(resolved);
   const children = Array.isArray(element.content) ? element.content : [];
   const isEmpty = children.length === 0;
   const isBody = element.type === "__body";
@@ -73,17 +81,17 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
   );
 
   return (
-    <ElementWrapper element={element} style={element.styles} isContainer>
+    <ElementWrapper element={element} style={visual} isContainer>
       <div
         ref={wrapRef}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={cn(
-          "min-h-[40px] transition-colors flex-1",
-          isActive && !isEmpty && "bg-primary/[0.02]"
+          "min-h-[40px] flex-1",
+          isActive && !isEmpty && "bg-primary/[0.03] rounded"
         )}
-        style={{ display: resolved.display, flexDirection: resolved.flexDirection, gap: resolved.gap, flexWrap: resolved.flexWrap, alignItems: resolved.alignItems, justifyContent: resolved.justifyContent }}
+        style={layout}
       >
         {children.map((child, i) => (
           <div key={child.id} data-el-id={child.id} className="min-w-0 break-words">
@@ -97,7 +105,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
             "flex items-center justify-center border-2 border-dashed rounded-md text-xs transition-all flex-1",
             isBody ? "min-h-[calc(100vh-56px)]" : "min-h-[48px] min-w-[48px]",
             isActive
-              ? "border-primary/50 text-primary bg-primary/[0.04] scale-[1.01]"
+              ? "border-primary/50 text-primary bg-primary/[0.04]"
               : "border-border/40 text-muted-foreground/50"
           )}>
             {isBody ? "Drag a component here to start" : "Drop here"}
