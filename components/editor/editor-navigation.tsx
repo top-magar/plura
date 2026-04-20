@@ -56,20 +56,23 @@ export default function EditorNavigation({
         />
       </div>
 
-      {/* Center: device toggle */}
-      <div className="flex items-center gap-0.5 rounded-md border border-sidebar-border p-0.5">
-        {devices.map(([d, Icon]) => (
-          <button
-            key={d}
-            onClick={() => dispatch({ type: "CHANGE_DEVICE", payload: { device: d } })}
-            className={cn(
-              "flex size-7 items-center justify-center rounded-sm text-muted-foreground transition-colors",
-              device === d && "bg-primary/10 text-primary"
-            )}
-          >
-            <Icon className="size-3.5" />
-          </button>
-        ))}
+      {/* Center: device toggle + viewport size */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-0.5 rounded-md border border-sidebar-border p-0.5">
+          {devices.map(([d, Icon]) => (
+            <button
+              key={d}
+              onClick={() => dispatch({ type: "CHANGE_DEVICE", payload: { device: d } })}
+              className={cn(
+                "flex size-7 items-center justify-center rounded-sm text-muted-foreground transition-colors",
+                device === d && "bg-primary/10 text-primary"
+              )}
+            >
+              <Icon className="size-3.5" />
+            </button>
+          ))}
+        </div>
+        <span className="text-[10px] text-muted-foreground/60 tabular-nums">{device === "Desktop" ? "100%" : device === "Tablet" ? "768px" : "420px"}</span>
       </div>
 
       {/* Right: actions */}

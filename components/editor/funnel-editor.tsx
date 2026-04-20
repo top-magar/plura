@@ -196,6 +196,7 @@ function EditorInner() {
               </button>
             </span>
           ))}
+          <span className="ml-auto text-[9px] text-sidebar-foreground/30 tabular-nums shrink-0">{JSON.stringify(elements).split('"id"').length - 1} elements</span>
         </div>
       )}
 
