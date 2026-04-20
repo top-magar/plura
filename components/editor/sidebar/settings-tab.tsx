@@ -84,6 +84,16 @@ function Section({ title, icon: Icon, defaultOpen = true, children }: { title: s
 }
 
 function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const [saved, setSaved] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try { return JSON.parse(localStorage.getItem('editor-palette') ?? '[]'); } catch { return []; }
+  });
+  const saveColor = () => {
+    if (!value || saved.includes(value)) return;
+    const next = [value, ...saved].slice(0, 16);
+    setSaved(next);
+    localStorage.setItem('editor-palette', JSON.stringify(next));
+  };
   return (
     <div>
       <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">{label}</label>
@@ -98,10 +108,23 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
           <input type="color" value={value || "#000000"} onChange={(e) => onChange(e.target.value)} className="w-full h-8 border-0 cursor-pointer bg-transparent" />
           <div className="grid grid-cols-8 gap-1 mt-2">
             {["#000000","#ffffff","#ef4444","#f97316","#eab308","#22c55e","#3b82f6","#6366f1","#8b5cf6","#ec4899","#14b8a6","#64748b","#1e293b","#f1f5f9","#fef2f2","#fefce8"].map((c) => (
-              <button key={c} onClick={() => onChange(c)} className="size-5 rounded-sm border border-sidebar-border cursor-pointer" style={{ background: c }} />
+              <button key={c} onClick={() => onChange(c)} className="size-5 rounded-sm border border-sidebar-border cursor-pointer hover:scale-110 transition-transform" style={{ background: c }} />
             ))}
           </div>
-          <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-6 text-[10px] mt-2" placeholder="#hex" />
+          {saved.length > 0 && (
+            <div className="mt-2 pt-2 border-t border-sidebar-border">
+              <span className="text-[9px] text-sidebar-foreground/40 mb-1 block">Saved</span>
+              <div className="grid grid-cols-8 gap-1">
+                {saved.map((c) => (
+                  <button key={c} onClick={() => onChange(c)} className="size-5 rounded-sm border border-sidebar-border cursor-pointer hover:scale-110 transition-transform" style={{ background: c }} />
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="flex gap-1 mt-2">
+            <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-6 text-[10px] flex-1" placeholder="#hex" />
+            <button onClick={saveColor} className="h-6 px-2 rounded border border-sidebar-border text-[9px] text-sidebar-foreground/60 hover:bg-sidebar-accent transition-colors">+</button>
+          </div>
         </PopoverContent>
       </Popover>
     </div>
@@ -339,6 +362,28 @@ export default function SettingsTab() {
           {/* Typography */}
           <Section title="Typography" icon={Type}>
             <div className="space-y-2">
+              {/* Font Family */}
+              <div>
+                <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">Font Family</label>
+                <Select value={get("fontFamily") || undefined} onValueChange={(v) => {
+                  set("fontFamily", v);
+                  // Load Google Font
+                  if (typeof document !== 'undefined' && !document.querySelector(`link[data-font="${v}"]`)) {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = `https://fonts.googleapis.com/css2?family=${v.replace(/\s+/g, '+')}&display=swap`;
+                    link.setAttribute('data-font', v);
+                    document.head.appendChild(link);
+                  }
+                }}>
+                  <SelectTrigger className="h-7 text-xs px-2"><SelectValue placeholder="Default" /></SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {["Inter","Roboto","Open Sans","Lato","Montserrat","Poppins","Raleway","Nunito","Playfair Display","Merriweather","Source Sans 3","DM Sans","Space Grotesk","Outfit","Sora","Geist"].map((f) => (
+                      <SelectItem key={f} value={f} className="text-xs" style={{ fontFamily: f }}>{f}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="grid grid-cols-2 gap-1.5">
                 <Field label="Font Size" value={get("fontSize")} onChange={(v) => set("fontSize", v)} placeholder="16px" />
                 <Field label="Weight" value={get("fontWeight")} onChange={(v) => set("fontWeight", v)} placeholder="400" />
