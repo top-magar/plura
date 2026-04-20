@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, type CSSProperties } from "react";
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import { MIcon } from "./ui/m-icon";
 import { toast } from "sonner";
 import { upsertFunnelPage, upsertFunnel } from "@/lib/queries";
@@ -23,6 +23,7 @@ import { LeftPanel, RightPanel } from "./panels";
 import { DragOverlayProvider } from "./canvas/drag-overlay";
 import { useCanvas } from "./canvas/use-canvas";
 import { useShortcuts } from "./core/use-shortcuts";
+import ShortcutsOverlay from "./toolbar/shortcuts-overlay";
 
 export default function FunnelEditor(props: EditorProps) {
   return <EditorProvider {...props}><EditorInner /></EditorProvider>;
@@ -42,6 +43,7 @@ function EditorInner() {
   const [pageTitle, setPageTitle] = useState(pageName);
   const [metaDescription, setMetaDescription] = useState("");
   const [ogImage, setOgImage] = useState("");
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { canvasRef, zoom, setZoom, panning, spaceRef, scroll, onCanvasPointerDown, cursor } = useCanvas();
@@ -98,7 +100,11 @@ function EditorInner() {
     toast.success("Exported as HTML");
   };
 
-  const handleKeyDown = useShortcuts({ selected, elements, clipboard, setClipboard, styleClipboard, setStyleClipboard, dispatch, setDirty, setZoom, handleSave });
+  const baseKeyDown = useShortcuts({ selected, elements, clipboard, setClipboard, styleClipboard, setStyleClipboard, dispatch, setDirty, setZoom, handleSave });
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "?" && !(e.target as HTMLElement).matches("input,textarea,[contenteditable]")) { setShowShortcuts(s => !s); return; }
+    baseKeyDown(e);
+  }, [baseKeyDown]);
 
   const body = elements[0];
   const deviceWidth = device === "Desktop" ? "100%" : device === "Tablet" ? 768 : 420;
@@ -188,6 +194,7 @@ function EditorInner() {
           <MIcon name="visibility_off" size={14} /> Exit Preview
         </button>
       )}
+      {showShortcuts && <ShortcutsOverlay onClose={() => setShowShortcuts(false)} />}
     </div>
     </DragOverlayProvider>
   );

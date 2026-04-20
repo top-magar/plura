@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
 import { Input } from "@/components/ui/input";
+import Eyedropper from "../../canvas/overlays/eyedropper";
 
 export type IconOpt = { value: string; label: string; icon: ReactNode };
 
@@ -65,6 +66,7 @@ export function ColorField({ label, value, onChange }: { label: string; value: s
     if (typeof window === 'undefined') return [];
     try { return JSON.parse(localStorage.getItem('editor-palette') ?? '[]'); } catch { return []; }
   });
+  const [eyedropperOpen, setEyedropperOpen] = useState(false);
   const saveColor = () => { if (!value || saved.includes(value)) return; const next = [value, ...saved].slice(0, 16); setSaved(next); localStorage.setItem('editor-palette', JSON.stringify(next)); };
   return (
     <div>
@@ -91,10 +93,12 @@ export function ColorField({ label, value, onChange }: { label: string; value: s
           )}
           <div className="flex gap-1 mt-2">
             <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-6 text-[10px] flex-1" placeholder="#hex" />
+            <button onClick={() => setEyedropperOpen(true)} className="h-6 px-1.5 rounded border border-sidebar-border text-sidebar-foreground/60 hover:bg-sidebar-accent transition-colors" title="Eyedropper"><MIcon name="colorize" size={12} /></button>
             <button onClick={saveColor} className="h-6 px-2 rounded border border-sidebar-border text-[9px] text-sidebar-foreground/60 hover:bg-sidebar-accent transition-colors">+</button>
           </div>
         </PopoverContent>
       </Popover>
+      {eyedropperOpen && <Eyedropper onPick={onChange} onClose={() => setEyedropperOpen(false)} />}
     </div>
   );
 }
