@@ -143,7 +143,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
 
   const indicator = (
     <div className={cn(
-      "shrink-0 rounded-full bg-primary transition-all",
+      "shrink-0 rounded-full bg-primary/70 transition-all",
       isRow ? "w-0.5 self-stretch min-h-[20px]" : "h-0.5 w-full"
     )} />
   );
@@ -157,7 +157,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         onDragLeave={handleDragLeave}
         className={cn(
           "min-h-[40px] flex-1",
-          isActive && !isEmpty && "bg-primary/[0.03] rounded"
+          isActive && !isEmpty && "bg-primary/[0.02]"
         )}
         style={layout}
       >
@@ -177,8 +177,8 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
             "flex items-center justify-center border-2 border-dashed rounded-md text-xs transition-all flex-1",
             isBody ? "min-h-[calc(100vh-56px)]" : "min-h-[48px] min-w-[48px]",
             isActive
-              ? "border-primary/50 text-primary bg-primary/[0.04]"
-              : "border-border/40 text-muted-foreground/50"
+              ? "border-primary/40 text-primary/70 bg-primary/[0.02]"
+              : "border-border/30 text-muted-foreground/40"
           )}>
             {isBody ? "Drag a component here to start" : "Drop here"}
           </div>

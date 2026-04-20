@@ -112,7 +112,7 @@ function Toolbar({ element, dispatch, elements }: { element: El; dispatch: Retur
   const parentId = findParentId(elements, element.id);
   const { start } = useDragOverlay();
   return (
-    <div className="absolute -top-7 left-0 z-20 flex items-center gap-px rounded-md bg-primary text-primary-foreground shadow-md text-[9px] leading-none overflow-hidden" onClick={(e) => e.stopPropagation()}>
+    <div className="absolute -top-7 left-0 z-30 flex items-center gap-px rounded-md bg-primary text-primary-foreground shadow-md text-[9px] leading-none overflow-hidden" onClick={(e) => e.stopPropagation()}>
       <span className="flex items-center px-1 py-1 cursor-grab hover:bg-primary-foreground/10 active:cursor-grabbing" draggable onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); start(element.name, e); }}><GripVertical className="size-3" /></span>
       {element.locked && <Lock className="size-2.5 mx-0.5 text-amber-300" />}
       <span className="px-1 py-1 max-w-[80px] truncate pointer-events-none select-none">{element.name}</span>
@@ -146,7 +146,7 @@ function BoxHandle({ element, id, prop, val, dir, sign, color, style, cls, h }: 
   const adjustedStyle = dir === 'y' ? { ...style, height: minSize } : { ...style, width: minSize };
   return (
     <div className={cn('absolute z-[14]', cls)} style={adjustedStyle} onPointerDown={(e) => h.drag(element, id, prop, dir, sign, 4, e)} onPointerEnter={() => h.hover(id)} onPointerLeave={() => h.hover(null)}>
-      {h.active === id && <span className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded px-1.5 py-0.5 text-[9px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', color === 'emerald' ? 'bg-emerald-600' : 'bg-orange-500')}>{val}px</span>}
+      {h.active === id && <span className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', color === 'emerald' ? 'bg-emerald-600' : 'bg-orange-500')}>{val}px</span>}
     </div>
   );
 }
@@ -213,10 +213,10 @@ export default function ElementWrapper({ element, children, className, style, is
       data-wrapper
       className={cn(
         'relative group/el min-w-0',
-        !isBody && 'ring-1 ring-transparent hover:ring-primary/40 transition-shadow',
+        !isBody && 'ring-1 ring-transparent transition-all duration-150',
         isSel && !isBody && 'ring-2 ring-primary',
-        isHov && !isBody && 'ring-1 ring-primary/40',
-        isDrop && 'ring-2 ring-primary/60 bg-primary/5',
+        isHov && !isBody && 'ring-1 ring-primary/25',
+        isDrop && 'ring-2 ring-primary/50 bg-primary/[0.03]',
         isBody && 'min-h-full p-3',
         className,
       )}
@@ -227,7 +227,7 @@ export default function ElementWrapper({ element, children, className, style, is
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
     >
       {isSel && !isBody && <Toolbar element={element} dispatch={dispatch} elements={elements} />}
-      {isHov && !isBody && <span className="absolute -top-5 left-1 text-[9px] leading-none px-1.5 py-0.5 rounded-sm bg-muted text-muted-foreground z-10 pointer-events-none">{element.name}</span>}
+      {isHov && !isBody && <span className="absolute -top-4 left-1 text-[8px] leading-none px-1 py-0.5 rounded-sm bg-muted/80 text-muted-foreground/70 z-10 pointer-events-none">{element.name}</span>}
 
       {!isBody && !element.locked && (isSel || isHov) && (
         <>

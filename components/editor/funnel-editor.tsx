@@ -173,7 +173,7 @@ function EditorInner() {
       <div className="flex flex-1 overflow-hidden min-h-0">
         {!preview && <LeftPanel />}
 
-        <div className={cn("flex-1 overflow-auto p-4 min-h-0", preview ? "p-0 bg-background" : "bg-muted")} style={!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)) 0.5px, transparent 0.5px)", backgroundSize: "16px 16px" } : undefined} onClick={() => !preview && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
+        <div className={cn("flex-1 overflow-auto p-4 min-h-0", preview ? "p-0 bg-background" : "bg-muted")} style={!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined} onClick={() => !preview && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
           <div className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
             {body && <Recursive element={body} />}
           </div>
