@@ -26,7 +26,6 @@ type EditorAction =
   | { type: 'CHANGE_DEVICE'; payload: { device: Device } }
   | { type: 'TOGGLE_PREVIEW' }
   | { type: 'SET_HOVERED'; payload: { id: string | null } }
-  | { type: 'SET_DROP_TARGET'; payload: { id: string | null } }
   | { type: 'LOAD_DATA'; payload: { elements: El[] } }
   | { type: 'SET_ELEMENTS'; payload: { elements: El[] } }
   | { type: 'UNDO' }
@@ -42,7 +41,6 @@ type EditorState = {
   device: Device;
   preview: boolean;
   hovered: string | null;
-  dropTarget: string | null;
   dirty: boolean;
   clipboard: El | null;
   zoom: number;
@@ -68,7 +66,6 @@ const initialEditorState: EditorState = {
   device: 'Desktop',
   preview: false,
   hovered: null,
-  dropTarget: null,
   dirty: false,
   clipboard: null,
   zoom: 100,
@@ -130,8 +127,6 @@ function editorReducer(store: EditorStore, action: EditorAction): EditorStore {
       return { ...store, editor: { ...store.editor, preview: !store.editor.preview } };
     case 'SET_HOVERED':
       return { ...store, editor: { ...store.editor, hovered: action.payload.id } };
-    case 'SET_DROP_TARGET':
-      return { ...store, editor: { ...store.editor, dropTarget: action.payload.id } };
     case 'LOAD_DATA': {
       const next: EditorState = { ...initialEditorState, elements: action.payload.elements };
       return { editor: next, history: { history: [next], currentIndex: 0 } };

@@ -1,102 +1,73 @@
 "use client";
 
-import { useState, useCallback, useRef, type ReactNode } from "react";
+import { createContext, useContext, type ReactNode, type RefCallback } from "react";
+import { useDroppable } from "@dnd-kit/react";
+import { useSortable } from "@dnd-kit/react/sortable";
 import { useEditor } from "../editor-provider";
 import ElementWrapper from "../element-wrapper";
-import { makeElInContext } from "../element-factory";
 import { cn } from "@/lib/utils";
 import type { El } from "../types";
 import { resolveStyles } from "../types";
 import Recursive from "../recursive";
 
+/** Context to pass sortable handleRef down to ElementWrapper's toolbar grip */
+const HandleRefContext = createContext<RefCallback<Element> | null>(null);
+export function useSortableHandle() { return useContext(HandleRefContext); }
+
+function SortableChild({ element, index, group }: { element: El; index: number; group: string }) {
+  const { ref, handleRef } = useSortable({
+    id: element.id,
+    index,
+    group,
+    type: "element",
+    transition: { duration: 200, easing: "ease" },
+    disabled: element.locked,
+  });
+
+  return (
+    <HandleRefContext.Provider value={handleRef}>
+      <div ref={ref} data-el-id={element.id}>
+        <Recursive element={element} />
+      </div>
+    </HandleRefContext.Provider>
+  );
+}
+
 export default function ContainerElement({ element }: { element: El }): ReactNode {
-  const { state, dispatch } = useEditor();
-  const { preview, dropTarget, device } = state.editor;
+  const { state } = useEditor();
+  const { preview, device } = state.editor;
   const resolved = resolveStyles(element, device);
   const children = Array.isArray(element.content) ? element.content : [];
   const isEmpty = children.length === 0;
   const isBody = element.type === "__body";
-  const isActive = dropTarget === element.id;
-  const [dropIdx, setDropIdx] = useState<number>(-1);
-  const wrapRef = useRef<HTMLDivElement>(null);
 
-  const isRow = resolved.flexDirection === "row" || resolved.flexDirection === "row-reverse";
+  const { ref: dropRef, isDropTarget } = useDroppable({ id: element.id });
 
-  const calcDropIdx = useCallback((e: React.DragEvent) => {
-    if (!wrapRef.current) return children.length;
-    const els = wrapRef.current.querySelectorAll(":scope > [data-el-id]");
-    for (let i = 0; i < els.length; i++) {
-      const rect = els[i].getBoundingClientRect();
-      if (isRow ? e.clientX < rect.left + rect.width / 2 : e.clientY < rect.top + rect.height / 2) return i;
-    }
-    return children.length;
-  }, [children.length, isRow]);
-
-  function handleDragOver(e: React.DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (dropTarget !== element.id) dispatch({ type: "SET_DROP_TARGET", payload: { id: element.id } });
-    setDropIdx(calcDropIdx(e));
+  if (preview) {
+    return (
+      <ElementWrapper element={element} style={resolved}>
+        <div>{children.map((child) => <Recursive key={child.id} element={child} />)}</div>
+      </ElementWrapper>
+    );
   }
-
-  function handleDragLeave(e: React.DragEvent) {
-    e.stopPropagation();
-    // Only clear when actually leaving this container
-    const related = e.relatedTarget as Node | null;
-    if (wrapRef.current && related && wrapRef.current.contains(related)) return;
-    setDropIdx(-1);
-    if (dropTarget === element.id) dispatch({ type: "SET_DROP_TARGET", payload: { id: null } });
-  }
-
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    const idx = dropIdx >= 0 ? dropIdx : children.length;
-    setDropIdx(-1);
-    dispatch({ type: "SET_DROP_TARGET", payload: { id: null } });
-
-    const type = e.dataTransfer.getData("componentType");
-    const moveId = e.dataTransfer.getData("moveElementId");
-
-    if (type) {
-      const newEl = makeElInContext(type, element);
-      if (newEl) dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, element: newEl, index: idx } });
-    } else if (moveId && moveId !== element.id) {
-      dispatch({ type: "MOVE_ELEMENT", payload: { elId: moveId, targetContainerId: element.id, index: idx } });
-    }
-  }
-
-  const indicator = (
-    <div className={cn(
-      "shrink-0 rounded-full bg-primary transition-all",
-      isRow ? "w-0.5 self-stretch min-h-[20px]" : "h-0.5 w-full"
-    )} />
-  );
 
   return (
     <ElementWrapper element={element} style={element.styles} isContainer>
       <div
-        ref={wrapRef}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
+        ref={dropRef}
         className={cn(
           "min-h-[40px] transition-colors",
-          isActive && !isEmpty && "bg-primary/[0.02]"
+          isDropTarget && !isEmpty && "bg-primary/[0.03] ring-1 ring-primary/20 rounded"
         )}
       >
         {children.map((child, i) => (
-          <div key={child.id} data-el-id={child.id}>
-            {isActive && dropIdx === i && indicator}
-            <Recursive element={child} />
-          </div>
+          <SortableChild key={child.id} element={child} index={i} group={element.id} />
         ))}
-        {isActive && dropIdx === children.length && !isEmpty && indicator}
-        {isEmpty && !preview && (
+        {isEmpty && (
           <div className={cn(
             "flex items-center justify-center border-2 border-dashed rounded-md text-xs transition-all",
             isBody ? "min-h-[calc(100vh-56px)]" : "min-h-[48px]",
-            isActive
+            isDropTarget
               ? "border-primary/50 text-primary bg-primary/[0.04] scale-[1.01]"
               : "border-border/40 text-muted-foreground/50"
           )}>

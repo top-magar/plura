@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useEditor } from './editor-provider';
 import { findParentId } from './tree-helpers';
+import { useSortableHandle } from './elements/container';
 import { cn } from '@/lib/utils';
 import type { El } from './types';
 import { resolveStyles } from './types';
@@ -96,10 +97,12 @@ function Toolbar({
   element,
   dispatch,
   elements,
+  handleRef,
 }: {
   element: El;
   dispatch: ReturnType<typeof useEditor>['dispatch'];
   elements: El[];
+  handleRef: React.RefCallback<Element> | null;
 }) {
   const parentId = findParentId(elements, element.id);
 
@@ -108,14 +111,10 @@ function Toolbar({
       className="absolute -top-7 left-0 z-20 flex items-center gap-px rounded-md bg-primary text-primary-foreground shadow-md text-[9px] leading-none overflow-hidden"
       onClick={(e) => e.stopPropagation()}
     >
-      {/* Drag handle */}
+      {/* Drag handle — connected to sortable handleRef */}
       <span
+        ref={handleRef}
         className="flex items-center px-1 py-1 cursor-grab hover:bg-primary-foreground/10 active:cursor-grabbing"
-        draggable
-        onDragStart={(e) => {
-          e.stopPropagation();
-          e.dataTransfer.setData('moveElementId', element.id);
-        }}
       >
         <GripVertical className="size-3" />
       </span>
@@ -213,18 +212,18 @@ function ResizeHandles({
 
 export default function ElementWrapper({ element, children, className, style, isContainer }: Props) {
   const { state, dispatch } = useEditor();
-  const { selected, preview, hovered, dropTarget, device } = state.editor;
+  const { selected, preview, hovered, device } = state.editor;
   const elements = state.editor.elements;
 
   const isBody = element.type === '__body';
   const isSel = selected?.id === element.id;
   const isHov = hovered === element.id && !isSel;
-  const isDrop = dropTarget === element.id && isContainer;
   const isLocked = element.locked;
   const isHidden = element.hidden;
 
   const resolved = style ?? resolveStyles(element, device);
   const { onResizeX, onResizeY, onResizeXY } = useResize(element, dispatch);
+  const handleRef = useSortableHandle();
 
   // Hidden: gone in preview, ghosted in editor
   if (isHidden && preview) return null;
@@ -249,18 +248,16 @@ export default function ElementWrapper({ element, children, className, style, is
         !isBody && 'ring-1 ring-transparent hover:ring-primary/40 transition-shadow',
         isSel && !isBody && 'ring-2 ring-primary',
         isHov && !isBody && 'ring-1 ring-primary/40',
-        isDrop && 'ring-2 ring-primary/60 bg-primary/5',
         isBody && 'min-h-full p-3',
         className,
       )}
       style={resolved}
       onClick={(e) => { e.stopPropagation(); dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: { element } }); }}
-      onDragOver={(e) => { e.preventDefault(); }}
       onMouseEnter={() => dispatch({ type: 'SET_HOVERED', payload: { id: element.id } })}
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
     >
       {/* Floating toolbar — selected non-body elements */}
-      {isSel && !isBody && <Toolbar element={element} dispatch={dispatch} elements={elements} />}
+      {isSel && !isBody && <Toolbar element={element} dispatch={dispatch} elements={elements} handleRef={handleRef} />}
 
       {/* Hover badge — just name */}
       {isHov && !isBody && (
