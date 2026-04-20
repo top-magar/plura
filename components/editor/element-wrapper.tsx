@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useCallback, useState, type CSSProperties, type ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import {
   GripVertical, Trash2, Copy, ChevronUp, ChevronDown, Lock,
 } from 'lucide-react';
@@ -35,87 +35,6 @@ type Props = {
   style?: CSSProperties;
   isContainer?: boolean;
 };
-
-// ─── Resize Hook ────────────────────────────────────────────
-
-function useResize(
-  element: El,
-  dispatch: ReturnType<typeof useEditor>['dispatch'],
-) {
-  const startRef = useRef<{ x: number; y: number; w: number; h: number; parentW: number; parentH: number } | null>(null);
-  const [resizeInfo, setResizeInfo] = useState<{ w: number; h: number; snapLabel: string | null } | null>(null);
-
-  const onPointerDown = useCallback(
-    (axis: 'x' | 'y' | 'xy') => (e: React.PointerEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const el = (e.target as HTMLElement).closest('[data-wrapper]') as HTMLElement | null;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const parent = el.parentElement;
-      const pRect = parent?.getBoundingClientRect();
-      startRef.current = { x: e.clientX, y: e.clientY, w: rect.width, h: rect.height, parentW: pRect?.width ?? rect.width, parentH: pRect?.height ?? rect.height };
-
-      const SNAP = 6;
-      const pctSnaps = [0.25, 0.333, 0.5, 0.667, 0.75, 1];
-
-      const onMove = (ev: PointerEvent) => {
-        if (!startRef.current) return;
-        const s = startRef.current;
-        let newW = Math.max(20, s.w + (ev.clientX - s.x));
-        let newH = Math.max(20, s.h + (ev.clientY - s.y));
-        let snapLabel: string | null = null;
-
-        // Snap to percentage of parent
-        if (axis === 'x' || axis === 'xy') {
-          for (const r of pctSnaps) {
-            const target = Math.round(s.parentW * r);
-            if (Math.abs(newW - target) < SNAP) { newW = target; snapLabel = `${Math.round(r * 100)}%`; break; }
-          }
-        }
-        if (axis === 'y' || axis === 'xy') {
-          for (const r of pctSnaps) {
-            const target = Math.round(s.parentH * r);
-            if (Math.abs(newH - target) < SNAP) { newH = target; snapLabel = snapLabel ? `${snapLabel} × ${Math.round(r * 100)}%` : `${Math.round(r * 100)}%`; break; }
-          }
-        }
-
-        // Snap to 8px grid
-        if (!snapLabel) {
-          if (axis === 'x' || axis === 'xy') newW = Math.round(newW / 8) * 8 || 8;
-          if (axis === 'y' || axis === 'xy') newH = Math.round(newH / 8) * 8 || 8;
-        }
-
-        setResizeInfo({ w: newW, h: newH, snapLabel });
-
-        // Use percentage value when snapped to percentage, px otherwise
-        const updates: Partial<CSSProperties> = {};
-        if (axis === 'x' || axis === 'xy') {
-          const pct = pctSnaps.find(r => Math.round(s.parentW * r) === newW);
-          updates.width = pct ? `${Math.round(pct * 100)}%` : `${newW}px`;
-        }
-        if (axis === 'y' || axis === 'xy') {
-          updates.height = `${newH}px`;
-        }
-        if (!element.styles.overflow) updates.overflow = 'hidden';
-        dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, ...updates } } } });
-      };
-
-      const onUp = () => {
-        startRef.current = null;
-        setResizeInfo(null);
-        document.removeEventListener('pointermove', onMove);
-        document.removeEventListener('pointerup', onUp);
-      };
-
-      document.addEventListener('pointermove', onMove);
-      document.addEventListener('pointerup', onUp);
-    },
-    [element, dispatch],
-  );
-
-  return { onResizeX: onPointerDown('x'), onResizeY: onPointerDown('y'), onResizeXY: onPointerDown('xy'), resizeInfo };
-}
 
 // ─── Floating Toolbar ───────────────────────────────────────
 
@@ -197,35 +116,6 @@ function Toolbar({
         <Trash2 className="size-2.5" />
       </button>
     </div>
-  );
-}
-
-// ─── Resize Handles ─────────────────────────────────────────
-
-function ResizeHandles({
-  onResizeX,
-  onResizeY,
-  onResizeXY,
-}: {
-  onResizeX: (e: React.PointerEvent) => void;
-  onResizeY: (e: React.PointerEvent) => void;
-  onResizeXY: (e: React.PointerEvent) => void;
-}) {
-  return (
-    <>
-      {/* Right edge */}
-      <div className="absolute top-0 -right-[3px] w-[6px] h-full cursor-ew-resize z-20 group/r" onPointerDown={onResizeX}>
-        <div className="absolute top-1/2 -translate-y-1/2 right-0 w-[3px] h-8 rounded-full bg-primary shadow-sm opacity-0 group-hover/r:opacity-100 transition-opacity" />
-      </div>
-      {/* Bottom edge */}
-      <div className="absolute -bottom-[3px] left-0 h-[6px] w-full cursor-ns-resize z-20 group/b" onPointerDown={onResizeY}>
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-full bg-primary shadow-sm opacity-0 group-hover/b:opacity-100 transition-opacity" />
-      </div>
-      {/* Corner */}
-      <div className="absolute -bottom-[5px] -right-[5px] size-[10px] cursor-nwse-resize z-20 group/c" onPointerDown={onResizeXY}>
-        <div className="size-[10px] rounded-full bg-primary border-2 border-background shadow-sm opacity-0 group-hover/c:opacity-100 transition-opacity" />
-      </div>
-    </>
   );
 }
 
@@ -461,7 +351,6 @@ export default function ElementWrapper({ element, children, className, style, is
   const isHidden = element.hidden;
 
   const resolved = style ?? resolveStyles(element, device);
-  const { onResizeX, onResizeY, onResizeXY, resizeInfo } = useResize(element, dispatch);
 
   // Hidden: gone in preview, ghosted in editor
   if (isHidden && preview) return null;
@@ -509,23 +398,10 @@ export default function ElementWrapper({ element, children, className, style, is
       {/* Resize handles — selected, non-body, non-locked */}
       {isSel && !isBody && !isLocked && (
         <>
-          <ResizeHandles onResizeX={onResizeX} onResizeY={onResizeY} onResizeXY={onResizeXY} />
           <PaddingHandles element={element} dispatch={dispatch} />
           <MarginHandles element={element} dispatch={dispatch} />
           <BorderRadiusHandle element={element} dispatch={dispatch} />
         </>
-      )}
-
-      {/* Dimensions tooltip during resize */}
-      {resizeInfo && (
-        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
-          <span className={cn(
-            "rounded px-1.5 py-0.5 text-[9px] font-mono font-medium text-white whitespace-nowrap",
-            resizeInfo.snapLabel ? "bg-indigo-500" : "bg-black/70"
-          )}>
-            {resizeInfo.snapLabel ?? `${resizeInfo.w} × ${resizeInfo.h}`}
-          </span>
-        </div>
       )}
 
       {children}
