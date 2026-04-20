@@ -20,6 +20,7 @@ function SortableChild({ element, index, group }: { element: El; index: number; 
     index,
     group,
     type: "element",
+    accept: "element",
     transition: { duration: 200, easing: "ease" },
     disabled: element.locked,
   });
@@ -41,7 +42,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
   const isEmpty = children.length === 0;
   const isBody = element.type === "__body";
 
-  const { ref: dropRef, isDropTarget } = useDroppable({ id: element.id });
+  const { ref: dropRef, isDropTarget } = useDroppable({ id: element.id, accept: "element" });
 
   if (preview) {
     return (

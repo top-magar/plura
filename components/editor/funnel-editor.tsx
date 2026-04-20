@@ -141,11 +141,20 @@ function EditorInner() {
 
   const body = elements[0];
   const deviceWidth = device === "Desktop" ? "100%" : device === "Tablet" ? 768 : 420;
+  const elementsSnapshot = useRef<El[]>(elements);
 
-  // dnd-kit: central drop handler
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleDragStart = useCallback(() => {
+    elementsSnapshot.current = elements;
+  }, [elements]);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleDragEnd = useCallback((event: any) => {
-    if (event.canceled) return;
+    if (event.canceled) {
+      // Revert to snapshot
+      dispatch({ type: "SET_ELEMENTS", payload: { elements: elementsSnapshot.current } });
+      return;
+    }
     const source = event.operation?.source;
     if (!source) return;
 
@@ -163,23 +172,35 @@ function EditorInner() {
       return;
     }
 
-    // Sortable reorder / cross-container move
+    // Sortable: state already updated via onDragOver, just mark dirty
     if (typeof source.initialIndex === "number") {
-      const { id, initialIndex, index, group, initialGroup } = source;
-      if (initialGroup === group) {
-        if (initialIndex !== index) {
-          dispatch({ type: "REORDER_ELEMENT", payload: { elId: String(id), direction: index < initialIndex ? "up" : "down" } });
-          setDirty(true);
-        }
-      } else if (group) {
-        dispatch({ type: "MOVE_ELEMENT", payload: { elId: String(id), targetContainerId: String(group), index } });
+      const { initialIndex, index, group, initialGroup } = source;
+      if (initialIndex !== index || initialGroup !== group) {
         setDirty(true);
       }
     }
   }, [elements, dispatch]);
 
+  // Live reorder during drag via optimistic sorting
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleDragOver = useCallback((event: any) => {
+    const source = event.operation?.source;
+    const target = event.operation?.target;
+    if (!source || !target) return;
+    // Skip palette items — they only drop on onDragEnd
+    if (source.data?.componentType) return;
+
+    // Cross-container move: source.group changed
+    if (typeof source.initialIndex === "number" && source.group !== source.initialGroup) {
+      dispatch({
+        type: "MOVE_ELEMENT",
+        payload: { elId: String(source.id), targetContainerId: String(source.group), index: source.index },
+      });
+    }
+  }, [dispatch]);
+
   return (
-    <DragDropProvider onDragEnd={handleDragEnd}>
+    <DragDropProvider onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
     <div className="fixed inset-0 z-20 flex flex-col bg-background text-foreground text-sm leading-snug outline-none antialiased" onKeyDown={handleKeyDown} tabIndex={0}>
       {!preview && (
         <EditorNavigation
