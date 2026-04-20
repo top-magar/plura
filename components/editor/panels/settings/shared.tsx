@@ -39,16 +39,23 @@ export function IconToggle({ value, options, onChange }: { value: string; option
   );
 }
 
-export function Section({ title, icon, defaultOpen = true, children }: { title: string; icon: string; defaultOpen?: boolean; children: ReactNode }) {
+export function Section({ title, icon, defaultOpen = true, onAdd, children }: { title: string; icon: string; defaultOpen?: boolean; onAdd?: () => void; children: ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="border-b border-sidebar-border">
-      <CollapsibleTrigger className="flex w-full items-center gap-1.5 bg-transparent px-3 py-2 text-[11px] font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground cursor-pointer">
-        <MIcon name={open ? "expand_more" : "chevron_right"} size={12} />
-        <MIcon name={icon} size={14} />
-        {title}
-      </CollapsibleTrigger>
-      <CollapsibleContent className="px-3 pb-3">{children}</CollapsibleContent>
+      <div className="flex items-center h-8 px-3 hover:bg-sidebar-accent/50 transition-colors">
+        <CollapsibleTrigger className="flex flex-1 items-center gap-1.5 text-[11px] font-medium text-sidebar-foreground/70 hover:text-sidebar-foreground cursor-pointer">
+          <MIcon name={open ? "expand_more" : "chevron_right"} size={12} className="text-sidebar-foreground/40" />
+          <MIcon name={icon} size={13} className="text-sidebar-foreground/50" />
+          <span>{title}</span>
+        </CollapsibleTrigger>
+        {onAdd && (
+          <button onClick={(e) => { e.stopPropagation(); onAdd(); }} className="flex size-5 items-center justify-center rounded text-sidebar-foreground/40 hover:text-primary hover:bg-primary/10 transition-colors">
+            <MIcon name="add" size={14} />
+          </button>
+        )}
+      </div>
+      <CollapsibleContent className="px-3 pb-3 pt-1">{children}</CollapsibleContent>
     </Collapsible>
   );
 }

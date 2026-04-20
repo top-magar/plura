@@ -6,20 +6,6 @@ import { cn } from "@/lib/utils";
 import { useEditor } from "../core/provider";
 import SettingsTab from "./settings";
 
-const shortcuts = [
-  { keys: "Cmd+S", action: "Save" },
-  { keys: "Cmd+Z", action: "Undo" },
-  { keys: "Cmd+Shift+Z", action: "Redo" },
-  { keys: "Cmd+D", action: "Duplicate" },
-  { keys: "Cmd+C/V", action: "Copy / Paste" },
-  { keys: "Cmd+Alt+C/V", action: "Copy / Paste styles" },
-  { keys: "↑ / ↓", action: "Reorder element" },
-  { keys: "Cmd++/-", action: "Zoom in / out" },
-  { keys: "Delete", action: "Remove element" },
-  { keys: "Escape", action: "Select parent" },
-  { keys: "Right-click", action: "Context menu" },
-];
-
 const typeIcons: Record<string, string> = {
   __body: "public", container: "check_box_outline_blank", section: "view_agenda",
   row: "view_column", column: "view_stream", hero: "featured_video",
@@ -46,8 +32,8 @@ export default function RightPanel() {
         </div>
       ) : (
         <div className="flex w-64 flex-col overflow-hidden bg-sidebar">
-          {/* Header */}
-          <div className="flex h-10 items-center gap-2 border-b border-sidebar-border px-3">
+          {/* Header — element name + type badge */}
+          <div className="flex h-9 items-center gap-2 border-b border-sidebar-border px-3 shrink-0">
             {selected ? (
               <>
                 <MIcon name={typeIcons[selected.type] ?? "widgets"} size={14} className="text-primary shrink-0" />
@@ -56,33 +42,23 @@ export default function RightPanel() {
               </>
             ) : (
               <>
-                <MIcon name="keyboard" size={14} className="text-muted-foreground shrink-0" />
-                <span className="text-xs font-medium flex-1">Shortcuts</span>
+                <MIcon name="touch_app" size={14} className="text-muted-foreground/40 shrink-0" />
+                <span className="text-xs text-muted-foreground/60 flex-1">Select an element</span>
               </>
             )}
-            <button onClick={() => setCollapsed(true)} className="flex size-6 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent hover:text-foreground transition-colors shrink-0">
+            <button onClick={() => setCollapsed(true)} className="flex size-5 items-center justify-center rounded text-muted-foreground/40 hover:text-foreground transition-colors shrink-0">
               <MIcon name="chevron_right" size={14} />
             </button>
           </div>
 
-          {/* Content */}
+          {/* Single scrollable column — no tabs */}
           {selected ? (
             <SettingsTab />
           ) : (
-            <div className="flex-1 overflow-y-auto p-3">
-              <div className="space-y-0.5">
-                {shortcuts.map(({ keys, action }) => (
-                  <div key={keys} className="flex items-center justify-between py-1">
-                    <span className="text-[10px] text-muted-foreground">{action}</span>
-                    <kbd className="rounded border border-sidebar-border bg-sidebar-accent/50 px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground/70">{keys}</kbd>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 rounded-md border border-sidebar-border/50 bg-sidebar-accent/30 p-3">
-                <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
-                  <MIcon name="info" size={12} className="inline mr-1 -mt-0.5" />
-                  Click any element on the canvas to edit its properties. Changes auto-save after 5 seconds.
-                </p>
+            <div className="flex-1 flex items-center justify-center p-6">
+              <div className="text-center">
+                <MIcon name="ads_click" size={32} className="text-muted-foreground/15 mx-auto mb-3" />
+                <p className="text-[11px] text-muted-foreground/40">Click an element to edit</p>
               </div>
             </div>
           )}
