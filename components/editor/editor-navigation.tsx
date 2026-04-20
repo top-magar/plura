@@ -61,7 +61,7 @@ export default function EditorNavigation({
         </div>
 
         {/* Center: undo/redo + device + zoom */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           {/* Undo/Redo */}
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-7" onClick={() => dispatch({ type: "UNDO" })} disabled={!canUndo}>
@@ -75,7 +75,7 @@ export default function EditorNavigation({
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Redo</TooltipContent></Tooltip>
 
-          <Separator orientation="vertical" className="h-4 mx-0.5" />
+          <Separator orientation="vertical" className="h-4" />
 
           {/* Device toggle */}
           <div className="flex items-center gap-px rounded-md border border-sidebar-border p-px">
@@ -94,7 +94,7 @@ export default function EditorNavigation({
             ))}
           </div>
 
-          <Separator orientation="vertical" className="h-4 mx-0.5" />
+          <Separator orientation="vertical" className="h-4" />
 
           {/* Zoom */}
           <Tooltip><TooltipTrigger asChild>
@@ -111,7 +111,7 @@ export default function EditorNavigation({
         </div>
 
         {/* Right: preview + export + publish + save */}
-        <div className="flex items-center gap-1 flex-1 justify-end min-w-0">
+        <div className="flex items-center gap-1.5 flex-1 justify-end min-w-0">
           <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="size-7" onClick={() => dispatch({ type: "TOGGLE_PREVIEW" })}>
               <Eye className="size-3.5" />
@@ -128,7 +128,7 @@ export default function EditorNavigation({
             </Button>
           </TooltipTrigger><TooltipContent className="text-[10px]">Publish</TooltipContent></Tooltip>
 
-          <Separator orientation="vertical" className="h-4 mx-0.5" />
+          <Separator orientation="vertical" className="h-4" />
 
           <Button size="sm" onClick={onSave} className="relative h-7 gap-1 px-3 text-xs">
             <Save className="size-3" />
