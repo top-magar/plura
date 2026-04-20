@@ -24,7 +24,7 @@ export function makeEl(type: string): El | null {
       { id: v4(), type: "column", name: "Col 2", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
     ] as El[] }),
     column: () => ({ id, type: "column", name: "Column", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] }),
-    section: () => ({ id, type: "container", name: "Section", styles: { display: "flex", flexDirection: "column", gap: "16px", padding: "64px 24px", maxWidth: "1200px", margin: "0 auto", width: "100%" }, content: [] }),
+    section: () => ({ id, type: "section", name: "Section", styles: { display: "flex", flexDirection: "column", gap: "16px", padding: "64px 24px", maxWidth: "1200px", margin: "0 auto", width: "100%" }, content: [] }),
     "2Col": () => ({ id, type: "2Col", name: "2 Columns", styles: { display: "flex", gap: "16px", width: "100%" }, content: [
       { id: v4(), type: "column", name: "Col 1", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
       { id: v4(), type: "column", name: "Col 2", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [] },
@@ -167,13 +167,9 @@ export function makeElInContext(type: string, parent: El): El | null {
 
 export const componentGroups = [
   { label: "Layout", items: [
-    { type: "container", label: "Container", icon: Square, color: "#8b5cf6" },
-    { type: "row", label: "Row", icon: Columns2, color: "#7c3aed" },
-    { type: "column", label: "Column", icon: Rows3, color: "#7c3aed" },
     { type: "section", label: "Section", icon: Layout, color: "#7c3aed" },
-    { type: "2Col", label: "2 Columns", icon: Columns2, color: "#6d28d9" },
-    { type: "3Col", label: "3 Columns", icon: Columns3, color: "#6d28d9" },
-    { type: "4Col", label: "4 Columns", icon: GripVertical, color: "#5b21b6" },
+    { type: "container", label: "Container", icon: Square, color: "#8b5cf6" },
+    { type: "row", label: "Row", icon: Columns2, color: "#6d28d9" },
     { type: "grid", label: "Grid", icon: LayoutGrid, color: "#5b21b6" },
     { type: "header", label: "Header", icon: PanelTop, color: "#7c3aed" },
     { type: "card", label: "Card", icon: RectangleHorizontal, color: "#8b5cf6" },
