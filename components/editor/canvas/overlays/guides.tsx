@@ -13,26 +13,6 @@ export default function Guides({ zoom, scrollLeft, scrollTop }: { zoom: number; 
   const z = zoom / 100;
   const [dragging, setDragging] = useState<{ axis: 'x' | 'y'; index: number | null; pos: number } | null>(null);
 
-  const startDragFromRuler = (axis: 'x' | 'y', e: React.PointerEvent) => {
-    e.preventDefault();
-    const startPos = axis === 'x' ? e.clientX : e.clientY;
-    setDragging({ axis, index: null, pos: axis === 'x' ? (e.clientX + scrollLeft) / z : (e.clientY + scrollTop) / z });
-
-    const onMove = (ev: PointerEvent) => {
-      const pos = axis === 'x' ? (ev.clientX + scrollLeft) / z : (ev.clientY + scrollTop) / z;
-      setDragging(d => d ? { ...d, pos } : null);
-    };
-    const onUp = (ev: PointerEvent) => {
-      const pos = axis === 'x' ? (ev.clientX + scrollLeft) / z : (ev.clientY + scrollTop) / z;
-      if (pos > 0) dispatch({ type: 'ADD_GUIDE', payload: { axis, position: Math.round(pos) } });
-      setDragging(null);
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup', onUp);
-    };
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
-  };
-
   const startDragGuide = (index: number, axis: 'x' | 'y', e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -66,10 +46,6 @@ export default function Guides({ zoom, scrollLeft, scrollTop }: { zoom: number; 
 
   return (
     <>
-      {/* Drag zones on ruler edges */}
-      <div className="absolute top-0 left-[22px] right-0 h-[22px] z-30 cursor-row-resize" onPointerDown={(e) => startDragFromRuler('y', e)} />
-      <div className="absolute left-0 top-[22px] bottom-0 w-[22px] z-30 cursor-col-resize" onPointerDown={(e) => startDragFromRuler('x', e)} />
-
       {/* Existing guides */}
       {guides.map((g, i) => {
         const pos = g.axis === 'x'

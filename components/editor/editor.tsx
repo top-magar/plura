@@ -46,7 +46,8 @@ function EditorInner() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { canvasRef, zoom, setZoom, panning, spaceRef, scroll, onCanvasPointerDown, cursor } = useCanvas();
+  const { canvasRef, zoom, setZoom, panning, altHeld, spaceRef, scroll, onCanvasPointerDown, cursor } = useCanvas();
+  const [showRulers, setShowRulers] = useState(true);
 
   // Auto-save
   useEffect(() => {
@@ -103,6 +104,7 @@ function EditorInner() {
   const baseKeyDown = useShortcuts({ selected, elements, clipboard, setClipboard, styleClipboard, setStyleClipboard, dispatch, setDirty, setZoom, handleSave });
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "?" && !(e.target as HTMLElement).matches("input,textarea,[contenteditable]")) { setShowShortcuts(s => !s); return; }
+    if (e.shiftKey && e.key === "R" && !(e.target as HTMLElement).matches("input,textarea,[contenteditable]")) { setShowRulers(s => !s); return; }
     baseKeyDown(e);
   }, [baseKeyDown]);
 
@@ -127,8 +129,8 @@ function EditorInner() {
         {!preview && <LeftPanel />}
 
         <div ref={canvasRef} onPointerDown={onCanvasPointerDown} className={cn("flex-1 overflow-auto p-4 min-h-0 relative", preview ? "p-0 bg-background" : "bg-muted", cursor)} style={!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined} onClick={() => !preview && !spaceRef.current && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
-          {!preview && <Rulers zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} width={scroll.w} height={scroll.h} />}
-          {!preview && <Guides zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} />}
+          {!preview && showRulers && <Rulers zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} width={scroll.w} height={scroll.h} selectedId={selected?.id ?? null} onCreateGuide={(axis, position) => dispatch({ type: 'ADD_GUIDE', payload: { axis, position } })} onResetZoom={() => setZoom(100)} />}
+          {!preview && showRulers && <Guides zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} />}
           <div data-canvas className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200 relative" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
             {body && <Recursive element={body} />}
             {/* ── Overlays with Penpot-style conditional flags ── */}
@@ -140,7 +142,7 @@ function EditorInner() {
               const hasGradient = hasSel && (selected.styles as Record<string, string>).backgroundImage?.includes("gradient");
               return (<>
                 {/* Measurement overlays — hidden during drag (Penpot: show-snap-distance?) */}
-                {!isDragging && hasSel && <SnapDistances />}
+                {!isDragging && hasSel && <SnapDistances altHeld={altHeld} />}
                 {!isDragging && hasSel && <SnapGuides />}
                 {/* Grid editor — only on grid containers (Penpot: show-grid-editor?) */}
                 {!isDragging && isGrid && <GridEditor />}
