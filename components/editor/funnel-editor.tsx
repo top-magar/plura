@@ -149,6 +149,8 @@ function EditorInner() {
     if (mod && e.key === "=") { e.preventDefault(); setZoom((z) => Math.min(200, z + 10)); }
     if (mod && e.key === "-") { e.preventDefault(); setZoom((z) => Math.max(50, z - 10)); }
     if (mod && e.key === "0") { e.preventDefault(); setZoom(100); }
+    if (mod && e.key === "1") { e.preventDefault(); setZoom(100); }
+    if (mod && e.key === "a") { e.preventDefault(); dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: elements[0] } }); }
   }, [selected, clipboard, elements]);
 
   const body = elements[0];

@@ -232,7 +232,7 @@ export default function ElementWrapper({ element, children, className, style, is
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
     >
       {isSel && !isBody && <Toolbar element={element} dispatch={dispatch} elements={elements} />}
-      {isHov && !isBody && <span className="absolute -top-4 left-1 text-[8px] leading-none px-1 py-0.5 rounded-sm bg-muted/80 text-muted-foreground/70 z-10 pointer-events-none">{element.name}</span>}
+      {isHov && !isBody && <span className="absolute -top-4 left-1 text-[8px] leading-none px-1 py-0.5 rounded-sm bg-muted/80 text-muted-foreground/70 z-10 pointer-events-none">{element.name} <span className="text-muted-foreground/40">{element.styles.width ?? 'auto'} × {element.styles.height ?? 'auto'}</span></span>}
 
       {!isBody && !element.locked && (isSel || isHov) && (
         <>
