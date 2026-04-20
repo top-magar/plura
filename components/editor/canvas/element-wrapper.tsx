@@ -175,14 +175,13 @@ function RadiusCorners({ element, h }: { element: El; h: ReturnType<typeof useHa
   return <>{corners.map(({ id, prop, pos, rot }) => {
     const r = getR(prop);
     if (r === 0 && h.active !== id) return null;
-    const sz = Math.max(10, Math.min(r, 28));
     return (
-      <div key={id} className={cn('absolute z-20 cursor-nwse-resize', pos)} style={{ width: sz, height: sz }}
+      <div key={id} className={cn('absolute z-20 cursor-nwse-resize size-4', pos)}
         onPointerDown={(e) => h.dragRadius(element, id, prop, e)}>
-        <svg viewBox="0 0 24 24" className={cn('w-full h-full transition-colors', rot, h.active === id ? 'text-orange-500' : 'text-primary/30 hover:text-primary/70')}>
-          <path d="M 24 0 A 24 24 0 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+        <svg viewBox="0 0 24 24" className={cn('w-full h-full transition-colors', rot, h.active === id ? 'text-orange-500' : 'text-primary/40 hover:text-primary')}>
+          <path d="M 24 0 A 24 24 0 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
         </svg>
-        {h.active === id && <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-orange-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none shadow">{r}</span>}
+        {h.active === id && <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded bg-orange-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none shadow">{r}</span>}
       </div>
     );
   })}</>;
