@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useRef, type ReactNode } from "react";
-import { v4 } from "uuid";
 import { useEditor } from "../editor-provider";
 import ElementWrapper from "../element-wrapper";
 import { makeElInContext } from "../element-factory";
@@ -9,8 +8,6 @@ import { cn } from "@/lib/utils";
 import type { El } from "../types";
 import { resolveStyles } from "../types";
 import Recursive from "../recursive";
-
-type DropInfo = { index: number; side: null | "left" | "right"; siblingId?: string };
 
 export default function ContainerElement({ element }: { element: El }): ReactNode {
   const { state, dispatch } = useEditor();
@@ -20,113 +17,60 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
   const isEmpty = children.length === 0;
   const isBody = element.type === "__body";
   const isActive = dropTarget === element.id;
-  const [drop, setDrop] = useState<DropInfo>({ index: -1, side: null });
+  const [dropIdx, setDropIdx] = useState<number>(-1);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const isRow = resolved.flexDirection === "row" || resolved.flexDirection === "row-reverse";
 
-  const calcDrop = useCallback((e: React.DragEvent): DropInfo => {
-    if (!wrapRef.current) return { index: children.length, side: null };
+  const calcDropIdx = useCallback((e: React.DragEvent) => {
+    if (!wrapRef.current) return children.length;
     const els = wrapRef.current.querySelectorAll(":scope > [data-el-id]");
-
     for (let i = 0; i < els.length; i++) {
       const rect = els[i].getBoundingClientRect();
-
-      if (isRow) {
-        // Row: left/right of midpoint = before/after
-        if (e.clientX < rect.left + rect.width / 2) return { index: i, side: null };
-      } else {
-        // Column: check if cursor is on left/right edge first
-        const inVerticalRange = e.clientY >= rect.top && e.clientY <= rect.bottom;
-
-        if (inVerticalRange) {
-          const edgeZone = Math.max(rect.width * 0.35, 40); // 35% or at least 40px
-          const isLeft = e.clientX < rect.left + edgeZone;
-          const isRight = e.clientX > rect.right - edgeZone;
-          if (isLeft || isRight) console.log(`[SIDE] child=${i} side=${isLeft ? "L" : "R"} x=${Math.round(e.clientX)} zone=${Math.round(edgeZone)} rect=[${Math.round(rect.left)},${Math.round(rect.right)}]`);
-          if (isLeft) {
-            return { index: i, side: "left" as const, siblingId: els[i].getAttribute("data-el-id") ?? undefined };
-          }
-          if (isRight) {
-            return { index: i, side: "right" as const, siblingId: els[i].getAttribute("data-el-id") ?? undefined };
-          }
-        }
-        // Normal top/bottom
-        if (e.clientY < rect.top + rect.height / 2) return { index: i, side: null };
-      }
+      if (isRow ? e.clientX < rect.left + rect.width / 2 : e.clientY < rect.top + rect.height / 2) return i;
     }
-    return { index: children.length, side: null };
+    return children.length;
   }, [children.length, isRow]);
 
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    console.log(`[dragOver] container=${element.id.slice(0,8)} type=${element.type} isRow=${isRow} children=${children.length}`);
     if (dropTarget !== element.id) dispatch({ type: "SET_DROP_TARGET", payload: { id: element.id } });
-    setDrop(calcDrop(e));
+    setDropIdx(calcDropIdx(e));
   }
 
   function handleDragLeave(e: React.DragEvent) {
     e.stopPropagation();
     const related = e.relatedTarget as Node | null;
     if (wrapRef.current && related && wrapRef.current.contains(related)) return;
-    setDrop({ index: -1, side: null });
+    setDropIdx(-1);
     if (dropTarget === element.id) dispatch({ type: "SET_DROP_TARGET", payload: { id: null } });
   }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    const info = drop.index >= 0 ? drop : { index: children.length, side: null as DropInfo["side"] };
-    setDrop({ index: -1, side: null });
+    const idx = dropIdx >= 0 ? dropIdx : children.length;
+    setDropIdx(-1);
     dispatch({ type: "SET_DROP_TARGET", payload: { id: null } });
 
     const type = e.dataTransfer.getData("componentType");
     const moveId = e.dataTransfer.getData("moveElementId");
 
-    // Determine the new element
-    let newEl: El | null = null;
     if (type) {
-      newEl = makeElInContext(type, element);
-    }
-
-    // Side drop: wrap sibling + new element in a Row
-    if (info.side && info.siblingId && (newEl || moveId)) {
-      const sibling = children.find((c) => c.id === info.siblingId);
-      if (!sibling) return;
-
-      const rowId = v4();
-      const col1: El = { id: v4(), type: "column", name: "Col 1", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [sibling] };
-      const col2Content = newEl ?? children.find((c) => c.id === moveId);
-      if (!col2Content) return;
-      const col2: El = { id: v4(), type: "column", name: "Col 2", styles: { display: "flex", flexDirection: "column", gap: "8px", flex: "1", padding: "8px" }, content: [col2Content] };
-
-      const row: El = {
-        id: rowId, type: "row", name: "Row",
-        styles: { display: "flex", flexDirection: "row", gap: "16px", width: "100%" },
-        content: info.side === "left" ? [col2, col1] : [col1, col2],
-      };
-
-      // Remove the sibling from current position, insert row in its place
-      if (moveId && moveId !== info.siblingId) {
-        dispatch({ type: "DELETE_ELEMENT", payload: { id: moveId } });
-      }
-      dispatch({ type: "DELETE_ELEMENT", payload: { id: info.siblingId } });
-      dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, element: row, index: info.index } });
-      return;
-    }
-
-    // Normal drop: above/below
-    if (newEl) {
-      dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, element: newEl, index: info.index } });
+      const newEl = makeElInContext(type, element);
+      if (newEl) dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, element: newEl, index: idx } });
     } else if (moveId && moveId !== element.id) {
-      dispatch({ type: "MOVE_ELEMENT", payload: { elId: moveId, targetContainerId: element.id, index: info.index } });
+      dispatch({ type: "MOVE_ELEMENT", payload: { elId: moveId, targetContainerId: element.id, index: idx } });
     }
   }
 
-  // Indicators
-  const hIndicator = <div className="shrink-0 rounded-full bg-primary transition-all h-0.5 w-full" />;
-  const vIndicator = <div className="absolute top-0 bottom-0 w-0.5 rounded-full bg-primary z-10" />;
+  const indicator = (
+    <div className={cn(
+      "shrink-0 rounded-full bg-primary transition-all",
+      isRow ? "w-0.5 self-stretch min-h-[20px]" : "h-0.5 w-full"
+    )} />
+  );
 
   return (
     <ElementWrapper element={element} style={element.styles} isContainer>
@@ -141,18 +85,12 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         )}
       >
         {children.map((child, i) => (
-          <div key={child.id} data-el-id={child.id} className="relative">
-            {isActive && drop.index === i && !drop.side && hIndicator}
-            {isActive && drop.index === i && drop.side === "left" && (
-              <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full bg-primary z-10" />
-            )}
-            {isActive && drop.index === i && drop.side === "right" && (
-              <div className="absolute right-0 top-0 bottom-0 w-0.5 rounded-full bg-primary z-10" />
-            )}
+          <div key={child.id} data-el-id={child.id}>
+            {isActive && dropIdx === i && indicator}
             <Recursive element={child} />
           </div>
         ))}
-        {isActive && drop.index === children.length && !drop.side && !isEmpty && hIndicator}
+        {isActive && dropIdx === children.length && !isEmpty && indicator}
         {isEmpty && !preview && (
           <div className={cn(
             "flex items-center justify-center border-2 border-dashed rounded-md text-xs transition-all flex-1",
