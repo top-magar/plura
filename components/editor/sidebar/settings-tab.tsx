@@ -40,7 +40,7 @@ function IconToggle({ value, options, onChange }: { value: string; options: Icon
         {options.map((o) => (
           <Tooltip key={o.value}>
             <TooltipTrigger asChild>
-              <ToggleGroupItem value={o.value} className="flex h-7 min-w-0 flex-1 items-center justify-center rounded-none border-0 bg-sidebar p-0 text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground" aria-label={o.label}>
+              <ToggleGroupItem value={o.value} className="flex h-6 min-w-0 flex-1 items-center justify-center rounded-none border-0 bg-sidebar p-0 text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground" aria-label={o.label}>
                 {o.icon}
               </ToggleGroupItem>
             </TooltipTrigger>
@@ -84,7 +84,7 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
       <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">{label}</label>
       <Popover>
         <PopoverTrigger asChild>
-          <button className="flex h-7 w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar px-2 hover:border-sidebar-foreground/30 cursor-pointer">
+          <button className="flex h-6 w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar px-2 hover:border-sidebar-foreground/30 cursor-pointer">
             <span className="size-3.5 shrink-0 rounded-sm border border-sidebar-border" style={{ background: value || "transparent" }} />
             <span className="text-[10px] text-sidebar-foreground/60 truncate">{value || "none"}</span>
           </button>
@@ -120,7 +120,7 @@ function Field({ label, value, onChange, placeholder }: { label: string; value: 
   return (
     <div>
       <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">{label}</label>
-      <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-7 text-xs" placeholder={placeholder} />
+      <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-6 text-[10px]" placeholder={placeholder} />
     </div>
   );
 }
@@ -130,7 +130,7 @@ function SelectField({ label, value, options, onChange }: { label: string; value
     <div>
       <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">{label}</label>
       <Select value={value || undefined} onValueChange={onChange}>
-        <SelectTrigger className="h-7 text-xs px-2"><SelectValue placeholder="—" /></SelectTrigger>
+        <SelectTrigger className="h-6 text-[10px] px-2"><SelectValue placeholder="—" /></SelectTrigger>
         <SelectContent>{options.map((o) => <SelectItem key={o} value={o} className="text-xs">{o}</SelectItem>)}</SelectContent>
       </Select>
     </div>
@@ -140,7 +140,7 @@ function SelectField({ label, value, options, onChange }: { label: string; value
 // ── 4-side box input ────────────────────────────────────
 
 function FourSideInput({ label, color, props, get, set, icon }: { label: string; color: string; props: [string, string, string, string]; get: (p: string) => string; set: (p: string, v: string) => void; icon?: ReactNode }) {
-  const inputCls = "h-7 w-full border border-sidebar-border rounded-md bg-transparent text-center text-[10px] outline-none focus:border-primary";
+  const inputCls = "h-6 w-full border border-sidebar-border rounded-md bg-transparent text-center text-[10px] outline-none focus:border-primary";
   return (
     <div>
       <label className="mb-1 flex items-center gap-1 text-[10px] text-sidebar-foreground/50">{icon}{label}</label>
@@ -313,13 +313,13 @@ export default function SettingsTab() {
                   {key === "innerText" || key === "code" ? (
                     <textarea value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="w-full rounded-md border border-sidebar-border bg-transparent p-2 text-xs outline-none resize-y focus:border-primary min-h-[60px] font-mono" rows={key === "code" ? 6 : 3} />
                   ) : key === "targetDate" ? (
-                    <Input type="datetime-local" value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-7 text-xs" />
+                    <Input type="datetime-local" value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-6 text-[10px]" />
                   ) : key === "images" ? (
                     <textarea value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="w-full rounded-md border border-sidebar-border bg-transparent p-2 text-xs outline-none resize-y focus:border-primary min-h-[60px]" rows={4} placeholder="One URL per line or comma-separated" />
                   ) : key === "items" ? (
                     <ItemsEditor value={val} onChange={(v) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: v } })} />
                   ) : (
-                    <Input value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-7 text-xs" />
+                    <Input value={val} onChange={(e) => onUpdate({ ...selected, content: { ...(selected.content as Record<string, string>), [key]: e.target.value } })} className="h-6 text-[10px]" />
                   )}
                 </div>
               ))
