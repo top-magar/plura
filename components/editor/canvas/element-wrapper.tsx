@@ -1,120 +1,17 @@
 'use client';
 
-import { useCallback, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useRef, type CSSProperties, type ReactNode } from 'react';
 import { MIcon } from '../ui/m-icon';
 import { useEditor } from '../core/provider';
-import { findParentId, cloneEl } from '../core/tree-helpers';
+import { findParentId } from '../core/tree-helpers';
 import { useDragOverlay } from './drag-overlay';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, ContextMenuShortcut } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import type { El } from '../core/types';
 import { resolveStyles } from '../core/types';
+import { parseBox, useHandles, BoxZone, BoxHandle, RadiusCorners } from './handles';
 
-// ─── Helpers ────────────────────────────────────────────────
-
-/** Parse CSS box shorthand + individual overrides into [top, right, bottom, left] */
-function parseBox(styles: CSSProperties, prefix: 'padding' | 'margin'): [number, number, number, number] {
-  const s = styles as Record<string, unknown>;
-  const sh = String(s[prefix] ?? '');
-  const parts = sh ? sh.split(/\s+/).map(v => parseInt(v) || 0) : [0];
-  let [t, r, b, l] = parts.length === 1 ? [parts[0], parts[0], parts[0], parts[0]]
-    : parts.length === 2 ? [parts[0], parts[1], parts[0], parts[1]]
-    : parts.length === 3 ? [parts[0], parts[1], parts[2], parts[1]]
-    : [parts[0], parts[1], parts[2], parts[3]];
-  // Individual overrides take precedence
-  if (s[`${prefix}Top`] !== undefined) t = parseInt(String(s[`${prefix}Top`])) || 0;
-  if (s[`${prefix}Right`] !== undefined) r = parseInt(String(s[`${prefix}Right`])) || 0;
-  if (s[`${prefix}Bottom`] !== undefined) b = parseInt(String(s[`${prefix}Bottom`])) || 0;
-  if (s[`${prefix}Left`] !== undefined) l = parseInt(String(s[`${prefix}Left`])) || 0;
-  return [t, r, b, l];
-}
-
-/** Expand shorthand to longhand, removing the shorthand key */
-function expandShorthand(styles: CSSProperties, prefix: 'padding' | 'margin'): Record<string, unknown> {
-  const s = { ...styles } as Record<string, unknown>;
-  if (!s[prefix]) return s;
-  const [t, r, b, l] = parseBox(styles, prefix);
-  s[`${prefix}Top`] = `${t}px`; s[`${prefix}Right`] = `${r}px`;
-  s[`${prefix}Bottom`] = `${b}px`; s[`${prefix}Left`] = `${l}px`;
-  delete s[prefix];
-  return s;
-}
-
-// ─── Handle Drag ────────────────────────────────────────────
-
-type HandleState = { active: string | null; hovered: string | null };
-
-function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
-  const [state, setState] = useState<HandleState>({ active: null, hovered: null });
-  const elRef = useRef<El | null>(null);
-
-  const drag = useCallback((element: El, id: string, prop: string, dir: 'x' | 'y', sign: number, snap: number, e: React.PointerEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    elRef.current = element;
-    const startPos = dir === 'y' ? e.clientY : e.clientX;
-    const startVal = parseInt(String((element.styles as Record<string, unknown>)[prop] ?? '0')) || 0;
-    setState(s => ({ ...s, active: id }));
-
-    const prefix = prop.replace(/(Top|Right|Bottom|Left)$/, '') as 'padding' | 'margin';
-    const side = prop.replace(prefix, '');
-    const opp: Record<string, string> = { Top: 'Bottom', Bottom: 'Top', Left: 'Right', Right: 'Left' };
-    const oppProp = `${prefix}${opp[side] ?? ''}`;
-    const allProps = ['Top', 'Right', 'Bottom', 'Left'].map(s => `${prefix}${s}`);
-
-    const onMove = (ev: PointerEvent) => {
-      if (!elRef.current) return;
-      const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - startPos) * sign;
-      const val = Math.max(0, Math.round((startVal + delta) / snap) * snap);
-
-      const expanded = expandShorthand(elRef.current.styles, prefix);
-      const updates: Record<string, string> = { [prop]: `${val}px` };
-      if (ev.altKey && !ev.shiftKey) updates[oppProp] = `${val}px`;
-      if (ev.altKey && ev.shiftKey) { for (const p of allProps) updates[p] = `${val}px`; }
-
-      const next = { ...elRef.current, styles: { ...expanded, ...updates } as CSSProperties };
-      elRef.current = next;
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: next } });
-    };
-    const onUp = () => { elRef.current = null; setState(s => ({ ...s, active: null })); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
-  }, [dispatch]);
-
-  const dragRadius = useCallback((element: El, id: string, prop: string, e: React.PointerEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    elRef.current = element;
-    const sx = e.clientX, sy = e.clientY;
-    const sv = parseInt(String((element.styles as Record<string, unknown>)[prop] ?? element.styles.borderRadius ?? '0')) || 0;
-    setState(s => ({ ...s, active: id }));
-
-    const onMove = (ev: PointerEvent) => {
-      if (!elRef.current) return;
-      const d = Math.max(Math.abs(sx - ev.clientX), Math.abs(sy - ev.clientY)) * ((sx - ev.clientX + sy - ev.clientY) > 0 ? 1 : -1);
-      const val = Math.max(0, Math.round((sv + d) / 2) * 2);
-      // Expand borderRadius shorthand to avoid React conflict
-      const cur = { ...elRef.current.styles } as Record<string, unknown>;
-      if (cur.borderRadius) {
-        const r = parseInt(String(cur.borderRadius)) || 0;
-        cur.borderTopLeftRadius = `${r}px`; cur.borderTopRightRadius = `${r}px`;
-        cur.borderBottomRightRadius = `${r}px`; cur.borderBottomLeftRadius = `${r}px`;
-        delete cur.borderRadius;
-      }
-      const next = { ...elRef.current, styles: { ...cur, [prop]: `${val}px` } as CSSProperties };
-      elRef.current = next;
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: next } });
-    };
-    const onUp = () => { elRef.current = null; setState(s => ({ ...s, active: null })); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
-  }, [dispatch]);
-
-  const hover = useCallback((id: string | null) => setState(s => ({ ...s, hovered: id })), []);
-  return { ...state, drag, dragRadius, hover };
-}
-
-// ─── Toolbar ────────────────────────────────────────────────
+// ─── Toolbar ────────────────────────────────────────────
 
 function Toolbar({ element, dispatch, elements }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch']; elements: El[] }) {
   const parentId = findParentId(elements, element.id);
@@ -134,72 +31,7 @@ function Toolbar({ element, dispatch, elements }: { element: El; dispatch: Retur
   );
 }
 
-// ─── Box Handles ────────────────────────────────────────────
-
-const MIN_HIT = 8; // minimum hit area in px (Penpot uses 8-10)
-const TINY_THRESH = 25; // below this, show dot indicator
-
-function BoxZone({ id, val, color, style, h }: { id: string; val: number; color: 'emerald' | 'orange'; style: Record<string, number>; h: ReturnType<typeof useHandles> }) {
-  if (val <= 0 || !(h.active === id || h.hovered === id)) return null;
-  return (
-    <div className={cn('absolute pointer-events-none z-[13]', h.active === id ? (color === 'emerald' ? 'bg-emerald-400/25' : 'bg-orange-400/25') : (color === 'emerald' ? 'bg-emerald-400/10' : 'bg-orange-400/10'))} style={style}>
-      {val >= 16 && <span className={cn('absolute inset-0 flex items-center justify-center text-[8px] font-mono', color === 'emerald' ? 'text-emerald-700/60' : 'text-orange-700/60')}>{val}</span>}
-    </div>
-  );
-}
-
-function BoxHandle({ element, id, prop, val, dir, sign, color, style, cls, h }: {
-  element: El; id: string; prop: string; val: number; dir: 'x' | 'y'; sign: number; color: 'emerald' | 'orange';
-  style: Record<string, number>; cls: string; h: ReturnType<typeof useHandles>;
-}) {
-  const hitSize = Math.max(val, MIN_HIT);
-  const isTiny = val < TINY_THRESH;
-  const adjustedStyle: Record<string, number> = dir === 'y' ? { ...style, height: hitSize } : { ...style, width: hitSize };
-  // For zero-value handles, offset outward so the hit area extends outside the element
-  if (val === 0) {
-    if (dir === 'y' && sign === -1 && adjustedStyle.top !== undefined) adjustedStyle.top = -MIN_HIT / 2;
-    if (dir === 'y' && sign === 1 && adjustedStyle.bottom !== undefined) adjustedStyle.bottom = -MIN_HIT / 2;
-    if (dir === 'x' && sign === 1 && adjustedStyle.right !== undefined) adjustedStyle.right = -MIN_HIT / 2;
-    if (dir === 'x' && sign === -1 && adjustedStyle.left !== undefined) adjustedStyle.left = -MIN_HIT / 2;
-  }
-  return (
-    <div className={cn('absolute z-[14]', cls)} style={adjustedStyle} onPointerDown={(e) => h.drag(element, id, prop, dir, sign, 4, e)} onPointerEnter={() => h.hover(id)} onPointerLeave={() => h.hover(null)}>
-      {/* Visible dot indicator for tiny/zero values — like Penpot's show-handler for tiny elements */}
-      {isTiny && (h.hovered === id || h.active === id) && (
-        <div className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full', color === 'emerald' ? 'bg-emerald-500' : 'bg-orange-500', h.active === id ? 'size-2' : 'size-1.5')} />
-      )}
-      {h.active === id && <span className={cn('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none z-20 shadow', color === 'emerald' ? 'bg-emerald-600' : 'bg-orange-500')}>{val}px</span>}
-    </div>
-  );
-}
-
-// ─── Border Radius ──────────────────────────────────────────
-
-function RadiusCorners({ element, h }: { element: El; h: ReturnType<typeof useHandles> }) {
-  const s = element.styles;
-  const getR = (prop: string) => parseInt(String((s as Record<string, unknown>)[prop] ?? s.borderRadius ?? '0')) || 0;
-  const corners = [
-    { id: 'r-TL', prop: 'borderTopLeftRadius', pos: 'top-1 left-1' },
-    { id: 'r-TR', prop: 'borderTopRightRadius', pos: 'top-1 right-1' },
-    { id: 'r-BR', prop: 'borderBottomRightRadius', pos: 'bottom-1 right-1' },
-    { id: 'r-BL', prop: 'borderBottomLeftRadius', pos: 'bottom-1 left-1' },
-  ];
-  if (!corners.some(c => getR(c.prop) > 0) && !h.active?.startsWith('r-')) return null;
-
-  return <>{corners.map(({ id, prop, pos }) => {
-    const r = getR(prop);
-    if (r === 0 && h.active !== id) return null;
-    return (
-      <div key={id} className={cn('absolute z-20 cursor-nwse-resize flex items-center justify-center size-4 opacity-0 hover:opacity-100 transition-opacity', h.active === id && 'opacity-100', pos)}
-        onPointerDown={(e) => h.dragRadius(element, id, prop, e)}>
-        <div className={cn('size-1.5 rounded-full transition-all', h.active === id ? 'bg-orange-500 size-2' : 'bg-primary/60')} />
-        {h.active === id && <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded bg-orange-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none shadow">{r}</span>}
-      </div>
-    );
-  })}</>;
-}
-
-// ─── Main Wrapper ───────────────────────────────────────────
+// ─── Main Wrapper ───────────────────────────────────────
 
 type Props = { element: El; children: ReactNode; className?: string; style?: CSSProperties; isContainer?: boolean };
 
@@ -216,10 +48,7 @@ export default function ElementWrapper({ element, children, className, style, is
   const resolved = style ?? resolveStyles(element, device);
   const h = useHandles(dispatch);
 
-  // Measured dimensions for hover badge
-  const dims = isHov && wrapperRef.current
-    ? `${Math.round(wrapperRef.current.offsetWidth)} × ${Math.round(wrapperRef.current.offsetHeight)}`
-    : '';
+  const dims = isHov && wrapperRef.current ? `${Math.round(wrapperRef.current.offsetWidth)} × ${Math.round(wrapperRef.current.offsetHeight)}` : '';
 
   if (element.hidden && preview) return null;
   if (element.hidden && !preview) return <div className="relative opacity-20 pointer-events-none" style={resolved}>{children}</div>;
@@ -228,7 +57,6 @@ export default function ElementWrapper({ element, children, className, style, is
   const s = element.styles;
   const [pt, pr, pb, pl] = parseBox(s, 'padding');
   const [mt, mr, mb, ml] = parseBox(s, 'margin');
-
   const parentId = findParentId(elements, element.id);
 
   return (
@@ -287,32 +115,16 @@ export default function ElementWrapper({ element, children, className, style, is
     </ContextMenuTrigger>
     {!isBody && (
       <ContextMenuContent className="w-48 text-xs">
-        <ContextMenuItem onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'up' } })}>
-          Move Up <ContextMenuShortcut>Cmd+↑</ContextMenuShortcut>
-        </ContextMenuItem>
-        <ContextMenuItem onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'down' } })}>
-          Move Down <ContextMenuShortcut>Cmd+↓</ContextMenuShortcut>
-        </ContextMenuItem>
+        <ContextMenuItem onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'up' } })}>Move Up <ContextMenuShortcut>Cmd+↑</ContextMenuShortcut></ContextMenuItem>
+        <ContextMenuItem onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'down' } })}>Move Down <ContextMenuShortcut>Cmd+↓</ContextMenuShortcut></ContextMenuItem>
         <ContextMenuSeparator />
-        {parentId && (
-          <ContextMenuItem onClick={() => dispatch({ type: 'DUPLICATE_ELEMENT', payload: { elId: element.id, containerId: parentId } })}>
-            Duplicate <ContextMenuShortcut>Cmd+D</ContextMenuShortcut>
-          </ContextMenuItem>
-        )}
-        <ContextMenuItem onClick={() => navigator.clipboard.writeText(JSON.stringify(element))}>
-          Copy <ContextMenuShortcut>Cmd+C</ContextMenuShortcut>
-        </ContextMenuItem>
+        {parentId && <ContextMenuItem onClick={() => dispatch({ type: 'DUPLICATE_ELEMENT', payload: { elId: element.id, containerId: parentId } })}>Duplicate <ContextMenuShortcut>Cmd+D</ContextMenuShortcut></ContextMenuItem>}
+        <ContextMenuItem onClick={() => navigator.clipboard.writeText(JSON.stringify(element))}>Copy <ContextMenuShortcut>Cmd+C</ContextMenuShortcut></ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem onClick={() => dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, locked: !element.locked } } })}>
-          {element.locked ? <><MIcon name="lock_open" size={14} className="mr-2" /> Unlock</> : <><MIcon name="lock" size={14} className="mr-2" /> Lock</>}
-        </ContextMenuItem>
-        <ContextMenuItem onClick={() => dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, hidden: !element.hidden } } })}>
-          {element.hidden ? <><MIcon name="visibility" size={14} className="mr-2" /> Show</> : <><MIcon name="visibility_off" size={14} className="mr-2" /> Hide</>}
-        </ContextMenuItem>
+        <ContextMenuItem onClick={() => dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, locked: !element.locked } } })}>{element.locked ? <><MIcon name="lock_open" size={14} className="mr-2" /> Unlock</> : <><MIcon name="lock" size={14} className="mr-2" /> Lock</>}</ContextMenuItem>
+        <ContextMenuItem onClick={() => dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, hidden: !element.hidden } } })}>{element.hidden ? <><MIcon name="visibility" size={14} className="mr-2" /> Show</> : <><MIcon name="visibility_off" size={14} className="mr-2" /> Hide</>}</ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem className="text-destructive focus:text-destructive" onClick={() => dispatch({ type: 'DELETE_ELEMENT', payload: { id: element.id } })}>
-          Delete <ContextMenuShortcut>Del</ContextMenuShortcut>
-        </ContextMenuItem>
+        <ContextMenuItem className="text-destructive focus:text-destructive" onClick={() => dispatch({ type: 'DELETE_ELEMENT', payload: { id: element.id } })}>Delete <ContextMenuShortcut>Del</ContextMenuShortcut></ContextMenuItem>
       </ContextMenuContent>
     )}
     </ContextMenu>

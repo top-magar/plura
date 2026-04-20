@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, type CSSProperties } from "react";
+import { useState, useEffect, useRef, type CSSProperties } from "react";
 import { MIcon } from "./ui/m-icon";
 import { toast } from "sonner";
 import { upsertFunnelPage, upsertFunnel } from "@/lib/queries";
 import type { El, EditorProps } from "./core/types";
-import { cloneEl, findParentId, getAncestorPath, findEl as findElInTree } from "./core/tree-helpers";
+import { getAncestorPath } from "./core/tree-helpers";
 import { cn } from "@/lib/utils";
 import Recursive from "./canvas/recursive";
 import SnapDistances from "./canvas/snap-distances";
@@ -15,14 +15,11 @@ import { EditorProvider, useEditor } from "./core/provider";
 import EditorNavigation from "./toolbar/navigation";
 import { LeftPanel, RightPanel } from "./panels";
 import { DragOverlayProvider } from "./canvas/drag-overlay";
-
+import { useCanvas } from "./canvas/use-canvas";
+import { useShortcuts } from "./canvas/use-shortcuts";
 
 export default function FunnelEditor(props: EditorProps) {
-  return (
-    <EditorProvider {...props}>
-      <EditorInner />
-    </EditorProvider>
-  );
+  return <EditorProvider {...props}><EditorInner /></EditorProvider>;
 }
 
 function EditorInner() {
@@ -39,50 +36,9 @@ function EditorInner() {
   const [pageTitle, setPageTitle] = useState(pageName);
   const [metaDescription, setMetaDescription] = useState("");
   const [ogImage, setOgImage] = useState("");
-  const [zoom, setZoom] = useState(100);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [panning, setPanning] = useState(false);
-  const spaceRef = useRef(false);
-  const [scroll, setScroll] = useState({ left: 0, top: 0, w: 0, h: 0 });
 
-  // Cmd+wheel zoom (Penpot: on-mouse-wheel in hooks.cljs)
-  useEffect(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-    const onWheel = (e: WheelEvent) => {
-      if (e.metaKey || e.ctrlKey) {
-        e.preventDefault();
-        setZoom((z) => Math.min(200, Math.max(25, z - Math.sign(e.deltaY) * 5)));
-      }
-    };
-    const onScroll = () => { setScroll({ left: el.scrollLeft, top: el.scrollTop, w: el.clientWidth, h: el.clientHeight }); };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => { el.removeEventListener("wheel", onWheel); el.removeEventListener("scroll", onScroll); };
-  }, []);
-
-  // Space+drag pan (Penpot: setup-cursor + space? state)
-  useEffect(() => {
-    const onDown = (e: KeyboardEvent) => { if (e.code === "Space" && !(e.target as HTMLElement).matches("input,textarea,[contenteditable]")) { e.preventDefault(); spaceRef.current = true; setPanning(true); } };
-    const onUp = (e: KeyboardEvent) => { if (e.code === "Space") { spaceRef.current = false; setPanning(false); } };
-    window.addEventListener("keydown", onDown);
-    window.addEventListener("keyup", onUp);
-    return () => { window.removeEventListener("keydown", onDown); window.removeEventListener("keyup", onUp); };
-  }, []);
-
-  const onCanvasPointerDown = useCallback((e: React.PointerEvent) => {
-    if (!spaceRef.current || !canvasRef.current) return;
-    e.preventDefault();
-    const el = canvasRef.current;
-    const sx = e.clientX, sy = e.clientY;
-    const sl = el.scrollLeft, st = el.scrollTop;
-    const onMove = (ev: PointerEvent) => { el.scrollLeft = sl - (ev.clientX - sx); el.scrollTop = st - (ev.clientY - sy); };
-    const onUp = () => { document.removeEventListener("pointermove", onMove); document.removeEventListener("pointerup", onUp); };
-    document.addEventListener("pointermove", onMove);
-    document.addEventListener("pointerup", onUp);
-  }, []);
+  const { canvasRef, zoom, setZoom, panning, spaceRef, scroll, onCanvasPointerDown } = useCanvas();
 
   // Auto-save
   useEffect(() => {
@@ -100,8 +56,7 @@ function EditorInner() {
   const handleSave = async () => {
     try {
       await upsertFunnelPage({ id: pageId, name: pageTitle, funnelId, order: 0, content: JSON.stringify(elements) });
-      toast.success("Saved");
-      setDirty(false);
+      toast.success("Saved"); setDirty(false);
     } catch { toast.error("Could not save"); }
   };
 
@@ -132,71 +87,12 @@ function EditorInner() {
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${pageTitle}</title></head><body style="margin:0;font-family:Inter,system-ui,sans-serif">${body ? renderEl(body) : ""}</body></html>`;
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `${pageTitle.replace(/\s+/g, "-").toLowerCase()}.html`; a.click();
+    const a = document.createElement("a"); a.href = url; a.download = `${pageTitle.replace(/\s+/g, "-").toLowerCase()}.html`; a.click();
     URL.revokeObjectURL(url);
     toast.success("Exported as HTML");
   };
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    const mod = e.metaKey || e.ctrlKey;
-    if (mod && e.key === "z") { e.preventDefault(); e.shiftKey ? dispatch({ type: "REDO" }) : dispatch({ type: "UNDO" }); }
-    if (mod && e.key === "s") { e.preventDefault(); handleSave(); }
-    if (mod && e.key === "d" && selected && selected.type !== "__body") {
-      e.preventDefault();
-      const parentId = findParentId(elements, selected.id);
-      if (parentId) { dispatch({ type: "DUPLICATE_ELEMENT", payload: { elId: selected.id, containerId: parentId } }); setDirty(true); }
-    }
-    if (mod && e.key === "c" && !e.altKey && selected && selected.type !== "__body") { e.preventDefault(); setClipboard(selected); toast.success("Copied"); }
-    // Style copy: Cmd+Alt+C
-    if (mod && e.altKey && e.key === "c" && selected) { e.preventDefault(); setStyleClipboard(selected.styles); toast.success("Styles copied"); }
-    // Style paste: Cmd+Alt+V
-    if (mod && e.altKey && e.key === "v" && selected && styleClipboard) {
-      e.preventDefault();
-      dispatch({ type: "UPDATE_ELEMENT", payload: { element: { ...selected, styles: { ...selected.styles, ...styleClipboard } } } });
-      setDirty(true); toast.success("Styles pasted");
-    }
-    if (mod && !e.altKey && e.key === "v" && clipboard) {
-      e.preventDefault();
-      const target = selected && Array.isArray(selected.content) ? selected.id : "__body";
-      dispatch({ type: "ADD_ELEMENT", payload: { containerId: target, element: cloneEl(clipboard) } });
-      setDirty(true);
-    }
-    if ((e.key === "Delete" || e.key === "Backspace") && selected && selected.type !== "__body") {
-      if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
-      dispatch({ type: "DELETE_ELEMENT", payload: { id: selected.id } }); setDirty(true);
-    }
-    if (e.key === "Escape") {
-      if (selected && selected.type !== "__body") {
-        // Walk up: select parent instead of deselecting
-        const parentId = findParentId(elements, selected.id);
-        if (parentId && parentId !== "__body") {
-          const parent = elements[0] && findElInTree(elements, parentId);
-          dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: parent } });
-        } else {
-          dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } });
-        }
-      } else {
-        dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } });
-      }
-    }
-    if (mod && e.key === "ArrowUp" && selected && selected.type !== "__body") { e.preventDefault(); dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "up" } }); setDirty(true); }
-    if (mod && e.key === "ArrowDown" && selected && selected.type !== "__body") { e.preventDefault(); dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "down" } }); setDirty(true); }
-    // Plain arrow keys: nudge reorder (when not in input)
-    if (!mod && (e.key === "ArrowUp" || e.key === "ArrowDown") && selected && selected.type !== "__body") {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag !== "INPUT" && tag !== "TEXTAREA" && !(e.target as HTMLElement).isContentEditable) {
-        e.preventDefault();
-        dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: e.key === "ArrowUp" ? "up" : "down" } });
-        setDirty(true);
-      }
-    }
-    if (mod && e.key === "=") { e.preventDefault(); setZoom((z) => Math.min(200, z + 10)); }
-    if (mod && e.key === "-") { e.preventDefault(); setZoom((z) => Math.max(50, z - 10)); }
-    if (mod && e.key === "0") { e.preventDefault(); setZoom(100); }
-    if (mod && e.key === "1") { e.preventDefault(); setZoom(100); }
-    if (mod && e.key === "a") { e.preventDefault(); dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: elements[0] } }); }
-  }, [selected, clipboard, elements]);
+  const handleKeyDown = useShortcuts({ selected, elements, clipboard, setClipboard, styleClipboard, setStyleClipboard, dispatch, setDirty, setZoom, handleSave });
 
   const body = elements[0];
   const deviceWidth = device === "Desktop" ? "100%" : device === "Tablet" ? 768 : 420;
@@ -206,20 +102,12 @@ function EditorInner() {
     <div className="fixed inset-0 z-50 flex flex-col bg-background text-foreground text-sm leading-snug outline-none antialiased" onKeyDown={handleKeyDown} tabIndex={0}>
       {!preview && (
         <EditorNavigation
-          pageTitle={pageTitle}
-          onPageTitleChange={(v) => { setPageTitle(v); setDirty(true); }}
-          dirty={dirty}
-          saving={saving}
-          zoom={zoom}
-          metaDescription={metaDescription}
-          onMetaDescriptionChange={(v) => { setMetaDescription(v); setDirty(true); }}
-          ogImage={ogImage}
-          onOgImageChange={(v) => { setOgImage(v); setDirty(true); }}
-          onZoomIn={() => setZoom((z) => Math.min(200, z + 10))}
-          onZoomOut={() => setZoom((z) => Math.max(50, z - 10))}
-          onSave={handleSave}
-          onExportHTML={handleExportHTML}
-          onPublish={handlePublish}
+          pageTitle={pageTitle} onPageTitleChange={(v) => { setPageTitle(v); setDirty(true); }}
+          dirty={dirty} saving={saving} zoom={zoom}
+          metaDescription={metaDescription} onMetaDescriptionChange={(v) => { setMetaDescription(v); setDirty(true); }}
+          ogImage={ogImage} onOgImageChange={(v) => { setOgImage(v); setDirty(true); }}
+          onZoomIn={() => setZoom((z) => Math.min(200, z + 10))} onZoomOut={() => setZoom((z) => Math.max(25, z - 10))}
+          onSave={handleSave} onExportHTML={handleExportHTML} onPublish={handlePublish}
         />
       )}
 
@@ -244,12 +132,7 @@ function EditorInner() {
           {getAncestorPath(elements, selected.id).map((el, i, arr) => (
             <span key={el.id} className="flex items-center gap-0.5 shrink-0">
               {i > 0 && <span className="text-sidebar-foreground/20">/</span>}
-              <button
-                className={cn("hover:text-sidebar-foreground transition-colors", i === arr.length - 1 && "text-sidebar-foreground font-medium")}
-                onClick={() => dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: el } })}
-              >
-                {el.name}
-              </button>
+              <button className={cn("hover:text-sidebar-foreground transition-colors", i === arr.length - 1 && "text-sidebar-foreground font-medium")} onClick={() => dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: el } })}>{el.name}</button>
             </span>
           ))}
           <span className="ml-auto text-[9px] text-sidebar-foreground/30 tabular-nums shrink-0">{JSON.stringify(elements).split('"id"').length - 1} elements</span>
