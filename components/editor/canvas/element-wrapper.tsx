@@ -176,9 +176,9 @@ function RadiusCorners({ element, h }: { element: El; h: ReturnType<typeof useHa
     const r = getR(prop);
     if (r === 0 && h.active !== id) return null;
     return (
-      <div key={id} className={cn('absolute z-20 cursor-nwse-resize flex items-center justify-center size-5', pos)}
+      <div key={id} className={cn('absolute z-20 cursor-nwse-resize flex items-center justify-center size-4 opacity-0 hover:opacity-100 transition-opacity', h.active === id && 'opacity-100', pos)}
         onPointerDown={(e) => h.dragRadius(element, id, prop, e)}>
-        <div className={cn('size-2 rounded-full transition-colors', h.active === id ? 'bg-orange-500 scale-125' : 'bg-primary/40 hover:bg-primary')} />
+        <div className={cn('size-1.5 rounded-full transition-all', h.active === id ? 'bg-orange-500 size-2' : 'bg-primary/60')} />
         {h.active === id && <span className="absolute -top-4 left-1/2 -translate-x-1/2 rounded bg-orange-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none shadow">{r}</span>}
       </div>
     );
