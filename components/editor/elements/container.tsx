@@ -13,6 +13,8 @@ import Recursive from "../recursive";
 function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
   const [dragging, setDragging] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const elRef = useRef<El>(element);
+  elRef.current = element;
   const gap = parseInt(String(element.styles.gap ?? '0')) || 0;
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -25,7 +27,9 @@ function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; 
     const onMove = (ev: PointerEvent) => {
       const delta = (isRow ? ev.clientX : ev.clientY) - start;
       const val = Math.max(0, Math.round((startGap + delta) / 4) * 4);
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, gap: `${val}px` } } } });
+      const next = { ...elRef.current, styles: { ...elRef.current.styles, gap: `${val}px` } };
+      elRef.current = next;
+      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: next } });
     };
     const onUp = () => {
       setDragging(false);
