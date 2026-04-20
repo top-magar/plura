@@ -173,44 +173,137 @@ export default function SettingsTab() {
             </Section>
           )}
 
-          {/* ─── 4. Flex Layout (Penpot: layout-container-menu) ─── */}
-          {!isSimple && (
-            <Section title="Layout" icon="grid_view">
+          {/* ─── 4. Layout (Penpot: layout-container-menu with flex/grid toggle) ─── */}
+          {!isSimple && (() => {
+            const layoutType = get("display") === "grid" ? "grid" : get("display") === "flex" ? "flex" : null;
+            const isCol = get("flexDirection") === "column" || get("flexDirection") === "column-reverse";
+            const isWrap = get("flexWrap") === "wrap";
+
+            return (
+            <Section title="Layout" icon="grid_view" onAdd={undefined}>
               <div className="space-y-2">
-                <SelectField label="" value={get("display")} options={selectOptions.display} onChange={(v) => set("display", v)} />
-                {/* Direction + Wrap — Penpot: icon row + wrap toggle */}
+                {/* Flex / Grid toggle — Penpot dropdown */}
                 <div className="flex gap-1">
-                  <div className="flex-1"><IconToggle value={get("flexDirection")} options={directionOpts} onChange={(v) => set("flexDirection", v)} /></div>
-                  <button onClick={() => set("flexWrap", get("flexWrap") === "wrap" ? "nowrap" : "wrap")} className={cn("flex size-6 items-center justify-center rounded border transition-colors shrink-0", get("flexWrap") === "wrap" ? "border-primary/30 bg-primary/10 text-primary" : "border-sidebar-border text-muted-foreground/40")}>
-                    <MIcon name="wrap_text" size={13} />
-                  </button>
+                  {(["flex", "grid", "block"] as const).map((t) => (
+                    <button key={t} onClick={() => { set("display", t === "block" ? "block" : t); if (t === "grid" && !get("gridTemplateColumns")) set("gridTemplateColumns", "1fr 1fr"); }} className={cn("flex-1 h-6 rounded border text-[10px] font-medium capitalize transition-colors", (t === "block" && !layoutType) || get("display") === t ? "bg-primary text-primary-foreground border-primary" : "border-sidebar-border text-muted-foreground/60 hover:text-foreground")}>{t}</button>
+                  ))}
+                  {layoutType && (
+                    <Tooltip><TooltipTrigger asChild>
+                      <button onClick={() => { set("display", "block"); set("flexDirection", ""); set("gridTemplateColumns", ""); set("gridTemplateRows", ""); }} className="flex size-6 items-center justify-center rounded border border-sidebar-border text-muted-foreground/40 hover:text-destructive hover:border-destructive transition-colors shrink-0">
+                        <MIcon name="close" size={12} />
+                      </button>
+                    </TooltipTrigger><TooltipContent className="text-[10px]">Remove layout</TooltipContent></Tooltip>
+                  )}
                 </div>
-                {/* Justify + Align — Penpot: two icon toggle rows */}
-                <IconToggle value={get("justifyContent")} options={justifyOpts} onChange={(v) => set("justifyContent", v)} />
-                <IconToggle value={get("alignItems")} options={alignOpts} onChange={(v) => set("alignItems", v)} />
-                {/* Gap — Penpot: single input */}
-                <N icon="⊟" value={get("gap")} onChange={(v) => set("gap", v)} placeholder="0" tip="Gap between children" />
-                {/* Padding — Penpot: linked/unlinked */}
-                <div className="flex items-center gap-1">
-                  {padLinked ? (
-                    <div className="flex-1"><N icon="⊞" value={get("paddingTop")} onChange={(v) => setPad("paddingTop", v)} placeholder="0" tip="Padding (all)" /></div>
-                  ) : (
-                    <div className="grid grid-cols-4 gap-1 flex-1">
-                      <N icon="↑" value={get("paddingTop")} onChange={(v) => set("paddingTop", v)} placeholder="0" tip="Top" />
-                      <N icon="→" value={get("paddingRight")} onChange={(v) => set("paddingRight", v)} placeholder="0" tip="Right" />
-                      <N icon="↓" value={get("paddingBottom")} onChange={(v) => set("paddingBottom", v)} placeholder="0" tip="Bottom" />
-                      <N icon="←" value={get("paddingLeft")} onChange={(v) => set("paddingLeft", v)} placeholder="0" tip="Left" />
+
+                {/* ── FLEX PANEL ── */}
+                {layoutType === "flex" && (<>
+                  {/* Row 1: Direction + Wrap (Penpot: direction-row-flex + wrap-row) */}
+                  <div className="flex gap-1">
+                    <div className="flex-1"><IconToggle value={get("flexDirection")} options={directionOpts} onChange={(v) => set("flexDirection", v)} /></div>
+                    <Tooltip><TooltipTrigger asChild>
+                      <button onClick={() => set("flexWrap", isWrap ? "nowrap" : "wrap")} className={cn("flex size-6 items-center justify-center rounded border transition-colors shrink-0", isWrap ? "border-primary/30 bg-primary/10 text-primary" : "border-sidebar-border text-muted-foreground/40")}>
+                        <MIcon name="wrap_text" size={13} />
+                      </button>
+                    </TooltipTrigger><TooltipContent className="text-[10px]">{isWrap ? "No wrap" : "Wrap"}</TooltipContent></Tooltip>
+                  </div>
+                  {/* Row 2: Align items (Penpot: align-row) */}
+                  <div>
+                    <span className="text-[9px] text-muted-foreground/40 mb-0.5 block">Align</span>
+                    <IconToggle value={get("alignItems")} options={alignOpts} onChange={(v) => set("alignItems", v)} />
+                  </div>
+                  {/* Row 3: Justify content (Penpot: justify-content-row) */}
+                  <div>
+                    <span className="text-[9px] text-muted-foreground/40 mb-0.5 block">Justify</span>
+                    <IconToggle value={get("justifyContent")} options={justifyOpts} onChange={(v) => set("justifyContent", v)} />
+                  </div>
+                  {/* Row 4: Align content (only when wrap — Penpot: align-content-row) */}
+                  {isWrap && (
+                    <div>
+                      <span className="text-[9px] text-muted-foreground/40 mb-0.5 block">Align content</span>
+                      <IconToggle value={get("alignContent")} options={justifyOpts} onChange={(v) => set("alignContent", v)} />
                     </div>
                   )}
-                  <button onClick={() => setPadLinked(!padLinked)} className={cn("flex size-6 items-center justify-center rounded border transition-colors shrink-0", padLinked ? "border-primary/30 bg-primary/10 text-primary" : "border-sidebar-border text-muted-foreground/40")}>
-                    <MIcon name={padLinked ? "link" : "link_off"} size={13} />
-                  </button>
-                </div>
+                  {/* Row 5: Gap — Penpot: row-gap + col-gap */}
+                  <div className="grid grid-cols-2 gap-1">
+                    <N icon="↕" value={get("rowGap") || get("gap")} onChange={(v) => set("rowGap", v)} placeholder="0" tip="Row gap" disabled={!isWrap && !isCol} />
+                    <N icon="↔" value={get("columnGap") || get("gap")} onChange={(v) => set("columnGap", v)} placeholder="0" tip="Column gap" disabled={!isWrap && isCol} />
+                  </div>
+                </>)}
+
+                {/* ── GRID PANEL ── */}
+                {layoutType === "grid" && (<>
+                  {/* Direction (Penpot: direction-row-grid — only row/column) */}
+                  <IconToggle value={get("gridAutoFlow") || "row"} options={[
+                    { value: "row", label: "Row", icon: <MIcon name="arrow_forward" size={14} /> },
+                    { value: "column", label: "Column", icon: <MIcon name="arrow_downward" size={14} /> },
+                  ]} onChange={(v) => set("gridAutoFlow", v)} />
+                  {/* Align + Justify — Penpot: 2 rows for grid */}
+                  <div>
+                    <span className="text-[9px] text-muted-foreground/40 mb-0.5 block">Align items</span>
+                    <IconToggle value={get("alignItems")} options={alignOpts} onChange={(v) => set("alignItems", v)} />
+                  </div>
+                  <div>
+                    <span className="text-[9px] text-muted-foreground/40 mb-0.5 block">Justify items</span>
+                    <IconToggle value={get("justifyItems") || "stretch"} options={[
+                      { value: "start", label: "Start", icon: <MIcon name="align_horizontal_left" size={14} /> },
+                      { value: "center", label: "Center", icon: <MIcon name="align_horizontal_center" size={14} /> },
+                      { value: "end", label: "End", icon: <MIcon name="align_horizontal_right" size={14} /> },
+                      { value: "stretch", label: "Stretch", icon: <MIcon name="expand" size={14} /> },
+                    ]} onChange={(v) => set("justifyItems", v)} />
+                  </div>
+                  {/* Gap — Penpot: always both for grid */}
+                  <div className="grid grid-cols-2 gap-1">
+                    <N icon="↕" value={get("rowGap") || get("gap")} onChange={(v) => set("rowGap", v)} placeholder="0" tip="Row gap" />
+                    <N icon="↔" value={get("columnGap") || get("gap")} onChange={(v) => set("columnGap", v)} placeholder="0" tip="Column gap" />
+                  </div>
+                  {/* Columns track editor — Penpot: collapsible list */}
+                  <div>
+                    <span className="text-[9px] text-muted-foreground/40 mb-0.5 block">Columns</span>
+                    <div className="flex gap-1">
+                      <Input value={get("gridTemplateColumns")} onChange={(e) => set("gridTemplateColumns", e.target.value)} className="h-6 text-[10px] flex-1 font-mono" placeholder="1fr 1fr" />
+                    </div>
+                    <div className="flex gap-0.5 mt-1 flex-wrap">
+                      {["1fr", "1fr 1fr", "1fr 1fr 1fr", "1fr 2fr", "1fr 1fr 1fr 1fr", "repeat(3, 1fr)"].map((p) => (
+                        <button key={p} onClick={() => set("gridTemplateColumns", p)} className={cn("h-5 px-1.5 rounded border text-[8px] font-mono transition-colors", get("gridTemplateColumns") === p ? "bg-primary/10 border-primary/30 text-primary" : "border-sidebar-border text-muted-foreground/50 hover:text-foreground")}>{p}</button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Rows track editor */}
+                  <div>
+                    <span className="text-[9px] text-muted-foreground/40 mb-0.5 block">Rows</span>
+                    <Input value={get("gridTemplateRows")} onChange={(e) => set("gridTemplateRows", e.target.value)} className="h-6 text-[10px] font-mono" placeholder="auto" />
+                  </div>
+                </>)}
+
+                {/* ── Shared: Padding (both flex and grid) ── */}
+                {layoutType && (
+                  <div className="flex items-center gap-1">
+                    {padLinked ? (
+                      <div className="grid grid-cols-2 gap-1 flex-1">
+                        <N icon="↕" value={get("paddingTop")} onChange={(v) => { set("paddingTop", v); set("paddingBottom", v); }} placeholder="0" tip="Vertical padding" />
+                        <N icon="↔" value={get("paddingRight")} onChange={(v) => { set("paddingRight", v); set("paddingLeft", v); }} placeholder="0" tip="Horizontal padding" />
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-4 gap-1 flex-1">
+                        <N icon="↑" value={get("paddingTop")} onChange={(v) => set("paddingTop", v)} placeholder="0" tip="Top" />
+                        <N icon="→" value={get("paddingRight")} onChange={(v) => set("paddingRight", v)} placeholder="0" tip="Right" />
+                        <N icon="↓" value={get("paddingBottom")} onChange={(v) => set("paddingBottom", v)} placeholder="0" tip="Bottom" />
+                        <N icon="←" value={get("paddingLeft")} onChange={(v) => set("paddingLeft", v)} placeholder="0" tip="Left" />
+                      </div>
+                    )}
+                    <button onClick={() => setPadLinked(!padLinked)} className={cn("flex size-6 items-center justify-center rounded border transition-colors shrink-0", padLinked ? "border-primary/30 bg-primary/10 text-primary" : "border-sidebar-border text-muted-foreground/40")}>
+                      <MIcon name={padLinked ? "link" : "link_off"} size={13} />
+                    </button>
+                  </div>
+                )}
+
                 {/* Overflow */}
                 <SelectField label="" value={get("overflow")} options={selectOptions.overflow} onChange={(v) => set("overflow", v)} />
               </div>
             </Section>
-          )}
+            );
+          })()}
 
           {/* ─── 5. Typography (Penpot: text-menu) ─── */}
           {isText && (
