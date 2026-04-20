@@ -331,6 +331,7 @@ export default function SettingsTab() {
 
         {/* Design tab */}
         <TabsContent value="design" className="flex-1 overflow-y-auto mt-0">
+          <TooltipProvider delayDuration={200}>
 
           {/* Custom */}
           {!Array.isArray(selected.content) && Object.keys(selected.content as Record<string, string>).some((k) => k === "href" || k === "src") && (
@@ -606,7 +607,6 @@ export default function SettingsTab() {
           {/* Flexbox */}
           {/* Position */}
           <Section title="Position" icon="open_with" defaultOpen={false}>
-            <TooltipProvider delayDuration={200}>
             <div className="space-y-2">
               {/* Align self */}
               <div className="flex gap-1">
@@ -669,9 +669,8 @@ export default function SettingsTab() {
                 </TooltipTrigger><TooltipContent className="text-[10px]">Rotate</TooltipContent></Tooltip>
               </div>
             </div>
-            </TooltipProvider>
           </Section>
-
+          </TooltipProvider>
         </TabsContent>
       </Tabs>
     </div>
