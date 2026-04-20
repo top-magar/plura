@@ -272,3 +272,134 @@ Rows: [track list with add/remove/reorder]
 | **Text** | Rich text with inline formatting | contentEditable (basic) |
 | **Components** | Instances with overrides | Clone only |
 | **Collaboration** | Real-time WebSocket | Not yet |
+
+---
+
+## Viewport Deep Analysis
+
+### Canvas Assembly Order (`viewport.cljs` — 500+ lines of rendering)
+
+Penpot's canvas is a stack of SVG layers:
+
+```
+<div class="viewport">                    ← outer container
+  <div class="viewport-overlays">         ← HTML overlays (text editing, comments, color picker)
+  
+  <svg id="render">                       ← SHAPES LAYER (pointer-events: none)
+    <rect background />                   ← canvas background color
+    <g shapes>                            ← all shapes rendered here
+      <root-shape />                      ← recursive shape tree
+    </g>
+  </svg>
+  
+  <svg class="viewport-controls">         ← CONTROLS LAYER (interactive)
+    <g>
+      text-editor                         ← rich text editing overlay
+      outlines                            ← hover/selection outlines
+      selection-handlers                  ← resize/rotate handles
+      text-edition-outline                ← text editing border
+      measurements                        ← distance/size measurements
+      padding-control                     ← flex padding handles
+      gap-control                         ← flex gap handles
+      margin-control                      ← flex margin handles
+      frame-titles                        ← artboard name labels
+      draw-area                           ← shape drawing preview
+      frame-grid                          ← grid overlay
+      pixel-grid                          ← pixel grid at high zoom
+      snap-points                         ← alignment snap guides
+      snap-distances                      ← distance measurement lines
+      cursor-tooltip                      ← tooltip following cursor
+      selection-rect                      ← marquee selection
+      presence-cursors                    ← other users' cursors
+      rulers                              ← top/left rulers
+      guides                              ← draggable guide lines
+      grid-layout-editor                  ← visual grid editor
+      scrollbars                          ← custom scrollbars
+    </g>
+  </svg>
+</div>
+```
+
+### Key Pattern: Two SVG Layers
+
+Penpot separates shapes (non-interactive) from controls (interactive):
+- **Render SVG**: `pointer-events: none` — shapes are purely visual
+- **Controls SVG**: `pointer-events: auto` — all interaction happens here
+
+This prevents shape content from interfering with handle interactions.
+
+### Conditional Rendering Flags
+
+Penpot uses ~20 boolean flags to show/hide overlays:
+
+```
+show-selection-handlers?  = selected && !text-editing
+show-snap-distance?       = dynamic-alignment && transform=move && selected
+show-snap-points?         = (dynamic-alignment || snap-guides) && (drawing || transform)
+show-measures?            = !transform && !path-editing && (distances || inspect || read-only)
+show-padding?             = !transform && single-select && frame && flex && rotation=0
+show-margin?              = !transform && single-select && parent=flex && rotation=0
+show-rulers?              = rulers-enabled && !hide-ui
+show-pixel-grid?          = pixel-grid-enabled && zoom >= 8
+show-grid-editor?         = editing && grid-layout
+show-outlines?            = !transform && !edition && !drawing && !path-tool
+```
+
+### Zoom/Pan System (`hooks.cljs`)
+
+```
+Mouse wheel:
+  - No modifier: scroll (pan)
+  - Cmd/Ctrl + wheel: zoom in/out
+  - Shift + wheel: horizontal scroll
+
+Keyboard:
+  - Space held: switch to hand cursor, drag to pan
+  - Cmd+0: zoom to 100%
+  - Cmd+1: zoom to fit all
+  - Cmd+2: zoom to selection
+  - Z held: zoom mode (click = zoom in, alt+click = zoom out)
+  - +/-: zoom in/out
+
+Cursor changes based on:
+  - Current tool (select, frame, rect, text, pen, etc)
+  - Modifier keys (alt=duplicate, space=hand, z=zoom)
+  - Drawing state
+```
+
+### Ruler System (`rulers.cljs`)
+
+```
+Constants:
+  ruler-area-size: 22px
+  font-size: 12px
+  
+Step size adapts to zoom:
+  zoom < 0.008  → step 10000
+  zoom < 0.07   → step 1000
+  zoom < 0.5    → step 250
+  zoom < 1      → step 100
+  zoom < 2      → step 50
+  zoom < 4      → step 25
+  zoom < 15     → step 5
+  zoom > 25     → step 1
+
+Features:
+  - Background bar along top and left edges
+  - Tick marks at calculated step intervals
+  - Numbers at major intervals
+  - Selection highlight (shows selected element's range)
+  - Click on ruler to create a guide line
+  - Corner square at top-left intersection
+```
+
+### What to Port to Our Editor
+
+| Feature | Effort | Impact |
+|---|---|---|
+| **Scroll-to-zoom** (Cmd+wheel) | 30 min | High — standard editor behavior |
+| **Space+drag pan** | 30 min | High — essential for large pages |
+| **Rulers** | 1 hour | Medium — professional feel |
+| **Draggable guides** | 1 hour | Medium — alignment aid |
+| **Conditional overlay flags** | 30 min | Medium — cleaner rendering |
+| **Pixel grid at high zoom** | 15 min | Low — nice to have |
