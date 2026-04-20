@@ -9,6 +9,48 @@ import type { El } from "../types";
 import { resolveStyles } from "../types";
 import Recursive from "../recursive";
 
+/** Draggable diamond handle between flex children to adjust gap */
+function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
+  const [dragging, setDragging] = useState(false);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const start = isRow ? e.clientX : e.clientY;
+    const startGap = parseInt(String(element.styles.gap ?? '0')) || 0;
+    setDragging(true);
+
+    const onMove = (ev: PointerEvent) => {
+      const delta = (isRow ? ev.clientX : ev.clientY) - start;
+      const val = Math.max(0, Math.round((startGap + delta) / 4) * 4);
+      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, gap: `${val}px` } } } });
+    };
+    const onUp = () => {
+      setDragging(false);
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+    };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-center z-10 shrink-0",
+        isRow ? "cursor-ew-resize self-stretch w-0 relative" : "cursor-ns-resize w-full h-0 relative"
+      )}
+      onPointerDown={onPointerDown}
+    >
+      <div className={cn(
+        "absolute rounded-sm transition-colors",
+        dragging ? "bg-pink-500" : "bg-pink-500/0 hover:bg-pink-500/80",
+        isRow ? "w-1.5 h-4" : "h-1.5 w-4"
+      )} />
+    </div>
+  );
+}
+
 /** Split styles: layout props go to wrapRef, visual props go to ElementWrapper */
 function splitStyles(styles: CSSProperties) {
   const { display, flexDirection, gap, flexWrap, alignItems, justifyContent, gridTemplateColumns, gridTemplateRows, ...visual } = styles as Record<string, unknown>;
@@ -19,6 +61,7 @@ function splitStyles(styles: CSSProperties) {
 export default function ContainerElement({ element }: { element: El }): ReactNode {
   const { state, dispatch } = useEditor();
   const { preview, dropTarget, device } = state.editor;
+  const isSel = state.editor.selected?.id === element.id;
   const resolved = resolveStyles(element, device);
   const { layout, visual } = splitStyles(resolved);
   const children = Array.isArray(element.content) ? element.content : [];
@@ -97,6 +140,9 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
           <div key={child.id} data-el-id={child.id} className="min-w-0 break-words">
             {isActive && dropIdx === i && indicator}
             <Recursive element={child} />
+            {isSel && !preview && i < children.length - 1 && (
+              <GapHandle element={element} isRow={isRow} dispatch={dispatch} />
+            )}
           </div>
         ))}
         {isActive && dropIdx === children.length && !isEmpty && indicator}

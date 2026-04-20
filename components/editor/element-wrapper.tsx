@@ -248,6 +248,88 @@ function ResizeHandles({
   );
 }
 
+// ─── Padding Handles ────────────────────────────────────────
+
+function PaddingHandles({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
+  const sides = ['Top', 'Right', 'Bottom', 'Left'] as const;
+  const cursors = ['ns-resize', 'ew-resize', 'ns-resize', 'ew-resize'] as const;
+  const positions = [
+    'top-0 left-0 right-0 h-1.5 cursor-ns-resize',
+    'top-0 right-0 bottom-0 w-1.5 cursor-ew-resize',
+    'bottom-0 left-0 right-0 h-1.5 cursor-ns-resize',
+    'top-0 left-0 bottom-0 w-1.5 cursor-ew-resize',
+  ] as const;
+
+  const onPointerDown = (side: typeof sides[number], idx: number) => (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const prop = `padding${side}` as keyof CSSProperties;
+    const start = { pos: idx % 2 === 0 ? e.clientY : e.clientX, val: parseInt(String(element.styles[prop] ?? '0')) || 0 };
+
+    const onMove = (ev: PointerEvent) => {
+      const delta = (idx % 2 === 0 ? ev.clientY : ev.clientX) - start.pos;
+      const sign = idx < 2 ? 1 : (idx === 2 ? 1 : -1);
+      const adjusted = idx === 0 ? -delta : idx === 3 ? -delta : delta;
+      const val = Math.max(0, Math.round((start.val + adjusted) / 4) * 4);
+      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, [prop]: `${val}px` } } } });
+    };
+    const onUp = () => { document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  };
+
+  return (
+    <>
+      {sides.map((side, i) => (
+        <div
+          key={side}
+          className={cn('absolute z-20 group/pad', positions[i])}
+          onPointerDown={onPointerDown(side, i)}
+        >
+          <div className={cn(
+            'absolute bg-emerald-500/0 group-hover/pad:bg-emerald-500/20 transition-colors',
+            i % 2 === 0 ? 'inset-x-0 h-full' : 'inset-y-0 w-full'
+          )} />
+        </div>
+      ))}
+    </>
+  );
+}
+
+// ─── Border Radius Handle ───────────────────────────────────
+
+function BorderRadiusHandle({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
+  const onPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startVal = parseInt(String(element.styles.borderRadius ?? '0')) || 0;
+
+    const onMove = (ev: PointerEvent) => {
+      const delta = startX - ev.clientX;
+      const val = Math.max(0, Math.round((startVal + delta) / 2) * 2);
+      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, borderRadius: `${val}px` } } } });
+    };
+    const onUp = () => { document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  };
+
+  const r = parseInt(String(element.styles.borderRadius ?? '0')) || 0;
+
+  return (
+    <div
+      className="absolute top-1 left-1 z-20 group/br cursor-nwse-resize"
+      onPointerDown={onPointerDown}
+      style={{ width: Math.max(8, Math.min(r, 24)), height: Math.max(8, Math.min(r, 24)) }}
+    >
+      <svg viewBox="0 0 24 24" className="w-full h-full text-primary/0 group-hover/br:text-primary/60 transition-colors">
+        <path d="M 24 0 A 24 24 0 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    </div>
+  );
+}
+
 // ─── Main Wrapper ───────────────────────────────────────────
 
 export default function ElementWrapper({ element, children, className, style, isContainer }: Props) {
@@ -310,7 +392,11 @@ export default function ElementWrapper({ element, children, className, style, is
 
       {/* Resize handles — selected, non-body, non-locked */}
       {isSel && !isBody && !isLocked && (
-        <ResizeHandles onResizeX={onResizeX} onResizeY={onResizeY} onResizeXY={onResizeXY} />
+        <>
+          <ResizeHandles onResizeX={onResizeX} onResizeY={onResizeY} onResizeXY={onResizeXY} />
+          <PaddingHandles element={element} dispatch={dispatch} />
+          <BorderRadiusHandle element={element} dispatch={dispatch} />
+        </>
       )}
 
       {/* Dimensions tooltip during resize */}
