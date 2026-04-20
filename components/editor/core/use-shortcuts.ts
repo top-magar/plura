@@ -1,7 +1,7 @@
 import { useCallback, type CSSProperties } from "react";
-import type { El } from "../core/types";
-import type { EditorAction } from "../core/provider";
-import { cloneEl, findParentId, findEl as findElInTree } from "../core/tree-helpers";
+import type { El } from "./types";
+import type { EditorAction } from "./provider";
+import { cloneEl, findParentId, findEl as findElInTree } from "./tree-helpers";
 import { toast } from "sonner";
 
 type ShortcutDeps = {

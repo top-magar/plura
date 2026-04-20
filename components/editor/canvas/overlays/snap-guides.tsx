@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { useEditor } from '../core/provider';
-import { findParentId, findEl } from '../core/tree-helpers';
-import type { El } from '../core/types';
+import { useEditor } from '../../core/provider';
+import { findParentId, findEl } from '../../core/tree-helpers';
+import type { El } from '../../core/types';
 
 type Guide = { x1: number; y1: number; x2: number; y2: number };
 

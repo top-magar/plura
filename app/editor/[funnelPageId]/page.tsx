@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import FunnelEditor from "@/components/editor/funnel-editor";
+import FunnelEditor from "@/components/editor/editor";
 
 export default async function EditorPage({
   params,

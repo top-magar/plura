@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { MIcon } from "../ui/m-icon";
+import { MIcon } from "../../ui/m-icon";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { El } from "../core/types";
-import { useEditor } from "../core/provider";
+import type { El } from "../../core/types";
+import { useEditor } from "../../core/provider";
 
 const typeConfig: Record<string, { icon: string; color: string; label: string }> = {
   __body:       { icon: "public",           color: "#6366f1", label: "Body" },

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MIcon } from "../ui/m-icon";
+import { MIcon } from "../../ui/m-icon";
 import { cn } from "@/lib/utils";
-import { useEditor } from "../core/provider";
-import SettingsTab from "./settings";
+import { useEditor } from "../../core/provider";
+import SettingsTab from "./settings-tab";
 
 const typeIcons: Record<string, string> = {
   __body: "public", container: "check_box_outline_blank", section: "view_agenda",

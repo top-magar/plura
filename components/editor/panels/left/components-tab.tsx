@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { MIcon } from "../ui/m-icon";
-import { componentGroups } from "../core/element-factory";
-import { useDragOverlay } from "../canvas/drag-overlay";
+import { MIcon } from "../../ui/m-icon";
+import { componentGroups } from "../../core/element-factory";
+import { useDragOverlay } from "../../canvas/drag-overlay";
 import { cn } from "@/lib/utils";
 
 export default function ComponentsTab() {

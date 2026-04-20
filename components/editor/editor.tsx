@@ -8,15 +8,15 @@ import type { El, EditorProps } from "./core/types";
 import { getAncestorPath } from "./core/tree-helpers";
 import { cn } from "@/lib/utils";
 import Recursive from "./canvas/recursive";
-import SnapDistances from "./canvas/snap-distances";
-import SnapGuides from "./canvas/snap-guides";
-import Rulers from "./canvas/rulers";
+import SnapDistances from "./canvas/overlays/snap-distances";
+import SnapGuides from "./canvas/overlays/snap-guides";
+import Rulers from "./canvas/overlays/rulers";
 import { EditorProvider, useEditor } from "./core/provider";
 import EditorNavigation from "./toolbar/navigation";
 import { LeftPanel, RightPanel } from "./panels";
 import { DragOverlayProvider } from "./canvas/drag-overlay";
 import { useCanvas } from "./canvas/use-canvas";
-import { useShortcuts } from "./canvas/use-shortcuts";
+import { useShortcuts } from "./core/use-shortcuts";
 
 export default function FunnelEditor(props: EditorProps) {
   return <EditorProvider {...props}><EditorInner /></EditorProvider>;

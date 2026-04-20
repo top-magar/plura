@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MIcon } from "../ui/m-icon";
+import { MIcon } from "../../ui/m-icon";
 import { toast } from "sonner";
 import { savePageTemplate, getPageTemplates, deletePageTemplate } from "@/lib/queries";
-import { useEditor } from "../core/provider";
+import { useEditor } from "../../core/provider";
 
 export default function TemplatesTab() {
   const { state, dispatch, agencyId } = useEditor();
