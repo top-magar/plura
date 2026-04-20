@@ -51,18 +51,24 @@ function useHandles(element: El, dispatch: ReturnType<typeof useEditor>['dispatc
       const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - ref.current.pos) * sign;
       const val = Math.max(0, Math.round((ref.current.val + delta) / snap) * snap);
 
+      // Expand shorthand to avoid React warning about mixing shorthand/longhand
+      const curStyles = { ...element.styles } as Record<string, unknown>;
+      if (prefix === 'padding' && curStyles.padding) {
+        const [et, er, eb, el] = parseBox(curStyles.padding as string, undefined, undefined, undefined, undefined);
+        curStyles.paddingTop = `${et}px`; curStyles.paddingRight = `${er}px`; curStyles.paddingBottom = `${eb}px`; curStyles.paddingLeft = `${el}px`;
+        delete curStyles.padding;
+      }
+      if (prefix === 'margin' && curStyles.margin) {
+        const [et, er, eb, el] = parseBox(curStyles.margin as string, undefined, undefined, undefined, undefined);
+        curStyles.marginTop = `${et}px`; curStyles.marginRight = `${er}px`; curStyles.marginBottom = `${eb}px`; curStyles.marginLeft = `${el}px`;
+        delete curStyles.margin;
+      }
+
       const updates: Record<string, string> = { [prop]: `${val}px` };
+      if (ev.altKey && !ev.shiftKey) updates[oppProp] = `${val}px`;
+      if (ev.altKey && ev.shiftKey) { for (const p of allProps) updates[p] = `${val}px`; }
 
-      // Alt = opposite side too
-      if (ev.altKey && !ev.shiftKey) {
-        updates[oppProp] = `${val}px`;
-      }
-      // Alt+Shift = all 4 sides
-      if (ev.altKey && ev.shiftKey) {
-        for (const p of allProps) updates[p] = `${val}px`;
-      }
-
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, ...updates } as CSSProperties } } });
+      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...curStyles, ...updates } as CSSProperties } } });
     };
     const onUp = () => { ref.current = null; setState(s => ({ ...s, active: null })); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
     document.addEventListener('pointermove', onMove);
