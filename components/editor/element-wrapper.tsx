@@ -224,25 +224,16 @@ function ResizeHandles({
   return (
     <>
       {/* Right edge */}
-      <div
-        className="absolute top-0 -right-1 w-2 h-full cursor-ew-resize z-20 group/r"
-        onPointerDown={onResizeX}
-      >
-        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-0.5 h-6 rounded-full bg-primary opacity-0 group-hover/r:opacity-100 transition-opacity" />
+      <div className="absolute top-0 -right-[3px] w-[6px] h-full cursor-ew-resize z-20 group/r" onPointerDown={onResizeX}>
+        <div className="absolute top-1/2 -translate-y-1/2 right-0 w-[3px] h-8 rounded-full bg-primary shadow-sm opacity-0 group-hover/r:opacity-100 transition-opacity" />
       </div>
       {/* Bottom edge */}
-      <div
-        className="absolute -bottom-1 left-0 h-2 w-full cursor-ns-resize z-20 group/b"
-        onPointerDown={onResizeY}
-      >
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-6 rounded-full bg-primary opacity-0 group-hover/b:opacity-100 transition-opacity" />
+      <div className="absolute -bottom-[3px] left-0 h-[6px] w-full cursor-ns-resize z-20 group/b" onPointerDown={onResizeY}>
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[3px] w-8 rounded-full bg-primary shadow-sm opacity-0 group-hover/b:opacity-100 transition-opacity" />
       </div>
       {/* Corner */}
-      <div
-        className="absolute -bottom-1.5 -right-1.5 size-3 cursor-nwse-resize z-20 group/c"
-        onPointerDown={onResizeXY}
-      >
-        <div className="absolute bottom-0.5 right-0.5 size-1.5 rounded-full bg-primary opacity-0 group-hover/c:opacity-100 transition-opacity" />
+      <div className="absolute -bottom-[5px] -right-[5px] size-[10px] cursor-nwse-resize z-20 group/c" onPointerDown={onResizeXY}>
+        <div className="size-[10px] rounded-full bg-primary border-2 border-background shadow-sm opacity-0 group-hover/c:opacity-100 transition-opacity" />
       </div>
     </>
   );
@@ -251,45 +242,45 @@ function ResizeHandles({
 // ─── Padding Handles ────────────────────────────────────────
 
 function PaddingHandles({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
-  const sides = ['Top', 'Right', 'Bottom', 'Left'] as const;
-  const cursors = ['ns-resize', 'ew-resize', 'ns-resize', 'ew-resize'] as const;
-  const positions = [
-    'top-0 left-0 right-0 h-1.5 cursor-ns-resize',
-    'top-0 right-0 bottom-0 w-1.5 cursor-ew-resize',
-    'bottom-0 left-0 right-0 h-1.5 cursor-ns-resize',
-    'top-0 left-0 bottom-0 w-1.5 cursor-ew-resize',
+  const [active, setActive] = useState<string | null>(null);
+  const sides = [
+    { key: 'Top', cls: 'top-0 left-[10%] right-[10%] h-[5px] cursor-ns-resize', dir: 'y', sign: -1 },
+    { key: 'Right', cls: 'right-0 top-[10%] bottom-[10%] w-[5px] cursor-ew-resize', dir: 'x', sign: 1 },
+    { key: 'Bottom', cls: 'bottom-0 left-[10%] right-[10%] h-[5px] cursor-ns-resize', dir: 'y', sign: 1 },
+    { key: 'Left', cls: 'left-0 top-[10%] bottom-[10%] w-[5px] cursor-ew-resize', dir: 'x', sign: -1 },
   ] as const;
 
-  const onPointerDown = (side: typeof sides[number], idx: number) => (e: React.PointerEvent) => {
+  const onPointerDown = (side: string, dir: 'x' | 'y', sign: number) => (e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const prop = `padding${side}` as keyof CSSProperties;
-    const start = { pos: idx % 2 === 0 ? e.clientY : e.clientX, val: parseInt(String(element.styles[prop] ?? '0')) || 0 };
+    const startPos = dir === 'y' ? e.clientY : e.clientX;
+    const startVal = parseInt(String(element.styles[prop] ?? '0')) || 0;
+    setActive(side);
 
     const onMove = (ev: PointerEvent) => {
-      const delta = (idx % 2 === 0 ? ev.clientY : ev.clientX) - start.pos;
-      const sign = idx < 2 ? 1 : (idx === 2 ? 1 : -1);
-      const adjusted = idx === 0 ? -delta : idx === 3 ? -delta : delta;
-      const val = Math.max(0, Math.round((start.val + adjusted) / 4) * 4);
+      const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - startPos) * sign;
+      const val = Math.max(0, Math.round((startVal + delta) / 4) * 4);
       dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, [prop]: `${val}px` } } } });
     };
-    const onUp = () => { document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+    const onUp = () => { setActive(null); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
   };
 
   return (
     <>
-      {sides.map((side, i) => (
-        <div
-          key={side}
-          className={cn('absolute z-20 group/pad', positions[i])}
-          onPointerDown={onPointerDown(side, i)}
-        >
+      {sides.map(({ key, cls, dir, sign }) => (
+        <div key={key} className={cn('absolute z-[15]', cls)} onPointerDown={onPointerDown(key, dir, sign)}>
           <div className={cn(
-            'absolute bg-emerald-500/0 group-hover/pad:bg-emerald-500/20 transition-colors',
-            i % 2 === 0 ? 'inset-x-0 h-full' : 'inset-y-0 w-full'
+            'absolute inset-0 rounded-full transition-colors',
+            active === key ? 'bg-emerald-500/60' : 'bg-emerald-500/0 hover:bg-emerald-500/30'
           )} />
+          {active === key && (
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-emerald-600 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none">
+              {parseInt(String(element.styles[`padding${key}` as keyof CSSProperties] ?? '0')) || 0}
+            </span>
+          )}
         </div>
       ))}
     </>
@@ -299,33 +290,42 @@ function PaddingHandles({ element, dispatch }: { element: El; dispatch: ReturnTy
 // ─── Border Radius Handle ───────────────────────────────────
 
 function BorderRadiusHandle({ element, dispatch }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch'] }) {
+  const [active, setActive] = useState(false);
+  const r = parseInt(String(element.styles.borderRadius ?? '0')) || 0;
+
   const onPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const startX = e.clientX;
-    const startVal = parseInt(String(element.styles.borderRadius ?? '0')) || 0;
+    const startVal = r;
+    setActive(true);
 
     const onMove = (ev: PointerEvent) => {
       const delta = startX - ev.clientX;
       const val = Math.max(0, Math.round((startVal + delta) / 2) * 2);
       dispatch({ type: 'UPDATE_ELEMENT', payload: { element: { ...element, styles: { ...element.styles, borderRadius: `${val}px` } } } });
     };
-    const onUp = () => { document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
+    const onUp = () => { setActive(false); document.removeEventListener('pointermove', onMove); document.removeEventListener('pointerup', onUp); };
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
   };
 
-  const r = parseInt(String(element.styles.borderRadius ?? '0')) || 0;
+  if (r === 0 && !active) return null;
 
   return (
     <div
-      className="absolute top-1 left-1 z-20 group/br cursor-nwse-resize"
+      className="absolute top-[2px] left-[2px] z-20 cursor-nwse-resize"
       onPointerDown={onPointerDown}
-      style={{ width: Math.max(8, Math.min(r, 24)), height: Math.max(8, Math.min(r, 24)) }}
+      style={{ width: Math.max(12, Math.min(r, 32)), height: Math.max(12, Math.min(r, 32)) }}
     >
-      <svg viewBox="0 0 24 24" className="w-full h-full text-primary/0 group-hover/br:text-primary/60 transition-colors">
-        <path d="M 24 0 A 24 24 0 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="2" />
+      <svg viewBox="0 0 24 24" className={cn("w-full h-full transition-colors", active ? "text-orange-500" : "text-primary/40 hover:text-primary")}>
+        <path d="M 24 0 A 24 24 0 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
       </svg>
+      {active && (
+        <span className="absolute -top-4 left-0 rounded bg-orange-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none">
+          {r}px
+        </span>
+      )}
     </div>
   );
 }

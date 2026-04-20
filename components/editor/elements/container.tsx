@@ -34,6 +34,8 @@ function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; 
     document.addEventListener('pointerup', onUp);
   };
 
+  const gap = parseInt(String(element.styles.gap ?? '0')) || 0;
+
   return (
     <div
       className={cn(
@@ -43,10 +45,15 @@ function GapHandle({ element, isRow, dispatch }: { element: El; isRow: boolean; 
       onPointerDown={onPointerDown}
     >
       <div className={cn(
-        "absolute rounded-sm transition-colors",
-        dragging ? "bg-pink-500" : "bg-pink-500/0 hover:bg-pink-500/80",
-        isRow ? "w-1.5 h-4" : "h-1.5 w-4"
+        "absolute rounded-full transition-all",
+        dragging ? "bg-pink-500 scale-125" : "bg-pink-400/0 hover:bg-pink-400",
+        isRow ? "w-[5px] h-6" : "h-[5px] w-6"
       )} />
+      {dragging && (
+        <span className="absolute rounded bg-pink-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none z-20" style={isRow ? { left: 8 } : { top: 8 }}>
+          {gap}
+        </span>
+      )}
     </div>
   );
 }
