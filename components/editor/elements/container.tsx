@@ -61,6 +61,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
   function handleDragOver(e: React.DragEvent) {
     e.preventDefault();
     e.stopPropagation();
+    console.log(`[dragOver] container=${element.id.slice(0,8)} type=${element.type} isRow=${isRow} children=${children.length}`);
     if (dropTarget !== element.id) dispatch({ type: "SET_DROP_TARGET", payload: { id: element.id } });
     setDrop(calcDrop(e));
   }
