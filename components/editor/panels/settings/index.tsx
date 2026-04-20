@@ -53,6 +53,18 @@ function ItemsEditor({ value, onChange }: { value: string; onChange: (v: string)
   );
 }
 
+// ── Context-aware sections ──────────────────────────────
+
+const textTypes = new Set(["text", "heading", "subheading", "quote", "code", "list", "badge", "icon", "footer"]);
+const containerTypes = new Set(["__body", "container", "section", "row", "column", "2Col", "3Col", "4Col", "grid", "hero", "header", "card", "sidebar", "modal", "form"]);
+const mediaTypes = new Set(["image", "video", "gallery", "map", "embed"]);
+const simpleTypes = new Set(["divider", "spacer"]);
+
+function showTypography(type: string) { return textTypes.has(type) || type === "button" || type === "link" || type === "navbar"; }
+function showLayout(type: string) { return !simpleTypes.has(type); }
+function showAppearance(type: string) { return !simpleTypes.has(type); }
+function showPosition(type: string) { return !simpleTypes.has(type) && type !== "__body"; }
+
 export default function SettingsTab() {
   const { state, dispatch } = useEditor();
   const selected = state.editor.selected;
@@ -162,13 +174,9 @@ export default function SettingsTab() {
             </Section>
           )}
 
-          {/* Typography */}
-          <TypographySection get={get} set={set} />
-
-          {/* Dimensions */}
-          <LayoutSection get={get} set={set} />
-          {/* Decorations */}
-          <AppearanceSection get={get} set={set} />
+          {showTypography(selected.type) && <TypographySection get={get} set={set} />}
+          {showLayout(selected.type) && <LayoutSection get={get} set={set} />}
+          {showAppearance(selected.type) && <AppearanceSection get={get} set={set} />}
           {/* Quick Columns — for row containers */}
           {Array.isArray(selected.content) && (get("flexDirection") === "row" || get("flexDirection") === "row-reverse") && (
             <Section title="Columns" icon="view_column">
@@ -224,9 +232,7 @@ export default function SettingsTab() {
             </Section>
           )}
 
-          {/* Flexbox */}
-          {/* Position */}
-          <PositionSection get={get} set={set} />
+          {showPosition(selected.type) && <PositionSection get={get} set={set} />}
 
           </TooltipProvider>
         </TabsContent>
