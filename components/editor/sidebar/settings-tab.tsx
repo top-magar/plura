@@ -623,20 +623,24 @@ export default function SettingsTab() {
               <div className="flex gap-1">
                 <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden">
                   {[
-                    { v: "flex-start", icon: <AlignHorizontalJustifyStart size={14} />, tip: "Align left" },
-                    { v: "center", icon: <AlignHorizontalJustifyCenter size={14} />, tip: "Align center" },
-                    { v: "flex-end", icon: <AlignHorizontalJustifyEnd size={14} />, tip: "Align right" },
+                    { v: "flex-start", label: "Left", icon: "align_horizontal_left" },
+                    { v: "center", label: "Center", icon: "align_horizontal_center" },
+                    { v: "flex-end", label: "Right", icon: "align_horizontal_right" },
                   ].map(({ v, icon }) => (
-                    <button key={v} onClick={() => set("alignSelf", v)} className={cn("flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("alignSelf") === v && "bg-primary/10 text-primary")}>{icon}</button>
+                    <button key={v} onClick={() => set("alignSelf", v)} className={cn("flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("alignSelf") === v && "bg-primary/10 text-primary")}>
+                      <span className="material-symbols-outlined text-[16px]">{icon}</span>
+                    </button>
                   ))}
                 </div>
                 <div className="flex gap-px rounded-md border border-sidebar-border overflow-hidden">
                   {[
-                    { v: "flex-start", icon: <AlignVerticalJustifyStart size={14} />, tip: "Align top" },
-                    { v: "center", icon: <AlignVerticalJustifyCenter size={14} />, tip: "Align middle" },
-                    { v: "flex-end", icon: <AlignVerticalJustifyEnd size={14} />, tip: "Align bottom" },
+                    { v: "flex-start", label: "Top", icon: "align_vertical_top" },
+                    { v: "center", label: "Middle", icon: "align_vertical_center" },
+                    { v: "flex-end", label: "Bottom", icon: "align_vertical_bottom" },
                   ].map(({ v, icon }) => (
-                    <button key={`v-${v}`} onClick={() => set("justifySelf", v)} className={cn("flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("justifySelf") === v && "bg-primary/10 text-primary")}>{icon}</button>
+                    <button key={`v-${v}`} onClick={() => set("justifySelf", v)} className={cn("flex size-7 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", get("justifySelf") === v && "bg-primary/10 text-primary")}>
+                      <span className="material-symbols-outlined text-[16px]">{icon}</span>
+                    </button>
                   ))}
                 </div>
               </div>
