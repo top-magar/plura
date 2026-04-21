@@ -33,31 +33,46 @@ export function ResizeHandles({ element, wrapperRef, dispatch }: {
   const onDown = useCallback((e: React.PointerEvent, dx: number, dy: number) => {
     e.preventDefault();
     e.stopPropagation();
-    const el = wrapperRef.current;
-    if (!el) return;
     const startX = e.clientX, startY = e.clientY;
-    const startW = el.offsetWidth, startH = el.offsetHeight;
+    const startW = elRef.current.w ?? wrapperRef.current?.offsetWidth ?? 200;
+    const startH = elRef.current.h ?? wrapperRef.current?.offsetHeight ?? 100;
+    const startElX = elRef.current.x ?? 0;
+    const startElY = elRef.current.y ?? 0;
     const ratio = startW / startH;
+    const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
 
     const onMove = (ev: PointerEvent) => {
-      let newW = dx !== 0 ? Math.max(20, startW + (ev.clientX - startX) * dx) : startW;
-      let newH = dy !== 0 ? Math.max(20, startH + (ev.clientY - startY) * dy) : startH;
+      const deltaX = (ev.clientX - startX) / z;
+      const deltaY = (ev.clientY - startY) / z;
+      const snap = ev.shiftKey ? 10 : 1;
 
-      // Shift = constrain aspect ratio
+      let nw = startW, nh = startH, nx = startElX, ny = startElY;
+
+      // Right/bottom edge: grow w/h
+      if (dx === 1) nw = Math.max(20, startW + deltaX);
+      if (dy === 1) nh = Math.max(20, startH + deltaY);
+
+      // Left/top edge: move x/y and shrink w/h
+      if (dx === -1) { nw = Math.max(20, startW - deltaX); nx = startElX + (startW - nw); }
+      if (dy === -1) { nh = Math.max(20, startH - deltaY); ny = startElY + (startH - nh); }
+
+      // Shift = constrain aspect ratio (corners only)
       if (ev.shiftKey && dx !== 0 && dy !== 0) {
-        newH = newW / ratio;
+        nh = nw / ratio;
+        if (dy === -1) ny = startElY + startH - nh;
       }
 
-      const updates: Record<string, string> = {};
-      if (dx !== 0) updates.width = `${Math.round(newW)}px`;
-      if (dy !== 0) updates.height = `${Math.round(newH)}px`;
-      if (ev.shiftKey && dx !== 0 && dy !== 0) updates.height = `${Math.round(newH)}px`;
+      nw = Math.round(nw / snap) * snap;
+      nh = Math.round(nh / snap) * snap;
+      nx = Math.round(nx / snap) * snap;
+      ny = Math.round(ny / snap) * snap;
 
-      const next = { ...elRef.current, styles: { ...elRef.current.styles, ...updates } as CSSProperties };
+      const next = { ...elRef.current, x: nx, y: ny, w: nw, h: nh };
       elRef.current = next;
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: next } });
+      dispatch({ type: 'UPDATE_ELEMENT_LIVE', payload: { element: next } });
     };
     const onUp = () => {
+      dispatch({ type: 'COMMIT_HISTORY' });
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', onUp);
       cleanupRef.current = null;
@@ -72,6 +87,7 @@ export function ResizeHandles({ element, wrapperRef, dispatch }: {
       {POSITIONS.map(({ key, cursor, style, dx, dy }) => (
         <div
           key={key}
+          data-handle
           className={cn('absolute z-[18]', cursor)}
           style={{ ...style as Record<string, unknown>, width: SZ, height: SZ } as CSSProperties}
           onPointerDown={(e) => onDown(e, dx, dy)}

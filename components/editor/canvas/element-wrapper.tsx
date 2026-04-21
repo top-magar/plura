@@ -165,7 +165,7 @@ export default function ElementWrapper({ element, children, className, style, is
           <RadiusCorners element={element} h={h} />
 
           {/* Resize — leaf elements only */}
-          {!CONTAINER_TYPES.has(element.type) && <ResizeHandles element={element} wrapperRef={wrapperRef} dispatch={dispatch} />}
+          {isFreeform && <ResizeHandles element={element} wrapperRef={wrapperRef} dispatch={dispatch} />}
 
           {/* Font size — text elements only */}
           {TEXT_TYPES.has(element.type) && <FontSizeHandle element={element} dispatch={dispatch} />}
