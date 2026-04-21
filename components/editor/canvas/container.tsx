@@ -2,6 +2,8 @@
 
 import React, { useState, useCallback, useRef, type CSSProperties, type ReactNode } from "react";
 import { useEditor } from "../core/provider";
+import { useDocumentStore } from "../core/document-store";
+import { useEditorStore } from "../core/editor-store";
 import ElementWrapper from "./element-wrapper";
 import { makeElInContext } from "../core/registry";
 import { cn } from "@/lib/utils";
@@ -17,9 +19,11 @@ function splitStyles(styles: CSSProperties) {
 }
 
 export default function ContainerElement({ element }: { element: El }): ReactNode {
-  const { state, dispatch } = useEditor();
-  const { preview, dropTarget, device } = state.editor;
-  const isSel = state.editor.selected?.id === element.id;
+  const { dispatch } = useEditor();
+  const preview = useEditorStore(s => s.preview);
+  const dropTarget = useEditorStore(s => s.dropTarget);
+  const device = useEditorStore(s => s.device);
+  const isSel = useEditorStore(s => s.selected?.id === element.id);
   const resolved = resolveStyles(element, device);
   const { layout, visual } = splitStyles(resolved);
   const children = Array.isArray(element.content) ? element.content : [];

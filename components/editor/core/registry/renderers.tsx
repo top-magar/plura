@@ -2,6 +2,7 @@
 
 import { useState, useEffect, type ReactNode } from 'react';
 import type { El } from '../types';
+import { useDocumentStore } from '../document-store';
 import { useEditorStore } from '../editor-store';
 import ElementWrapper from '../../canvas/element-wrapper';
 import { MIcon } from '../../ui/m-icon';
@@ -35,7 +36,6 @@ function TextRenderer({ element }: { element: El }) {
           onBlur={(e) => {
             const text = e.currentTarget.innerText;
             if (text !== content.innerText) {
-              const { useDocumentStore } = require('../document-store');
               useDocumentStore.getState().updateElement({ ...element, content: { ...content, innerText: text } });
             }
           }}

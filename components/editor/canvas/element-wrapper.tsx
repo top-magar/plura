@@ -1,6 +1,8 @@
 'use client';
 
 import { useRef, type CSSProperties, type ReactNode } from 'react';
+import { useDocumentStore } from '../core/document-store';
+import { useEditorStore } from '../core/editor-store';
 import { useEditor } from '../core/provider';
 import { ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
@@ -19,9 +21,13 @@ const TEXT_TYPES = new Set(['text', 'heading', 'subheading', 'quote', 'code', 'b
 type Props = { element: El; children: ReactNode; className?: string; style?: CSSProperties; containerEl?: boolean };
 
 export default function ElementWrapper({ element, children, className, style, containerEl }: Props) {
-  const { state, dispatch } = useEditor();
-  const { selected, preview, hovered, dropTarget, device } = state.editor;
-  const elements = state.editor.elements;
+  const { dispatch } = useEditor();
+  const selected = useEditorStore(s => s.selected);
+  const preview = useEditorStore(s => s.preview);
+  const hovered = useEditorStore(s => s.hovered);
+  const dropTarget = useEditorStore(s => s.dropTarget);
+  const device = useEditorStore(s => s.device);
+  const elements = useDocumentStore(s => s.elements);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const isBody = element.type === '__body';
