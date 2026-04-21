@@ -85,22 +85,26 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
   const hBandRef = useRef<SelBand>(null);
   const vBandRef = useRef<SelBand>(null);
 
-  // Track selected element position
+  // Track selected element position relative to scroll container (ruler-aligned)
   useEffect(() => {
     if (!selectedId) { hBandRef.current = null; vBandRef.current = null; return; }
     const el = document.querySelector(`[data-el-id="${selectedId}"]`) as HTMLElement | null;
-    const canvas = document.querySelector('[data-canvas]') as HTMLElement | null;
-    if (!el || !canvas) { hBandRef.current = null; vBandRef.current = null; return; }
+    const scrollContainer = document.querySelector('[data-canvas]')?.parentElement as HTMLElement | null;
+    if (!el || !scrollContainer) { hBandRef.current = null; vBandRef.current = null; return; }
     const update = () => {
       const er = el.getBoundingClientRect();
-      const cr = canvas.getBoundingClientRect();
-      hBandRef.current = { start: er.left - cr.left, size: er.width };
-      vBandRef.current = { start: er.top - cr.top, size: er.height };
+      const sr = scrollContainer.getBoundingClientRect();
+      hBandRef.current = { start: er.left - sr.left, size: er.width };
+      vBandRef.current = { start: er.top - sr.top, size: er.height };
+      dirtyRef.current = true;
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
-    return () => ro.disconnect();
+    // Also update on scroll
+    const onScroll = () => { update(); };
+    scrollContainer.addEventListener('scroll', onScroll, { passive: true });
+    return () => { ro.disconnect(); scrollContainer.removeEventListener('scroll', onScroll); };
   }, [selectedId]);
 
   // ─── RAF Draw Loop ──────────────────────────────────────
