@@ -39,7 +39,7 @@ export function IconToggle({ value, options, onChange }: { value: string; option
   );
 }
 
-export function Section({ title, icon, defaultOpen = true, onAdd, children }: { title: string; icon: string; defaultOpen?: boolean; onAdd?: () => void; children: ReactNode }) {
+export function Section({ title, icon, defaultOpen = true, onAdd, action, children }: { title: string; icon: string; defaultOpen?: boolean; onAdd?: () => void; action?: ReactNode; children: ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="border-b border-sidebar-border">
@@ -49,6 +49,7 @@ export function Section({ title, icon, defaultOpen = true, onAdd, children }: { 
           <MIcon name={icon} size={13} className="text-sidebar-foreground/50" />
           <span>{title}</span>
         </CollapsibleTrigger>
+        {action}
         {onAdd && (
           <button onClick={(e) => { e.stopPropagation(); onAdd(); }} className="flex size-5 items-center justify-center rounded text-sidebar-foreground/40 hover:text-primary hover:bg-primary/10 transition-colors">
             <MIcon name="add" size={14} />
@@ -60,19 +61,21 @@ export function Section({ title, icon, defaultOpen = true, onAdd, children }: { 
   );
 }
 
-export function ColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+export function ColorField({ label, value, alpha, onChange, onAlphaChange }: { label: string; value: string; alpha?: number; onChange: (v: string) => void; onAlphaChange?: (a: number) => void }) {
+  const showAlpha = onAlphaChange !== undefined;
   return (
     <div>
       {label && <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">{label}</label>}
       <Popover>
         <PopoverTrigger asChild>
           <button className="flex h-6 w-full items-center gap-2 rounded-md border border-sidebar-border bg-sidebar px-2 hover:border-sidebar-foreground/30 cursor-pointer">
-            <span className="size-3.5 shrink-0 rounded-sm border border-sidebar-border" style={{ background: value || "transparent" }} />
+            <span className="size-3.5 shrink-0 rounded-sm border border-sidebar-border" style={{ background: value || "transparent", opacity: alpha ?? 1 }} />
             <span className="text-[10px] text-sidebar-foreground/60 truncate">{value || "none"}</span>
+            {showAlpha && alpha !== undefined && alpha < 1 && <span className="text-[9px] text-muted-foreground/40 ml-auto">{Math.round(alpha * 100)}%</span>}
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-60 p-3" side="left" align="start">
-          <ColorPicker color={value || "#000000"} onChange={onChange} showAlpha={false} />
+          <ColorPicker color={value || "#000000"} alpha={alpha} onChange={onChange} onAlphaChange={onAlphaChange} showAlpha={showAlpha} />
         </PopoverContent>
       </Popover>
     </div>
