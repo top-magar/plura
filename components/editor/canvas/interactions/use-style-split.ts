@@ -17,5 +17,11 @@ export function splitContentStyles(resolved: CSSProperties): { wrapperStyles: Re
       delete wrapperStyles[k];
     }
   }
+  // Strip sticky/fixed positioning in canvas — these only work in preview
+  if (wrapperStyles.position === 'sticky' || wrapperStyles.position === 'fixed') {
+    delete wrapperStyles.position;
+    delete wrapperStyles.top;
+    delete wrapperStyles.bottom;
+  }
   return { wrapperStyles, contentStyles, hasContentStyles: Object.keys(contentStyles).length > 0 };
 }
