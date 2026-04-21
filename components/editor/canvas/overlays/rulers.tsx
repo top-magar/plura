@@ -287,11 +287,13 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
       target.removeEventListener('pointermove', onMove);
       target.removeEventListener('pointerup', onUp);
 
-      const canvasEl = document.querySelector('[data-canvas]');
-      if (canvasEl) {
-        const cr = canvasEl.getBoundingClientRect();
+      const scrollEl = document.querySelector('[data-canvas]')?.parentElement as HTMLElement | null;
+      if (scrollEl) {
+        const sr = scrollEl.getBoundingClientRect();
         const z = zoom / 100;
-        const pos = axis === 'x' ? (ev.clientX - cr.left) / z : (ev.clientY - cr.top) / z;
+        const pos = axis === 'x'
+          ? (ev.clientX - sr.left + scrollEl.scrollLeft) / z
+          : (ev.clientY - sr.top + scrollEl.scrollTop) / z;
         if (pos > 0) onCreateGuide(axis, Math.round(pos));
       }
     };
