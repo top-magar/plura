@@ -162,6 +162,25 @@ export function LayoutMenu({ get, set, selected, onUpdate }: StyleProps & { sele
           <span className="text-[9px] text-muted-foreground/30 mb-0.5 block">Overflow</span>
           <SelectField label="" value={get("overflow") || "visible"} options={selectOptions.overflow} onChange={(v) => set("overflow", v)} />
         </div>
+
+        {/* Position */}
+        <div>
+          <span className="text-[9px] text-muted-foreground/30 mb-0.5 block">Position</span>
+          <SelectField label="" value={get("position") || "static"} options={selectOptions.position} onChange={(v) => { set("position", v === "static" ? "" : v); if (v === "sticky") set("top", get("top") || "0"); }} />
+        </div>
+
+        {(get("position") === "relative" || get("position") === "absolute" || get("position") === "fixed" || get("position") === "sticky") && (
+          <div className="grid grid-cols-2 gap-1">
+            <N icon="arrow_upward" tip="Top" value={strip(get("top") || "")} onChange={(v) => set("top", v ? px(v) : "")} />
+            <N icon="arrow_forward" tip="Right" value={strip(get("right") || "")} onChange={(v) => set("right", v ? px(v) : "")} />
+            <N icon="arrow_downward" tip="Bottom" value={strip(get("bottom") || "")} onChange={(v) => set("bottom", v ? px(v) : "")} />
+            <N icon="arrow_back" tip="Left" value={strip(get("left") || "")} onChange={(v) => set("left", v ? px(v) : "")} />
+          </div>
+        )}
+
+        {get("position") && get("position") !== "static" && (
+          <N icon="layers" tip="Z-Index" value={get("zIndex") || ""} onChange={(v) => set("zIndex", v || "")} />
+        )}
       </div>
     </Section>
     </TooltipProvider>
