@@ -61,8 +61,16 @@ export default function ElementWrapper({ element, children, className, style, is
     wrapperStyles.position = 'absolute';
     wrapperStyles.left = element.x;
     wrapperStyles.top = element.y;
-    if (element.w) wrapperStyles.width = element.w;
-    if (element.h) wrapperStyles.height = element.h;
+    if (element.w !== undefined) wrapperStyles.width = element.w;
+    if (element.h !== undefined) wrapperStyles.height = element.h;
+    wrapperStyles.boxSizing = 'border-box';
+    // Remove conflicting CSS sizing — freeform w/h takes precedence
+    delete wrapperStyles.flex;
+    delete wrapperStyles.margin;
+    delete wrapperStyles.marginTop;
+    delete wrapperStyles.marginRight;
+    delete wrapperStyles.marginBottom;
+    delete wrapperStyles.marginLeft;
   }
 
   if (element.hidden && !preview) return <div className="relative opacity-20 pointer-events-none" style={resolved}>{children}</div>;
@@ -153,8 +161,8 @@ export default function ElementWrapper({ element, children, className, style, is
             <BoxHandle element={element} id="p-L" prop="paddingLeft" val={pl} dir="x" sign={-1} color="emerald" style={{ top: 0, left: 0, bottom: 0, width: Math.max(pl, 6) }} cls="cursor-ew-resize" h={h} />
           </>)}
 
-          {/* Margin — zones + handles only when margin exists */}
-          {hasMar && (<>
+          {/* Margin — only for non-freeform elements (margin doesn't apply to absolute positioned) */}
+          {!isFreeform && hasMar && (<>
             {mt > 0 && <><BoxZone id="m-T" val={mt} color="orange" style={{ top: -mt, left: 0, right: 0, height: mt }} h={h} /><BoxHandle element={element} id="m-T" prop="marginTop" val={mt} dir="y" sign={-1} color="orange" style={{ top: -mt, left: 0, right: 0, height: mt }} cls="cursor-ns-resize" h={h} /></>}
             {mr > 0 && <><BoxZone id="m-R" val={mr} color="orange" style={{ top: 0, right: -mr, bottom: 0, width: mr }} h={h} /><BoxHandle element={element} id="m-R" prop="marginRight" val={mr} dir="x" sign={1} color="orange" style={{ top: 0, right: -mr, bottom: 0, width: mr }} cls="cursor-ew-resize" h={h} /></>}
             {mb > 0 && <><BoxZone id="m-B" val={mb} color="orange" style={{ bottom: -mb, left: 0, right: 0, height: mb }} h={h} /><BoxHandle element={element} id="m-B" prop="marginBottom" val={mb} dir="y" sign={1} color="orange" style={{ bottom: -mb, left: 0, right: 0, height: mb }} cls="cursor-ns-resize" h={h} /></>}
