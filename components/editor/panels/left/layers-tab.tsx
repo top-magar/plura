@@ -109,6 +109,7 @@ function LayerNode({ el, depth, filter, dropPos, setDropPos, expandedMap, toggle
       const idx = parent.content.findIndex((c: El) => c.id === el.id);
       dispatch({ type: 'MOVE_ELEMENT', payload: { elId: dragId, targetContainerId: parentId, index: dropPos?.position === 'after' ? idx + 1 : idx } });
     }
+    dispatch({ type: 'COMMIT_HISTORY' });
     setDropPos(null);
   };
 

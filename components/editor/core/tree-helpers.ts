@@ -40,6 +40,8 @@ export function findEl(tree: El[], id: string): El | null {
 export function moveEl(tree: El[], elId: string, targetContainerId: string, index?: number): El[] {
   const el = findEl(tree, elId);
   if (!el) return tree;
+  const target = findEl(tree, targetContainerId);
+  if (!target || !Array.isArray(target.content)) return tree;
   return addEl(deleteEl(tree, elId), targetContainerId, el, index);
 }
 

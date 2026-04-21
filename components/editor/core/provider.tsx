@@ -209,10 +209,12 @@ export function EditorProvider({
   useEffect(() => {
     if (!initialContent) return;
     try {
-      const parsed = JSON.parse(initialContent) as El[];
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        dispatch({ type: 'LOAD_DATA', payload: { elements: parsed } });
-      }
+      const parsed = JSON.parse(initialContent);
+      if (!Array.isArray(parsed) || parsed.length === 0) return;
+      // Validate root element has required fields
+      const root = parsed[0];
+      if (!root || typeof root.id !== 'string' || typeof root.type !== 'string' || !root.styles) return;
+      dispatch({ type: 'LOAD_DATA', payload: { elements: parsed as El[] } });
     } catch {
       // invalid JSON — keep default body
     }

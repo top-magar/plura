@@ -2,15 +2,11 @@
 
 import { useState } from "react";
 import { MIcon } from "../../../ui/m-icon";
-import { Section, type StyleProps } from "../shared";
+import { Section, px, type StyleProps } from "../shared";
 import { N } from "./measures-menu";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-function px(v: string): string {
-  if (!v || v === "0") return "0";
-  return /^\d+$/.test(v) ? `${v}px` : v;
-}
 
 function num(v: string): string {
   return String(parseInt(v) || 0);

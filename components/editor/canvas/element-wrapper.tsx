@@ -6,13 +6,12 @@ import { useEditor } from '../core/provider';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, ContextMenuShortcut } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import type { El } from '../core/types';
-import { resolveStyles } from '../core/types';
+import { CONTAINER_TYPES, resolveStyles } from '../core/types';
 import { findParentId } from '../core/tree-helpers';
 import { parseBox, useHandles, BoxZone, BoxHandle, RadiusCorners } from './handles/index';
 import { ResizeHandles } from './handles/resize-handles';
 import { FontSizeHandle } from './handles/font-size-handle';
 
-const CONTAINER_TYPES = new Set(['__body', 'container', 'section', '2Col', '3Col', '4Col', 'row', 'column', 'grid', 'hero', 'footer', 'header', 'card', 'sidebar', 'modal', 'form', 'navbar', 'contactForm', 'paymentForm']);
 const TEXT_TYPES = new Set(['text', 'heading', 'subheading', 'quote', 'code', 'badge', 'list']);
 
 

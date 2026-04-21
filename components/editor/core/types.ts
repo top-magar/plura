@@ -32,3 +32,9 @@ export type EditorProps = {
   agencyId: string;
   initialContent: string | null;
 };
+
+export const CONTAINER_TYPES = new Set([
+  '__body', 'container', 'section', '2Col', '3Col', '4Col',
+  'row', 'column', 'grid', 'hero', 'footer', 'header',
+  'card', 'sidebar', 'modal', 'form', 'navbar', 'contactForm', 'paymentForm',
+]);

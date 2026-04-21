@@ -12,6 +12,17 @@ import { Input } from "@/components/ui/input";
 
 export type IconOpt = { value: string; label: string; icon: ReactNode };
 
+/** Ensure value has px suffix */
+export function px(v: string): string {
+  const n = parseFloat(v);
+  return isNaN(n) ? v : `${n}px`;
+}
+
+/** Strip px suffix, return raw number string */
+export function strip(v: string): string {
+  return String(parseFloat(v) || 0);
+}
+
 export const selectOptions: Record<string, string[]> = {
   display: ["block", "flex", "grid", "inline", "inline-block", "none"],
   overflow: ["visible", "hidden", "auto", "scroll"],

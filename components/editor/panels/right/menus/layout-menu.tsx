@@ -4,19 +4,11 @@ import { useState } from "react";
 import { MIcon } from "../../../ui/m-icon";
 import { Input } from "@/components/ui/input";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Section, IconToggle, SelectField, selectOptions, justifyOpts, alignOpts, type StyleProps } from "../shared";
+import { Section, IconToggle, SelectField, selectOptions, justifyOpts, alignOpts, px, strip, type StyleProps } from "../shared";
 import { N } from "./measures-menu";
 import { cn } from "@/lib/utils";
 import type { El } from "../../../core/types";
 
-function px(v: string): string {
-  if (!v || v === "0") return "0";
-  return /^\d+$/.test(v) ? `${v}px` : v;
-}
-
-function strip(v: string): string {
-  return v?.replace("px", "") || "";
-}
 
 const dirOpts = [
   { value: "row", label: "Row", icon: <MIcon name="arrow_forward" size={14} /> },

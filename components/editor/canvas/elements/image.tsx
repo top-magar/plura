@@ -11,7 +11,7 @@ export default function ImageElement({ element }: { element: El }): ReactNode {
     <ElementWrapper element={element} style={element.styles}>
       {c.src ? (
         /* eslint-disable-next-line @next/next/no-img-element */
-        <img src={c.src} alt={element.name} className="block w-full" />
+        <img src={c.src} alt={c.alt || element.name} className="block w-full" />
       ) : (
         <div className="flex w-full flex-col items-center justify-center gap-2 bg-muted/50 py-12 text-muted-foreground">
           <MIcon name="image" size={24} />
