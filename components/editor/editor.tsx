@@ -45,7 +45,7 @@ function EditorInner() {
 
   // Auto-save
   useEffect(() => {
-    if (!dirty) return;
+    if (!dirty || saving) return;
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => {
       setSaving(true);
@@ -54,7 +54,7 @@ function EditorInner() {
         .catch(() => { setSaving(false); });
     }, 5000);
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
-  }, [dirty, elements, pageTitle, pageId, funnelId]);
+  }, [dirty, saving, elements, pageTitle, pageId, funnelId]);
 
   const handleSave = async () => {
     try {
