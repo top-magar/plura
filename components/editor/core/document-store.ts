@@ -4,6 +4,9 @@ import { create } from 'zustand';
 import type { El } from './types';
 import { addEl, updateEl, deleteEl, moveEl, reorderEl, cloneEl, findEl, defaultBody } from './tree-helpers';
 
+// Lazy ref to editor-store to avoid circular import
+const useEditorStoreRef = () => require('./editor-store').useEditorStore.getState() as { selected: El | null; select: (el: El | null) => void };
+
 const MAX_HISTORY = 50;
 
 type DocumentState = {
@@ -43,13 +46,26 @@ export const useDocumentStore = create<DocumentState & DocumentActions>()((set, 
 
   addElement: (containerId, element, index) => set(s => pushHistory(s, addEl(s.elements, containerId, element, index))),
 
-  updateElement: (element) => set(s => pushHistory(s, updateEl(s.elements, element))),
+  updateElement: (element) => {
+    set(s => pushHistory(s, updateEl(s.elements, element)));
+    // Sync selected if it's the updated element
+    const sel = useEditorStoreRef().selected;
+    if (sel?.id === element.id) useEditorStoreRef().select(element);
+  },
 
-  updateElementLive: (element) => set(s => ({ elements: updateEl(s.elements, element), dirty: true })),
+  updateElementLive: (element) => {
+    set(s => ({ elements: updateEl(s.elements, element), dirty: true }));
+    const sel = useEditorStoreRef().selected;
+    if (sel?.id === element.id) useEditorStoreRef().select(element);
+  },
 
   commitHistory: () => set(s => pushHistory(s, s.elements)),
 
-  deleteElement: (id) => set(s => pushHistory(s, deleteEl(s.elements, id))),
+  deleteElement: (id) => {
+    set(s => pushHistory(s, deleteEl(s.elements, id)));
+    const sel = useEditorStoreRef().selected;
+    if (sel?.id === id) useEditorStoreRef().select(null);
+  },
 
   moveElement: (elId, targetContainerId, index) => set(s => pushHistory(s, moveEl(s.elements, elId, targetContainerId, index))),
 
@@ -65,17 +81,25 @@ export const useDocumentStore = create<DocumentState & DocumentActions>()((set, 
 
   loadData: (elements) => set({ elements, dirty: false, snapshots: [elements], currentIndex: 0 }),
 
-  undo: () => set(s => {
-    if (s.currentIndex <= 0) return s;
-    const idx = s.currentIndex - 1;
-    return { elements: s.snapshots[idx], currentIndex: idx };
-  }),
+  undo: () => {
+    set(s => {
+      if (s.currentIndex <= 0) return s;
+      const idx = s.currentIndex - 1;
+      return { elements: s.snapshots[idx], currentIndex: idx };
+    });
+    const sel = useEditorStoreRef().selected;
+    if (sel) { const found = findEl(get().elements, sel.id); useEditorStoreRef().select(found ?? null); }
+  },
 
-  redo: () => set(s => {
-    if (s.currentIndex >= s.snapshots.length - 1) return s;
-    const idx = s.currentIndex + 1;
-    return { elements: s.snapshots[idx], currentIndex: idx };
-  }),
+  redo: () => {
+    set(s => {
+      if (s.currentIndex >= s.snapshots.length - 1) return s;
+      const idx = s.currentIndex + 1;
+      return { elements: s.snapshots[idx], currentIndex: idx };
+    });
+    const sel = useEditorStoreRef().selected;
+    if (sel) { const found = findEl(get().elements, sel.id); useEditorStoreRef().select(found ?? null); }
+  },
 
   setDirty: (dirty) => set({ dirty }),
 }));
