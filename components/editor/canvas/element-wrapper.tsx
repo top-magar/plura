@@ -74,6 +74,38 @@ export default function ElementWrapper({ element, children, className, style, is
   const hasPad = pt > 0 || pr > 0 || pb > 0 || pl > 0;
   const hasMar = mt > 0 || mr > 0 || mb > 0 || ml > 0;
 
+  // Free drag for freeform elements
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!isFreeform || !isSel || element.locked || e.button !== 0) return;
+    // Don't drag if clicking on a handle or interactive child
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-handle]') || target.closest('input') || target.closest('textarea') || target.closest('[contenteditable]')) return;
+
+    e.stopPropagation();
+    const startX = e.clientX, startY = e.clientY;
+    const startElX = element.x ?? 0, startElY = element.y ?? 0;
+    const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
+    let moved = false;
+
+    const onMove = (ev: PointerEvent) => {
+      const dx = (ev.clientX - startX) / z;
+      const dy = (ev.clientY - startY) / z;
+      if (!moved && Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
+      moved = true;
+      const snap = ev.shiftKey ? 10 : 1;
+      const nx = Math.round((startElX + dx) / snap) * snap;
+      const ny = Math.round((startElY + dy) / snap) * snap;
+      dispatch({ type: 'UPDATE_ELEMENT_LIVE', payload: { element: { ...element, x: nx, y: ny } } });
+    };
+    const onUp = () => {
+      if (moved) dispatch({ type: 'COMMIT_HISTORY' });
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+    };
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  };
+
   return (
     <ContextMenu>
     <ContextMenuTrigger disabled={isBody} asChild>
@@ -87,10 +119,12 @@ export default function ElementWrapper({ element, children, className, style, is
         isHov && !isBody && 'outline outline-1 outline-primary/25',
         isDrop && 'ring-2 ring-primary/50 bg-primary/[0.03]',
         isBody && 'min-h-full p-3',
+        isFreeform && isSel && 'cursor-move',
         className,
       )}
       style={wrapperStyles as React.CSSProperties}
       onClick={(e) => { e.stopPropagation(); dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: { element } }); }}
+      onPointerDown={onPointerDown}
       onDragOver={(e) => { e.preventDefault(); }}
       onMouseEnter={() => dispatch({ type: 'SET_HOVERED', payload: { id: element.id } })}
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}

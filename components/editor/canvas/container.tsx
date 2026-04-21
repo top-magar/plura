@@ -84,7 +84,16 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
 
     if (type) {
       const newEl = makeElInContext(type, element);
-      if (newEl) dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, element: newEl, index: idx } });
+      if (newEl) {
+        // For body (freeform canvas), place at drop position
+        if (isBody && wrapRef.current) {
+          const cr = wrapRef.current.getBoundingClientRect();
+          const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
+          newEl.x = Math.round((e.clientX - cr.left) / z);
+          newEl.y = Math.round((e.clientY - cr.top) / z);
+        }
+        dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, element: newEl, index: idx } });
+      }
     } else if (moveId && moveId !== element.id) {
       dispatch({ type: "MOVE_ELEMENT", payload: { elId: moveId, targetContainerId: element.id, index: idx } });
     }
