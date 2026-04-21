@@ -63,6 +63,8 @@ type RulerProps = {
   zoom: number;
   scrollLeft: number;
   scrollTop: number;
+  canvasOffsetX: number;
+  canvasOffsetY: number;
   width: number;
   height: number;
   selectedId: string | null;
@@ -74,12 +76,12 @@ type SelBand = { start: number; size: number } | null;
 
 // ─── Component ──────────────────────────────────────────
 
-export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, selectedId, onCreateGuide, onResetZoom }: RulerProps): ReactNode {
+export default function Rulers({ zoom, scrollLeft, scrollTop, canvasOffsetX, canvasOffsetY, width, height, selectedId, onCreateGuide, onResetZoom }: RulerProps): ReactNode {
   const hRef = useRef<HTMLCanvasElement>(null);
   const vRef = useRef<HTMLCanvasElement>(null);
   const cursorRef = useRef<{ x: number; y: number } | null>(null);
-  const propsRef = useRef({ zoom, scrollLeft, scrollTop, width, height });
-  propsRef.current = { zoom, scrollLeft, scrollTop, width, height };
+  const propsRef = useRef({ zoom, scrollLeft, scrollTop, canvasOffsetX, canvasOffsetY, width, height });
+  propsRef.current = { zoom, scrollLeft, scrollTop, canvasOffsetX, canvasOffsetY, width, height };
 
   // Selection band (element position on canvas)
   const hBandRef = useRef<SelBand>(null);
@@ -105,14 +107,14 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
     const onScroll = () => { update(); };
     scrollContainer.addEventListener('scroll', onScroll, { passive: true });
     return () => { ro.disconnect(); scrollContainer.removeEventListener('scroll', onScroll); };
-  }, [selectedId, zoom, scrollLeft, scrollTop]);
+  }, [selectedId, zoom, scrollLeft, scrollTop, canvasOffsetX, canvasOffsetY]);
 
   // ─── RAF Draw Loop ──────────────────────────────────────
 
   const dirtyRef = useRef(true);
 
   // Mark dirty on input changes
-  useEffect(() => { dirtyRef.current = true; }, [zoom, scrollLeft, scrollTop, width, height, selectedId]);
+  useEffect(() => { dirtyRef.current = true; }, [zoom, scrollLeft, scrollTop, canvasOffsetX, canvasOffsetY, width, height, selectedId]);
 
   useEffect(() => {
     let raf = 0;
@@ -143,11 +145,14 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const { zoom: zm, scrollLeft: sl, scrollTop: st, width: w, height: h } = propsRef.current;
+    const { zoom: zm, scrollLeft: sl, scrollTop: st, canvasOffsetX: cox, canvasOffsetY: coy, width: w, height: h } = propsRef.current;
     const z = zm / 100;
     const step = stepSize(z);
     const dpr = devicePixelRatio || 1;
     const len = axis === 'h' ? w : h;
+
+    // Canvas offset in pixels (where canvas element starts in scroll container)
+    const offset = axis === 'h' ? cox : coy;
 
     // Resize buffer if needed
     const bufW = axis === 'h' ? len * dpr : SZ * dpr;
@@ -195,9 +200,9 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
       }
     }
 
-    // Ticks
+    // Ticks — origin is the canvas element, not the scroll container
     const scroll = axis === 'h' ? sl : st;
-    const startPx = scroll / z;
+    const startPx = (scroll - offset) / z;
     const first = Math.floor(startPx / step) * step;
     const end = startPx + len / z;
     ctx.font = FONT;
@@ -292,14 +297,14 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
         const sr = scrollEl.getBoundingClientRect();
         const z = zoom / 100;
         const pos = axis === 'x'
-          ? (ev.clientX - sr.left + scrollEl.scrollLeft) / z
-          : (ev.clientY - sr.top + scrollEl.scrollTop) / z;
+          ? (ev.clientX - sr.left + scrollEl.scrollLeft - canvasOffsetX) / z
+          : (ev.clientY - sr.top + scrollEl.scrollTop - canvasOffsetY) / z;
         if (pos > 0) onCreateGuide(axis, Math.round(pos));
       }
     };
     target.addEventListener('pointermove', onMove);
     target.addEventListener('pointerup', onUp);
-  }, [zoom, onCreateGuide]);
+  }, [zoom, canvasOffsetX, canvasOffsetY, onCreateGuide]);
 
   return (
     <>

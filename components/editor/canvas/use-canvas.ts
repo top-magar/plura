@@ -6,6 +6,7 @@ export function useCanvas() {
   const [panning, setPanning] = useState(false);
   const [altHeld, setAltHeld] = useState(false);
   const [scroll, setScroll] = useState({ left: 0, top: 0, w: 0, h: 0 });
+  const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
   const spaceRef = useRef(false);
 
   // RAF-batched zoom accumulator
@@ -28,7 +29,15 @@ export function useCanvas() {
         }
       }
     };
-    const onScroll = () => { setScroll({ left: el.scrollLeft, top: el.scrollTop, w: el.clientWidth, h: el.clientHeight }); };
+    const onScroll = () => {
+      setScroll({ left: el.scrollLeft, top: el.scrollTop, w: el.clientWidth, h: el.clientHeight });
+      const cv = el.querySelector('[data-canvas]') as HTMLElement | null;
+      if (cv) {
+        const cr = cv.getBoundingClientRect();
+        const sr = el.getBoundingClientRect();
+        setCanvasOffset({ x: cr.left - sr.left + el.scrollLeft, y: cr.top - sr.top + el.scrollTop });
+      }
+    };
     el.addEventListener("wheel", onWheel, { passive: false });
     el.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -69,5 +78,5 @@ export function useCanvas() {
   // Dynamic cursor
   const cursor = panning ? "cursor-grab active:cursor-grabbing" : altHeld ? "cursor-copy" : "";
 
-  return { canvasRef, zoom, setZoom, panning, altHeld, spaceRef, scroll, onCanvasPointerDown, cursor };
+  return { canvasRef, zoom, setZoom, panning, altHeld, spaceRef, scroll, canvasOffset, onCanvasPointerDown, cursor };
 }

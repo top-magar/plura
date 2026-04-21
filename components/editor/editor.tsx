@@ -45,7 +45,7 @@ function EditorInner() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { canvasRef, zoom, setZoom, panning, altHeld, spaceRef, scroll, onCanvasPointerDown, cursor } = useCanvas();
+  const { canvasRef, zoom, setZoom, panning, altHeld, spaceRef, scroll, canvasOffset, onCanvasPointerDown, cursor } = useCanvas();
   const [showRulers, setShowRulers] = useState(true);
 
   // Auto-save
@@ -129,10 +129,10 @@ function EditorInner() {
 
         {/* Canvas area — grid layout: rulers pinned, scroll container independent */}
         <div className="flex-1 min-h-0 min-w-0 overflow-hidden" style={!preview && showRulers ? { display: 'grid', gridTemplate: `"corner hruler" ${SZ}px "vruler scroll" 1fr / ${SZ}px 1fr` } : undefined}>
-          {!preview && showRulers && <Rulers zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} width={scroll.w} height={scroll.h} selectedId={selected?.id ?? null} onCreateGuide={(axis, position) => dispatch({ type: 'ADD_GUIDE', payload: { axis, position } })} onResetZoom={() => setZoom(100)} />}
+          {!preview && showRulers && <Rulers zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} canvasOffsetX={canvasOffset.x} canvasOffsetY={canvasOffset.y} width={scroll.w} height={scroll.h} selectedId={selected?.id ?? null} onCreateGuide={(axis, position) => dispatch({ type: 'ADD_GUIDE', payload: { axis, position } })} onResetZoom={() => setZoom(100)} />}
 
           <div ref={canvasRef} onPointerDown={onCanvasPointerDown} className={cn("overflow-auto min-h-0 relative", preview ? "bg-background" : "bg-muted", cursor)} style={{ ...(!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined), gridArea: showRulers && !preview ? 'scroll' : undefined }} onClick={() => !preview && !spaceRef.current && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
-            {!preview && showRulers && <Guides zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} />}
+            {!preview && showRulers && <Guides zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} canvasOffsetX={canvasOffset.x} canvasOffsetY={canvasOffset.y} />}
             <div className="p-4">
             <div data-canvas className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200 relative" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
             {body && <Recursive element={body} />}
