@@ -76,7 +76,7 @@ export default function ElementWrapper({ element, children, className, style, is
         isSel && !isBody && 'outline outline-2 outline-primary -outline-offset-1',
         isHov && !isBody && 'outline outline-1 outline-primary/25',
         isDrop && 'ring-2 ring-primary/50 bg-primary/[0.03]',
-        isBody && 'min-h-full p-3',
+        isBody && 'min-h-full',
         className,
       )}
       style={wrapperStyles as React.CSSProperties}
