@@ -1,14 +1,13 @@
 'use client';
 
-import { useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useRef, type CSSProperties, type ReactNode } from 'react';
 import { MIcon } from '../ui/m-icon';
 import { useEditor } from '../core/provider';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, ContextMenuShortcut } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import type { El } from '../core/types';
 import { resolveStyles } from '../core/types';
-import { findParentId, findEl } from '../core/tree-helpers';
-import { calcSnap, getSiblingRects, SnapGuides, type Guide } from './overlays/snap-guides';
+import { findParentId } from '../core/tree-helpers';
 import { parseBox, useHandles, BoxZone, BoxHandle, RadiusCorners } from './handles/index';
 import { ResizeHandles } from './handles/resize-handles';
 import { FontSizeHandle } from './handles/font-size-handle';
@@ -26,7 +25,6 @@ export default function ElementWrapper({ element, children, className, style, is
   const { selected, preview, hovered, dropTarget, device } = state.editor;
   const elements = state.editor.elements;
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [snapGuides, setSnapGuides] = useState<Guide[]>([]);
 
   const isBody = element.type === '__body';
   const isSel = selected?.id === element.id;
@@ -57,88 +55,14 @@ export default function ElementWrapper({ element, children, className, style, is
   }
   const hasContentStyles = Object.keys(contentStyles).length > 0;
 
-  // Freeform positioning: apply x/y/w/h as absolute position
-  const isFreeform = !isBody && element.x !== undefined && element.y !== undefined;
-  if (isFreeform) {
-    wrapperStyles.position = 'absolute';
-    wrapperStyles.left = element.x;
-    wrapperStyles.top = element.y;
-    if (element.w !== undefined) wrapperStyles.width = element.w;
-    if (element.h !== undefined) wrapperStyles.height = element.h;
-    wrapperStyles.boxSizing = 'border-box';
-    // Remove conflicting CSS sizing — freeform w/h takes precedence
-    delete wrapperStyles.flex;
-    delete wrapperStyles.margin;
-    delete wrapperStyles.marginTop;
-    delete wrapperStyles.marginRight;
-    delete wrapperStyles.marginBottom;
-    delete wrapperStyles.marginLeft;
-    delete wrapperStyles.maxWidth;
-    delete wrapperStyles.minHeight;
-    delete wrapperStyles.minWidth;
-  }
-
   if (element.hidden && !preview) return <div className="relative opacity-20 pointer-events-none" style={resolved}>{children}</div>;
-  if (preview) return <div style={{ ...(wrapperStyles as CSSProperties), ...(contentStyles as CSSProperties) }} className={className}>{children}</div>;
+  if (preview) return <div style={resolved} className={className}>{children}</div>;
 
   const s = element.styles;
   const [pt, pr, pb, pl] = parseBox(s, 'padding');
   const [mt, mr, mb, ml] = parseBox(s, 'margin');
   const hasPad = pt > 0 || pr > 0 || pb > 0 || pl > 0;
   const hasMar = mt > 0 || mr > 0 || mb > 0 || ml > 0;
-
-  // Free drag for freeform elements
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (!isFreeform || !isSel || element.locked || e.button !== 0) return;
-    // Don't drag if clicking on a handle or interactive child
-    const target = e.target as HTMLElement;
-    if (target.closest('[data-handle]') || target.closest('input') || target.closest('textarea') || target.closest('[contenteditable]')) return;
-
-    e.stopPropagation();
-    const startX = e.clientX, startY = e.clientY;
-    const startElX = element.x ?? 0, startElY = element.y ?? 0;
-    const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
-    let moved = false;
-
-    // Get siblings for snapping
-    const parent = parentId ? findEl(elements, parentId) : null;
-    const siblings = parent && Array.isArray(parent.content) ? getSiblingRects(parent.content as El[], element.id) : [];
-    const sectionW = parent?.w ?? wrapperRef.current?.parentElement?.offsetWidth ?? 800;
-    const sectionH = parent?.h ?? wrapperRef.current?.parentElement?.offsetHeight ?? 400;
-
-    const onMove = (ev: PointerEvent) => {
-      const dx = (ev.clientX - startX) / z;
-      const dy = (ev.clientY - startY) / z;
-      if (!moved && Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
-      moved = true;
-      const rawX = startElX + dx, rawY = startElY + dy;
-
-      if (ev.shiftKey) {
-        // Shift = grid snap (10px), no smart guides
-        const snap = 10;
-        const nx = Math.round(rawX / snap) * snap;
-        const ny = Math.round(rawY / snap) * snap;
-        setSnapGuides([]);
-        dispatch({ type: 'UPDATE_ELEMENT_LIVE', payload: { element: { ...element, x: nx, y: ny } } });
-      } else {
-        // Smart snap to siblings/section edges
-        const { nx, ny, guides } = calcSnap(
-          { x: rawX, y: rawY, w: element.w ?? 100, h: element.h ?? 100 },
-          siblings, sectionW, sectionH
-        );
-        setSnapGuides(guides);
-        dispatch({ type: 'UPDATE_ELEMENT_LIVE', payload: { element: { ...element, x: Math.round(nx), y: Math.round(ny) } } });
-      }
-    };
-    const onUp = () => {
-      if (moved) dispatch({ type: 'COMMIT_HISTORY' });
-      setSnapGuides([]);
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup', onUp);
-    };
-    document.addEventListener('pointermove', onMove);
-    document.addEventListener('pointerup', onUp);
-  };
 
   return (
     <ContextMenu>
@@ -153,12 +77,10 @@ export default function ElementWrapper({ element, children, className, style, is
         isHov && !isBody && 'outline outline-1 outline-primary/25',
         isDrop && 'ring-2 ring-primary/50 bg-primary/[0.03]',
         isBody && 'min-h-full p-3',
-        isFreeform && isSel && 'cursor-move',
         className,
       )}
       style={wrapperStyles as React.CSSProperties}
       onClick={(e) => { e.stopPropagation(); dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: { element } }); }}
-      onPointerDown={onPointerDown}
       onDragOver={(e) => { e.preventDefault(); }}
       onMouseEnter={() => dispatch({ type: 'SET_HOVERED', payload: { id: element.id } })}
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
@@ -187,8 +109,8 @@ export default function ElementWrapper({ element, children, className, style, is
             <BoxHandle element={element} id="p-L" prop="paddingLeft" val={pl} dir="x" sign={-1} color="emerald" style={{ top: 0, left: 0, bottom: 0, width: Math.max(pl, 6) }} cls="cursor-ew-resize" h={h} />
           </>)}
 
-          {/* Margin — only for non-freeform elements (margin doesn't apply to absolute positioned) */}
-          {!isFreeform && hasMar && (<>
+          {/* Margin — zones + handles only when margin exists */}
+          {hasMar && (<>
             {mt > 0 && <><BoxZone id="m-T" val={mt} color="orange" style={{ top: -mt, left: 0, right: 0, height: mt }} h={h} /><BoxHandle element={element} id="m-T" prop="marginTop" val={mt} dir="y" sign={-1} color="orange" style={{ top: -mt, left: 0, right: 0, height: mt }} cls="cursor-ns-resize" h={h} /></>}
             {mr > 0 && <><BoxZone id="m-R" val={mr} color="orange" style={{ top: 0, right: -mr, bottom: 0, width: mr }} h={h} /><BoxHandle element={element} id="m-R" prop="marginRight" val={mr} dir="x" sign={1} color="orange" style={{ top: 0, right: -mr, bottom: 0, width: mr }} cls="cursor-ew-resize" h={h} /></>}
             {mb > 0 && <><BoxZone id="m-B" val={mb} color="orange" style={{ bottom: -mb, left: 0, right: 0, height: mb }} h={h} /><BoxHandle element={element} id="m-B" prop="marginBottom" val={mb} dir="y" sign={1} color="orange" style={{ bottom: -mb, left: 0, right: 0, height: mb }} cls="cursor-ns-resize" h={h} /></>}
@@ -199,14 +121,13 @@ export default function ElementWrapper({ element, children, className, style, is
           <RadiusCorners element={element} h={h} />
 
           {/* Resize — leaf elements only */}
-          {isFreeform && <ResizeHandles element={element} wrapperRef={wrapperRef} dispatch={dispatch} />}
+          {!CONTAINER_TYPES.has(element.type) && <ResizeHandles element={element} wrapperRef={wrapperRef} dispatch={dispatch} />}
 
           {/* Font size — text elements only */}
           {TEXT_TYPES.has(element.type) && <FontSizeHandle element={element} dispatch={dispatch} />}
       </>)}
 
       {hasContentStyles ? <div style={contentStyles as React.CSSProperties}>{children}</div> : children}
-      {snapGuides.length > 0 && <SnapGuides guides={snapGuides} elX={element.x ?? 0} elY={element.y ?? 0} sectionW={wrapperRef.current?.parentElement?.offsetWidth ?? 800} sectionH={wrapperRef.current?.parentElement?.offsetHeight ?? 400} />}
     </div>
     </ContextMenuTrigger>
     {!isBody && (

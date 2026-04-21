@@ -10,26 +10,6 @@ import {
 
 export function makeEl(type: string): El | null {
   const id = v4();
-  // Per-type default sizes for freeform canvas
-  const sizes: Record<string, { w: number; h: number }> = {
-    text: { w: 300, h: 40 }, heading: { w: 500, h: 60 }, subheading: { w: 400, h: 40 },
-    link: { w: 100, h: 30 }, button: { w: 160, h: 48 }, badge: { w: 80, h: 28 },
-    image: { w: 400, h: 300 }, video: { w: 560, h: 315 }, gallery: { w: 600, h: 400 },
-    icon: { w: 48, h: 48 }, divider: { w: 400, h: 2 }, spacer: { w: 400, h: 48 },
-    quote: { w: 500, h: 80 }, list: { w: 300, h: 120 }, code: { w: 500, h: 120 },
-    container: { w: 600, h: 400 }, section: { w: 800, h: 500 },
-    row: { w: 800, h: 200 }, column: { w: 300, h: 400 },
-    "2Col": { w: 800, h: 200 }, "3Col": { w: 800, h: 200 }, "4Col": { w: 800, h: 200 },
-    grid: { w: 600, h: 400 }, card: { w: 360, h: 300 },
-    header: { w: 800, h: 64 }, navbar: { w: 800, h: 64 }, footer: { w: 800, h: 200 },
-    hero: { w: 800, h: 500 }, cta: { w: 800, h: 300 },
-    testimonial: { w: 500, h: 200 }, pricing: { w: 360, h: 400 },
-    features: { w: 800, h: 300 }, stats: { w: 800, h: 200 },
-    accordion: { w: 500, h: 200 }, tabs: { w: 500, h: 200 }, countdown: { w: 500, h: 120 },
-    contactForm: { w: 400, h: 300 }, paymentForm: { w: 400, h: 300 },
-    embed: { w: 500, h: 300 }, socialIcons: { w: 300, h: 60 }, map: { w: 500, h: 300 },
-  };
-  const { w, h } = sizes[type] ?? { w: 400, h: 100 };
   const m: Record<string, () => El> = {
     text: () => ({ id, type: "text", name: "Text", styles: { fontSize: "16px", width: "100%" }, content: { innerText: "Edit this text" } }),
     heading: () => ({ id, type: "text", name: "Heading", styles: { fontSize: "36px", fontWeight: "700", lineHeight: "1.2", width: "100%" }, content: { innerText: "Heading" } }),
@@ -44,7 +24,7 @@ export function makeEl(type: string): El | null {
       { id: v4(), type: "column", name: "Col 2", styles: { display: "flex", flexDirection: "column", gap: "16px", flex: "1", padding: "16px" }, content: [] },
     ] as El[] }),
     column: () => ({ id, type: "column", name: "Column", styles: { display: "flex", flexDirection: "column", gap: "16px", flex: "1", padding: "16px" }, content: [] }),
-    section: () => ({ id, type: "section", name: "Section", styles: { position: "relative", width: "100%", minHeight: "400px", overflow: "hidden" }, content: [] }),
+    section: () => ({ id, type: "section", name: "Section", styles: { display: "flex", flexDirection: "column", gap: "24px", padding: "80px 24px", maxWidth: "1200px", margin: "0 auto", width: "100%" }, content: [] }),
     "2Col": () => ({ id, type: "2Col", name: "2 Columns", styles: { display: "flex", gap: "24px", width: "100%" }, content: [
       { id: v4(), type: "column", name: "Col 1", styles: { display: "flex", flexDirection: "column", gap: "16px", flex: "1", padding: "16px" }, content: [] },
       { id: v4(), type: "column", name: "Col 2", styles: { display: "flex", flexDirection: "column", gap: "16px", flex: "1", padding: "16px" }, content: [] },
@@ -140,10 +120,7 @@ export function makeEl(type: string): El | null {
       ] as El[] },
     ] as El[] }),
   };
-  const raw = m[type]?.() ?? null;
-  if (!raw) return null;
-  // Inject freeform defaults on root element only — children inside containers use flow layout
-  return { ...raw, x: 0, y: 0, w, h };
+  return m[type]?.() ?? null;
 }
 
 // Hug-by-default element types — these shouldn't stretch full width
@@ -153,14 +130,6 @@ const hugTypes = new Set(["button", "badge", "link", "icon", "socialIcons"]);
 export function makeElInContext(type: string, parent: El): El | null {
   const el = makeEl(type);
   if (!el) return el;
-
-  // Only elements inside sections get freeform coords
-  // Body children should be sections (no freeform)
-  // Other container children use flow layout
-  const parentIsSection = parent.type === 'section';
-  if (!parentIsSection) {
-    delete el.x; delete el.y; delete el.w; delete el.h;
-  }
 
   const parentIsRow = parent.styles.flexDirection === "row" || parent.styles.flexDirection === "row-reverse";
   const parentIsFlex = parent.styles.display === "flex" || parent.styles.display === "inline-flex";

@@ -57,12 +57,9 @@ export function useShortcuts(deps: ShortcutDeps) {
     }
     if (mod && e.key === "ArrowUp" && selected && selected.type !== "__body") { e.preventDefault(); dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "up" } }); setDirty(true); }
     if (mod && e.key === "ArrowDown" && selected && selected.type !== "__body") { e.preventDefault(); dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: "down" } }); setDirty(true); }
-    if (!mod && (e.key === "ArrowUp" || e.key === "ArrowDown" || e.key === "ArrowLeft" || e.key === "ArrowRight") && selected && selected.type !== "__body" && !isInput) {
+    if (!mod && (e.key === "ArrowUp" || e.key === "ArrowDown") && selected && selected.type !== "__body" && !isInput) {
       e.preventDefault();
-      const step = e.shiftKey ? 10 : 1;
-      const dx = e.key === "ArrowRight" ? step : e.key === "ArrowLeft" ? -step : 0;
-      const dy = e.key === "ArrowDown" ? step : e.key === "ArrowUp" ? -step : 0;
-      dispatch({ type: "UPDATE_ELEMENT", payload: { element: { ...selected, x: (selected.x ?? 0) + dx, y: (selected.y ?? 0) + dy } } });
+      dispatch({ type: "REORDER_ELEMENT", payload: { elId: selected.id, direction: e.key === "ArrowUp" ? "up" : "down" } });
       setDirty(true);
     }
     if (mod && e.key === "=") { e.preventDefault(); setZoom((z) => Math.min(200, z + 10)); }

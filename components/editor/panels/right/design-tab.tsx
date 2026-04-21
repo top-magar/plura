@@ -25,7 +25,7 @@ export default function DesignTab({ get, set, selected, onUpdate }: StyleProps &
   return (
     <div className="flex-1 overflow-y-auto">
       {/* Measures (W, H, sizing mode) — all except simple */}
-      {!isSimple && <MeasuresMenu get={get} set={set} selected={selected} onUpdate={onUpdate} />}
+      {!isSimple && <MeasuresMenu get={get} set={set} />}
 
       {/* Radius — non-body, non-simple */}
       {!isSimple && !isBody && <RadiusMenu get={get} set={set} />}
