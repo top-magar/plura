@@ -55,6 +55,18 @@ export default function ElementWrapper({ element, children, className, style, is
   const h = useHandles(dispatch);
 
   if (element.hidden && preview) return null;
+  // Separate effect styles so they don't apply to handles/overlays
+  const effectKeys = ['filter', 'opacity', 'mixBlendMode', 'backdropFilter'] as const;
+  const effects: Record<string, unknown> = {};
+  const wrapperStyles = { ...resolved } as Record<string, unknown>;
+  for (const k of effectKeys) {
+    if (wrapperStyles[k] !== undefined && wrapperStyles[k] !== '' && wrapperStyles[k] !== 'normal') {
+      effects[k] = wrapperStyles[k];
+      delete wrapperStyles[k];
+    }
+  }
+  const hasEffects = Object.keys(effects).length > 0;
+
   if (element.hidden && !preview) return <div className="relative opacity-20 pointer-events-none" style={resolved}>{children}</div>;
   if (preview) return <div style={resolved} className={className}>{children}</div>;
 
@@ -78,7 +90,7 @@ export default function ElementWrapper({ element, children, className, style, is
         isBody && 'min-h-full p-3',
         className,
       )}
-      style={resolved}
+      style={wrapperStyles as React.CSSProperties}
       onClick={(e) => { e.stopPropagation(); dispatch({ type: 'CHANGE_CLICKED_ELEMENT', payload: { element } }); }}
       onDragOver={(e) => { e.preventDefault(); }}
       onMouseEnter={() => dispatch({ type: 'SET_HOVERED', payload: { id: element.id } })}
@@ -156,7 +168,7 @@ export default function ElementWrapper({ element, children, className, style, is
         </>
       )}
 
-      {children}
+      {hasEffects ? <div style={effects as React.CSSProperties}>{children}</div> : children}
     </div>
     </ContextMenuTrigger>
     {!isBody && (
