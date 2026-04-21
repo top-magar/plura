@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, type CSSProperties, type ReactNode } from "react";
 import { useEditor } from "../core/provider";
 import ElementWrapper from "./element-wrapper";
-import { makeElInContext } from "../core/element-factory";
+import { makeEl, makeElInContext } from "../core/element-factory";
 import { cn } from "@/lib/utils";
 import type { El } from "../core/types";
 import { resolveStyles } from "../core/types";
@@ -25,6 +25,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
   const children = Array.isArray(element.content) ? element.content : [];
   const isEmpty = children.length === 0;
   const isBody = element.type === "__body";
+  const isSection = element.type === "section";
   const isActive = dropTarget === element.id;
   const [dropIdx, setDropIdx] = useState<number>(-1);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -85,12 +86,26 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
     if (type) {
       const newEl = makeElInContext(type, element);
       if (newEl) {
-        // For body (freeform canvas), place at drop position
-        if (isBody && wrapRef.current) {
+        // Dropping on section: place at cursor position (freeform)
+        if (isSection && wrapRef.current) {
           const cr = wrapRef.current.getBoundingClientRect();
           const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
           newEl.x = Math.round((e.clientX - cr.left) / z);
           newEl.y = Math.round((e.clientY - cr.top) / z);
+        }
+        // Dropping on body: if not a section, auto-wrap in a new section
+        if (isBody && type !== 'section') {
+          const sectionEl = makeEl('section');
+          if (sectionEl) {
+            delete sectionEl.x; delete sectionEl.y; delete sectionEl.w; delete sectionEl.h;
+            // Give the inner element freeform coords inside the section
+            newEl.x = 40; newEl.y = 40;
+            if (!newEl.w) newEl.w = 400;
+            if (!newEl.h) newEl.h = 100;
+            (sectionEl.content as El[]).push(newEl);
+            dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, element: sectionEl, index: idx } });
+            return;
+          }
         }
         dispatch({ type: "ADD_ELEMENT", payload: { containerId: element.id, element: newEl, index: idx } });
       }
@@ -115,13 +130,12 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         onDragLeave={handleDragLeave}
         className={cn(
           "min-h-[40px] flex-1",
-          isBody && "relative",
           isActive && !isEmpty && "bg-primary/[0.02]"
         )}
-        style={isBody ? { minHeight: '100vh', position: 'relative' } : layout}
+        style={isBody ? { ...layout, minHeight: '100vh' } : isSection ? { position: 'relative', width: '100%', minHeight: resolved.minHeight ?? 400 } : layout}
       >
         {children.map((child, i) => (
-          <div key={child.id} data-el-id={child.id} className={cn("min-w-0 break-words", !isBody && "relative")}>
+          <div key={child.id} data-el-id={child.id} className={cn("min-w-0 break-words", !isBody && !isSection && "relative")} style={isSection ? { zIndex: i + 1 } : undefined}>
             {isActive && dropIdx === i && !isBody && indicator}
             <Recursive element={child} />
           </div>
@@ -135,7 +149,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
               ? "border-primary/40 text-primary/70 bg-primary/[0.02]"
               : "border-border/30 text-muted-foreground/40"
           )}>
-            {isBody ? "Drag a component here to start" : "Drop here"}
+            {isBody ? "Drag a section here to start" : isSection ? "Drag elements here" : "Drop here"}
           </div>
         )}
       </div>

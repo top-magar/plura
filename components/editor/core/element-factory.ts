@@ -44,7 +44,7 @@ export function makeEl(type: string): El | null {
       { id: v4(), type: "column", name: "Col 2", styles: { display: "flex", flexDirection: "column", gap: "16px", flex: "1", padding: "16px" }, content: [] },
     ] as El[] }),
     column: () => ({ id, type: "column", name: "Column", styles: { display: "flex", flexDirection: "column", gap: "16px", flex: "1", padding: "16px" }, content: [] }),
-    section: () => ({ id, type: "section", name: "Section", styles: { display: "flex", flexDirection: "column", gap: "24px", padding: "80px 24px", maxWidth: "1200px", margin: "0 auto", width: "100%" }, content: [] }),
+    section: () => ({ id, type: "section", name: "Section", styles: { position: "relative", width: "100%", minHeight: "400px", overflow: "hidden" }, content: [] }),
     "2Col": () => ({ id, type: "2Col", name: "2 Columns", styles: { display: "flex", gap: "24px", width: "100%" }, content: [
       { id: v4(), type: "column", name: "Col 1", styles: { display: "flex", flexDirection: "column", gap: "16px", flex: "1", padding: "16px" }, content: [] },
       { id: v4(), type: "column", name: "Col 2", styles: { display: "flex", flexDirection: "column", gap: "16px", flex: "1", padding: "16px" }, content: [] },
@@ -154,9 +154,11 @@ export function makeElInContext(type: string, parent: El): El | null {
   const el = makeEl(type);
   if (!el) return el;
 
-  // Only root-level elements (direct children of body) get freeform coords
-  // Nested elements inside containers use flow layout
-  if (parent.type !== '__body') {
+  // Only elements inside sections get freeform coords
+  // Body children should be sections (no freeform)
+  // Other container children use flow layout
+  const parentIsSection = parent.type === 'section';
+  if (!parentIsSection) {
     delete el.x; delete el.y; delete el.w; delete el.h;
   }
 
