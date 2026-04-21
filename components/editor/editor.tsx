@@ -9,9 +9,7 @@ import { getAncestorPath } from "./core/tree-helpers";
 import { cn } from "@/lib/utils";
 import Recursive from "./canvas/recursive";
 import SnapDistances from "./canvas/overlays/snap-distances";
-import Rulers from "./canvas/overlays/rulers";
 import PixelGrid from "./canvas/overlays/pixel-grid";
-import Guides from "./canvas/overlays/guides";
 import GridEditor from "./canvas/overlays/grid-editor";
 import Marquee from "./canvas/overlays/marquee";
 import { EditorProvider, useEditor } from "./core/provider";
@@ -25,8 +23,6 @@ import ShortcutsOverlay from "./toolbar/shortcuts-overlay";
 export default function FunnelEditor(props: EditorProps) {
   return <EditorProvider {...props}><EditorInner /></EditorProvider>;
 }
-
-const SZ = 24; // ruler size in px
 
 function EditorInner() {
   const { state, dispatch, pageId, pageName, funnelId, subAccountId } = useEditor();
@@ -45,8 +41,7 @@ function EditorInner() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { canvasRef, zoom, setZoom, panning, altHeld, spaceRef, scroll, canvasOffset, onCanvasPointerDown, cursor } = useCanvas();
-  const [showRulers, setShowRulers] = useState(true);
+  const { canvasRef, zoom, setZoom, panning, altHeld, spaceRef, scroll, onCanvasPointerDown, cursor } = useCanvas();
 
   // Auto-save
   useEffect(() => {
@@ -103,7 +98,6 @@ function EditorInner() {
   const baseKeyDown = useShortcuts({ selected, elements, clipboard, setClipboard, styleClipboard, setStyleClipboard, dispatch, setDirty, setZoom, handleSave });
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "?" && !(e.target as HTMLElement).matches("input,textarea,[contenteditable]")) { setShowShortcuts(s => !s); return; }
-    if (e.shiftKey && e.key === "R" && !(e.target as HTMLElement).matches("input,textarea,[contenteditable]")) { setShowRulers(s => !s); return; }
     baseKeyDown(e);
   }, [baseKeyDown]);
 
@@ -127,29 +121,11 @@ function EditorInner() {
       <div className="flex flex-1 overflow-hidden min-h-0">
         {!preview && <LeftPanel />}
 
-        {/* Canvas area — grid layout: rulers pinned, scroll container independent */}
-        <div className="flex-1 min-h-0 min-w-0 overflow-hidden" style={!preview && showRulers ? { display: 'grid', gridTemplate: `"corner hruler" ${SZ}px "vruler scroll" 1fr / ${SZ}px 1fr` } : undefined}>
-          {!preview && showRulers && <Rulers zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} canvasOffsetX={canvasOffset.x} canvasOffsetY={canvasOffset.y} width={scroll.w} height={scroll.h} selectedId={selected?.id ?? null} onCreateGuide={(axis, position) => dispatch({ type: 'ADD_GUIDE', payload: { axis, position } })} onResetZoom={() => setZoom(100)} />}
-
-          <div ref={canvasRef} onPointerDown={onCanvasPointerDown} className={cn("overflow-auto min-h-0 relative", preview ? "bg-background" : "bg-muted", cursor)} style={{ ...(!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined), gridArea: showRulers && !preview ? 'scroll' : undefined }} onClick={() => !preview && !spaceRef.current && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
-            {!preview && showRulers && <Guides zoom={zoom} scrollLeft={scroll.left} scrollTop={scroll.top} canvasOffsetX={canvasOffset.x} canvasOffsetY={canvasOffset.y} />}
+        <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
+          <div ref={canvasRef} onPointerDown={onCanvasPointerDown} className={cn("overflow-auto h-full relative", preview ? "bg-background" : "bg-muted", cursor)} style={!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined} onClick={() => !preview && !spaceRef.current && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
             <div className="p-4">
             <div data-canvas className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200 relative" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
             {body && <Recursive element={body} />}
-            {/* ── Smart Overlays (priority chain) ──
-              
-              Thought chain:
-              1. Dragging? → hide ALL measurement overlays (they flicker during drag)
-              2. No selection? → show nothing
-              3. Selected + Alt held? → show distance measurements (red lines)
-              4. Selected + CSS grid? → show grid track editor
-              5. High zoom (800%+)? → show pixel grid
-              
-              What we DON'T auto-show:
-              - LayoutGrid (8px grid) — too noisy, covers content
-              - GradientEditor — should be explicit user action
-              - SnapGuides on static selection — only useful during drag
-            */}
             {(() => {
               const isDragging = !!state.editor.dropTarget;
               const hasSel = !!selected;
@@ -169,7 +145,6 @@ function EditorInner() {
         {!preview && <RightPanel />}
       </div>
 
-      {/* Breadcrumb */}
       {!preview && selected && (
         <div className="flex items-center gap-0.5 h-7 px-3 border-t border-sidebar-border bg-sidebar text-[10px] text-sidebar-foreground/50 shrink-0 overflow-x-auto">
           {getAncestorPath(elements, selected.id).map((el, i, arr) => (
