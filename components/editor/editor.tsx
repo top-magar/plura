@@ -121,8 +121,9 @@ function EditorInner() {
       <div className="flex flex-1 overflow-hidden min-h-0">
         {!preview && <LeftPanel />}
 
+        {!preview ? (
         <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
-          <div ref={canvasRef} onPointerDown={onCanvasPointerDown} className={cn("overflow-auto h-full relative", preview ? "bg-background" : "bg-muted", cursor)} style={!preview ? { backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" } : undefined} onClick={() => !preview && !spaceRef.current && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
+          <div ref={canvasRef} onPointerDown={onCanvasPointerDown} className={cn("overflow-auto h-full relative bg-muted", cursor)} style={{ backgroundImage: "radial-gradient(circle, hsl(var(--border)/0.4) 0.5px, transparent 0.5px)", backgroundSize: "20px 20px" }} onClick={() => !spaceRef.current && dispatch({ type: "CHANGE_CLICKED_ELEMENT", payload: { element: null } })}>
             <div className="p-4">
             <div data-canvas className="mx-auto min-h-full bg-background shadow-[0_1px_3px_hsl(0_0%_0%/0.08),0_8px_24px_hsl(0_0%_0%/0.06)] transition-[max-width] duration-200 relative" style={{ maxWidth: deviceWidth, transform: `scale(${zoom / 100})`, transformOrigin: "top center" }}>
             {body && <Recursive element={body} />}
@@ -138,9 +139,16 @@ function EditorInner() {
             })()}
           </div>
           </div>
-          {!preview && <Marquee canvasRef={canvasRef} />}
+          <Marquee canvasRef={canvasRef} />
           </div>
         </div>
+        ) : (
+        <div className="flex-1 overflow-auto bg-background">
+          <div className="mx-auto min-h-full" style={{ maxWidth: deviceWidth }}>
+            {body && <Recursive element={body} />}
+          </div>
+        </div>
+        )}
 
         {!preview && <RightPanel />}
       </div>
@@ -154,14 +162,6 @@ function EditorInner() {
             </span>
           ))}
           <span className="ml-auto text-[9px] text-sidebar-foreground/30 tabular-nums shrink-0">{JSON.stringify(elements).split('"id"').length - 1} elements</span>
-        </div>
-      )}
-
-      {preview && (
-        <div className="flex-1 overflow-auto bg-background">
-          <div className="mx-auto min-h-full" style={{ maxWidth: deviceWidth }}>
-            {body && <Recursive element={body} />}
-          </div>
         </div>
       )}
 
