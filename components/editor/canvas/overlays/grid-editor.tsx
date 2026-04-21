@@ -37,7 +37,6 @@ export default function GridEditor(): ReactNode {
   const [rows, setRows] = useState<Track[]>([]);
   const containerRef = useRef<HTMLElement | null>(null);
 
-  // Show grid lines on hover OR selection
   const targetId = selected?.styles.display === 'grid' ? selected.id : hovered;
   const targetEl = targetId ? (selected?.id === targetId ? selected : null) : null;
   const isGrid = targetEl && targetEl.styles.display === 'grid';
@@ -48,25 +47,29 @@ export default function GridEditor(): ReactNode {
     const el = document.querySelector(`[data-el-id="${targetEl.id}"]`) as HTMLElement | null;
     if (!el) return;
     containerRef.current = el;
-    const rect = el.getBoundingClientRect();
+    // Use offsetWidth/offsetHeight — these are in the element's own coordinate space (unscaled)
     const colTemplate = (targetEl.styles as Record<string, string>).gridTemplateColumns || '';
     const rowTemplate = (targetEl.styles as Record<string, string>).gridTemplateRows || '';
-    setCols(parseTracks(colTemplate, rect.width));
-    setRows(parseTracks(rowTemplate, rect.height));
+    setCols(parseTracks(colTemplate, el.offsetWidth));
+    setRows(parseTracks(rowTemplate, el.offsetHeight));
   }, [targetEl, isGrid]);
 
   if (!isGrid || !targetEl || (cols.length === 0 && rows.length === 0)) return null;
 
   const el = containerRef.current;
   if (!el) return null;
-  const canvasEl = document.querySelector('[data-canvas]');
-  if (!canvasEl) return null;
-  const cr = canvasEl.getBoundingClientRect();
-  const er = el.getBoundingClientRect();
-  const ox = er.left - cr.left;
-  const oy = er.top - cr.top;
-  const w = er.width;
-  const h = er.height;
+
+  // Calculate position relative to [data-canvas] using offset chain (unscaled coordinates)
+  let ox = 0, oy = 0;
+  let node: HTMLElement | null = el;
+  const canvasEl = document.querySelector('[data-canvas]') as HTMLElement | null;
+  while (node && node !== canvasEl) {
+    ox += node.offsetLeft;
+    oy += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
+  }
+  const w = el.offsetWidth;
+  const h = el.offsetHeight;
 
   const updateTemplate = (axis: 'col' | 'row', newTemplate: string) => {
     const prop = axis === 'col' ? 'gridTemplateColumns' : 'gridTemplateRows';
@@ -91,9 +94,10 @@ export default function GridEditor(): ReactNode {
     e.stopPropagation();
     const tracks = axis === 'col' ? cols : rows;
     const startPos = axis === 'col' ? e.clientX : e.clientY;
+    const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
 
     const onMove = (ev: PointerEvent) => {
-      const delta = (axis === 'col' ? ev.clientX : ev.clientY) - startPos;
+      const delta = ((axis === 'col' ? ev.clientX : ev.clientY) - startPos) / z;
       const t1 = tracks[index];
       const t2 = tracks[index + 1];
       if (!t1 || !t2) return;
