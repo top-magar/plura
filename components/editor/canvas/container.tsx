@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import type { El } from "../core/types";
 import { resolveStyles } from "../core/types";
 import Recursive from "./recursive";
-import { GapHandle } from "./handles/index";
 
 /** Split styles: layout props go to wrapRef, visual props go to ElementWrapper */
 function splitStyles(styles: CSSProperties) {
@@ -118,10 +117,6 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
           </div>
         ))}
         {isActive && dropIdx === children.length && !isEmpty && indicator}
-        {/* Gap handles — absolute positioned in the gap between children */}
-        {isSel && !preview && children.length > 1 && (
-          <GapHandle element={element} isRow={isRow} dispatch={dispatch} />
-        )}
         {isEmpty && !preview && (
           <div className={cn(
             "flex items-center justify-center border-2 border-dashed rounded-md text-xs transition-colors flex-1",
