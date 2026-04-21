@@ -75,7 +75,12 @@ function EditorInner() {
   const handleExportHTML = () => {
     const body = elements[0];
     const renderEl = (el: El): string => {
-      const style = Object.entries(el.styles).map(([k, v]) => `${k.replace(/([A-Z])/g, "-$1").toLowerCase()}:${v}`).join(";");
+      let style = Object.entries(el.styles).map(([k, v]) => `${k.replace(/([A-Z])/g, "-$1").toLowerCase()}:${v}`).join(";");
+      if (el.x !== undefined && el.y !== undefined) {
+        style += `;position:absolute;left:${el.x}px;top:${el.y}px`;
+        if (el.w) style += `;width:${el.w}px`;
+        if (el.h) style += `;height:${el.h}px`;
+      }
       const c = el.content as Record<string, string>;
       if (el.type === "text" || el.type === "footer") return `<p style="${style}">${c.innerText || ""}</p>`;
       if (el.type === "link") return `<a href="${c.href || "#"}" style="${style}">${c.innerText || ""}</a>`;

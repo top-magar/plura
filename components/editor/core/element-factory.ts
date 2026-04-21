@@ -123,13 +123,8 @@ export function makeEl(type: string): El | null {
   };
   const raw = m[type]?.() ?? null;
   if (!raw) return null;
-  // Inject freeform defaults into element and all nested children
-  const inject = (el: El): El => ({
-    ...defaults,
-    ...el,
-    content: Array.isArray(el.content) ? el.content.map(inject) : el.content,
-  });
-  return inject(raw);
+  // Inject freeform defaults on root element only — children inside containers use flow layout
+  return { ...defaults, ...raw };
 }
 
 // Hug-by-default element types — these shouldn't stretch full width

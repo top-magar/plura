@@ -85,8 +85,12 @@ export function getAncestorPath(tree: El[], id: string): El[] {
 
 export function cloneEl(el: El): El {
   const id = v4();
-  if (Array.isArray(el.content)) return { ...el, id, name: el.name + " copy", content: el.content.map(cloneEl) };
-  return { ...el, id, name: el.name + " copy" };
+  const clone = Array.isArray(el.content)
+    ? { ...el, id, name: el.name + " copy", content: el.content.map(cloneEl) }
+    : { ...el, id, name: el.name + " copy" };
+  if (clone.x !== undefined) clone.x = (clone.x ?? 0) + 20;
+  if (clone.y !== undefined) clone.y = (clone.y ?? 0) + 20;
+  return clone;
 }
 
 export const defaultBody: El = { id: "__body", type: "__body", name: "Body", x: 0, y: 0, w: 1200, h: 800, styles: { display: "flex", flexDirection: "column", gap: "0px", minHeight: "100vh", width: "100%" }, content: [] };
