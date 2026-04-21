@@ -12,7 +12,7 @@ import { parseBox, useHandles, BoxZone, BoxHandle, RadiusCorners } from './handl
 import { ResizeHandles } from './handles/resize-handles';
 import { FontSizeHandle } from './handles/font-size-handle';
 
-const CONTAINER_TYPES = new Set(['__body', 'container', 'section', '2Col', '3Col', '4Col', 'row', 'column', 'grid', 'hero', 'footer', 'header', 'card', 'sidebar', 'modal', 'form']);
+const CONTAINER_TYPES = new Set(['__body', 'container', 'section', '2Col', '3Col', '4Col', 'row', 'column', 'grid', 'hero', 'footer', 'header', 'card', 'sidebar', 'modal', 'form', 'navbar', 'contactForm', 'paymentForm']);
 const TEXT_TYPES = new Set(['text', 'heading', 'subheading', 'quote', 'code', 'badge', 'list']);
 
 

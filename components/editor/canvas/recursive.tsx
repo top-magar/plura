@@ -29,7 +29,7 @@ import PaymentFormElement from "./elements/payment-form";
 const CONTAINER_TYPES = new Set([
   "__body", "container", "section", "2Col", "3Col", "4Col",
   "row", "column", "grid", "hero", "footer", "header",
-  "card", "sidebar", "modal", "form",
+  "card", "sidebar", "modal", "form", "navbar", "contactForm", "paymentForm",
 ]);
 
 export default function Recursive({ element }: { element: El }): ReactNode {
