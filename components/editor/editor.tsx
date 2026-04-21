@@ -149,7 +149,7 @@ function EditorInner() {
         </div>
         ) : (
         <div className="flex-1 overflow-auto bg-background">
-          <div className="mx-auto min-h-full relative" style={{ maxWidth: deviceWidth }}>
+          <div className="mx-auto min-h-full" style={{ maxWidth: deviceWidth }}>
             {body && <Recursive element={body} />}
           </div>
         </div>

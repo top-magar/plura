@@ -1,5 +1,4 @@
 import { v4 } from "uuid";
-import type { CSSProperties } from "react";
 import type { El } from "./types";
 import {
   Type, Link2, Image, Layout, Columns2, Columns3, Video, Contact, CreditCard,
@@ -144,8 +143,7 @@ export function makeEl(type: string): El | null {
   const raw = m[type]?.() ?? null;
   if (!raw) return null;
   // Inject freeform defaults on root element only — children inside containers use flow layout
-  const { width, height, maxWidth, minHeight, flex, margin, ...cleanStyles } = raw.styles as Record<string, unknown>;
-  return { ...raw, x: 0, y: 0, w, h, styles: cleanStyles as CSSProperties };
+  return { ...raw, x: 0, y: 0, w, h };
 }
 
 // Hug-by-default element types — these shouldn't stretch full width
