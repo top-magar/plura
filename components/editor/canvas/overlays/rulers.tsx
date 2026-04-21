@@ -268,8 +268,10 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
     target.setPointerCapture(e.pointerId);
 
     const ghost = document.createElement('div');
-    ghost.style.cssText = `position:fixed;z-index:9999;pointer-events:none;${axis === 'x' ? 'width:1px;top:0;bottom:0' : 'height:1px;left:0;right:0'};background:${resolveColor('--primary', 0.4)}`;
-    document.body.appendChild(ghost);
+    const scrollContainer = document.querySelector('[data-canvas]')?.parentElement;
+    const container = scrollContainer || document.body;
+    ghost.style.cssText = `position:fixed;z-index:50;pointer-events:none;${axis === 'x' ? 'width:1px;top:0;bottom:0' : 'height:1px;left:0;right:0'};background:${resolveColor('--primary', 0.4)}`;
+    container.appendChild(ghost);
 
     const onMove = (ev: PointerEvent) => {
       if (axis === 'x') ghost.style.left = `${ev.clientX}px`;
