@@ -165,8 +165,8 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
     const tickMajor = resolveColor('--muted-foreground', 0.4);
     const text = resolveColor('--muted-foreground', 0.5);
     const border = resolveColor('--border', 0.5);
-    const band = resolveColor('--primary', 0.08);
-    const bandEdge = resolveColor('--primary', 0.5);
+    const band = resolveColor('--primary', 0.04);
+    const bandEdge = resolveColor('--primary', 0.3);
     const cursorColor = resolveColor('--primary', 0.6);
 
     // Background
