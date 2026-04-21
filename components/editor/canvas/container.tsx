@@ -33,7 +33,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
 
   const calcDropIdx = useCallback((e: React.DragEvent) => {
     if (!wrapRef.current) return children.length;
-    const els = wrapRef.current.querySelectorAll(":scope > [data-el-id]");
+    const els = wrapRef.current.querySelectorAll(":scope > [data-el-id], :scope > [data-wrapper]");
     // Find closest edge between children
     let bestIdx = children.length;
     let bestDist = Infinity;
