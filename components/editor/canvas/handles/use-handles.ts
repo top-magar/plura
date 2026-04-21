@@ -45,6 +45,7 @@ export function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
     e.preventDefault(); e.stopPropagation();
     elRef.current = element;
     const startPos = dir === 'y' ? e.clientY : e.clientX;
+    const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
     const startVal = parseInt(String((element.styles as Record<string, unknown>)[prop] ?? '0')) || 0;
     setState(s => ({ ...s, active: id }));
     const prefix = prop.replace(/(Top|Right|Bottom|Left)$/, '') as 'padding' | 'margin';
@@ -56,7 +57,7 @@ export function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
     const onMove = (ev: PointerEvent) => {
       if (!elRef.current) return;
       const snap = ev.shiftKey ? 10 : _snap; // Shift = big nudge
-      const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - startPos) * sign;
+      const delta = ((dir === 'y' ? ev.clientY : ev.clientX) - startPos) / z * sign;
       const val = Math.max(0, Math.round((startVal + delta) / snap) * snap);
       const expanded = expandShorthand(elRef.current.styles, prefix);
       const updates: Record<string, string> = { [prop]: `${val}px` };
@@ -83,6 +84,7 @@ export function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
     e.preventDefault(); e.stopPropagation();
     elRef.current = element;
     const sx = e.clientX, sy = e.clientY;
+    const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
     const sv = parseInt(String((element.styles as Record<string, unknown>)[prop] ?? element.styles.borderRadius ?? '0')) || 0;
     setState(s => ({ ...s, active: id }));
 
@@ -94,7 +96,7 @@ export function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
 
     const onMove = (ev: PointerEvent) => {
       if (!elRef.current) return;
-      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      const dx = (ev.clientX - sx) / z, dy = (ev.clientY - sy) / z;
       const raw = (dx * sxSign + dy * sySign) / 2;
       const snap = ev.shiftKey ? 10 : 2;
       const val = Math.max(0, Math.round((sv + raw) / snap) * snap);

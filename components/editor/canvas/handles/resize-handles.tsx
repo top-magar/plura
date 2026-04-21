@@ -39,12 +39,13 @@ export function ResizeHandles({ element, wrapperRef, dispatch }: {
     const el = wrapperRef.current;
     if (!el) return;
     const startX = e.clientX, startY = e.clientY;
+    const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
     const startW = el.offsetWidth, startH = el.offsetHeight;
     const ratio = startW / startH;
 
     const onMove = (ev: PointerEvent) => {
-      let newW = dx !== 0 ? Math.max(20, startW + (ev.clientX - startX) * dx) : startW;
-      let newH = dy !== 0 ? Math.max(20, startH + (ev.clientY - startY) * dy) : startH;
+      let newW = dx !== 0 ? Math.max(20, startW + (ev.clientX - startX) / z * dx) : startW;
+      let newH = dy !== 0 ? Math.max(20, startH + (ev.clientY - startY) / z * dy) : startH;
       if (ev.shiftKey && dx !== 0 && dy !== 0) newH = newW / ratio;
 
       const updates: Record<string, string> = {};

@@ -24,11 +24,12 @@ export function FontSizeHandle({ element, dispatch }: {
     e.stopPropagation();
     const startY = e.clientY;
     const startSize = size;
+    const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
     setDragging(true);
 
     const onMove = (ev: PointerEvent) => {
       const snap = ev.shiftKey ? 4 : 1;
-      const delta = startY - ev.clientY;
+      const delta = (startY - ev.clientY) / z;
       const val = Math.max(8, Math.round((startSize + delta) / snap) * snap);
       const next = { ...elRef.current, styles: { ...elRef.current.styles, fontSize: `${val}px` } as CSSProperties };
       elRef.current = next;
