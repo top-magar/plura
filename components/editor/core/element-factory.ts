@@ -10,6 +10,7 @@ import {
 
 export function makeEl(type: string): El | null {
   const id = v4();
+  const defaults = { x: 0, y: 0, w: 400, h: 100 };
   const m: Record<string, () => El> = {
     text: () => ({ id, type: "text", name: "Text", styles: { fontSize: "16px", width: "100%" }, content: { innerText: "Edit this text" } }),
     heading: () => ({ id, type: "text", name: "Heading", styles: { fontSize: "36px", fontWeight: "700", lineHeight: "1.2", width: "100%" }, content: { innerText: "Heading" } }),
@@ -120,7 +121,15 @@ export function makeEl(type: string): El | null {
       ] as El[] },
     ] as El[] }),
   };
-  return m[type]?.() ?? null;
+  const raw = m[type]?.() ?? null;
+  if (!raw) return null;
+  // Inject freeform defaults into element and all nested children
+  const inject = (el: El): El => ({
+    ...defaults,
+    ...el,
+    content: Array.isArray(el.content) ? el.content.map(inject) : el.content,
+  });
+  return inject(raw);
 }
 
 // Hug-by-default element types — these shouldn't stretch full width

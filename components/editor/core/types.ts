@@ -6,6 +6,11 @@ export type El = {
   id: string;
   type: string;
   name: string;
+  /** Freeform position/size on canvas */
+  x?: number;
+  y?: number;
+  w?: number;
+  h?: number;
   styles: CSSProperties;
   /** Per-device style overrides. Merged on top of `styles` when viewing that device. */
   responsiveStyles?: Partial<Record<Device, CSSProperties>>;
