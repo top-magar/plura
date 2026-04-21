@@ -158,18 +158,9 @@ function EditorInner() {
       )}
 
       {preview && (
-        <div className="flex-1 overflow-auto bg-muted p-6">
-          <div className="flex items-start justify-center gap-6 min-h-full">
-            {([["Desktop", "100%", 0.4], ["Tablet", "768px", 0.5], ["Mobile", "420px", 0.5]] as const).map(([label, w, scale]) => (
-              <div key={label} className="flex flex-col items-center gap-2 shrink-0">
-                <span className="text-[10px] font-medium text-muted-foreground">{label}</span>
-                <div className="bg-background rounded-lg shadow-lg overflow-hidden" style={{ width: label === "Desktop" ? 960 : label === "Tablet" ? 768 * scale : 420 * scale, transform: label === "Desktop" ? "scale(0.4)" : `scale(${scale})`, transformOrigin: "top center", height: "80vh" }}>
-                  <div style={{ width: label === "Desktop" ? 2400 : label === "Tablet" ? 768 : 420, transformOrigin: "top left" }}>
-                    {body && <Recursive element={body} />}
-                  </div>
-                </div>
-              </div>
-            ))}
+        <div className="flex-1 overflow-auto bg-background">
+          <div className="mx-auto min-h-full" style={{ maxWidth: deviceWidth }}>
+            {body && <Recursive element={body} />}
           </div>
         </div>
       )}
