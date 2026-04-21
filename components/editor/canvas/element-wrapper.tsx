@@ -49,6 +49,7 @@ export default function ElementWrapper({ element, children, className, style, co
     <div
       ref={wrapperRef}
       data-wrapper
+      data-el-id={element.id}
       className={cn(
         'relative group/el min-w-0',
         isSel && !isBody && 'ring-2 ring-inset ring-primary',
