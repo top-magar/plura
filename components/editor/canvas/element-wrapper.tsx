@@ -1,13 +1,14 @@
 'use client';
 
-import { useRef, type CSSProperties, type ReactNode } from 'react';
+import { useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { MIcon } from '../ui/m-icon';
 import { useEditor } from '../core/provider';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, ContextMenuShortcut } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import type { El } from '../core/types';
 import { resolveStyles } from '../core/types';
-import { findParentId } from '../core/tree-helpers';
+import { findParentId, findEl } from '../core/tree-helpers';
+import { calcSnap, getSiblingRects, SnapGuides, type Guide } from './overlays/snap-guides';
 import { parseBox, useHandles, BoxZone, BoxHandle, RadiusCorners } from './handles/index';
 import { ResizeHandles } from './handles/resize-handles';
 import { FontSizeHandle } from './handles/font-size-handle';
@@ -25,6 +26,7 @@ export default function ElementWrapper({ element, children, className, style, is
   const { selected, preview, hovered, dropTarget, device } = state.editor;
   const elements = state.editor.elements;
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const [snapGuides, setSnapGuides] = useState<Guide[]>([]);
 
   const isBody = element.type === '__body';
   const isSel = selected?.id === element.id;
@@ -98,18 +100,39 @@ export default function ElementWrapper({ element, children, className, style, is
     const z = parseFloat(getComputedStyle(document.querySelector('[data-canvas]')!).getPropertyValue('--zoom')) || 1;
     let moved = false;
 
+    // Get siblings for snapping
+    const parent = parentId ? findEl(elements, parentId) : null;
+    const siblings = parent && Array.isArray(parent.content) ? getSiblingRects(parent.content as El[], element.id) : [];
+    const sectionW = parent?.w ?? wrapperRef.current?.parentElement?.offsetWidth ?? 800;
+    const sectionH = parent?.h ?? wrapperRef.current?.parentElement?.offsetHeight ?? 400;
+
     const onMove = (ev: PointerEvent) => {
       const dx = (ev.clientX - startX) / z;
       const dy = (ev.clientY - startY) / z;
       if (!moved && Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
       moved = true;
-      const snap = ev.shiftKey ? 10 : 1;
-      const nx = Math.round((startElX + dx) / snap) * snap;
-      const ny = Math.round((startElY + dy) / snap) * snap;
-      dispatch({ type: 'UPDATE_ELEMENT_LIVE', payload: { element: { ...element, x: nx, y: ny } } });
+      const rawX = startElX + dx, rawY = startElY + dy;
+
+      if (ev.shiftKey) {
+        // Shift = grid snap (10px), no smart guides
+        const snap = 10;
+        const nx = Math.round(rawX / snap) * snap;
+        const ny = Math.round(rawY / snap) * snap;
+        setSnapGuides([]);
+        dispatch({ type: 'UPDATE_ELEMENT_LIVE', payload: { element: { ...element, x: nx, y: ny } } });
+      } else {
+        // Smart snap to siblings/section edges
+        const { nx, ny, guides } = calcSnap(
+          { x: rawX, y: rawY, w: element.w ?? 100, h: element.h ?? 100 },
+          siblings, sectionW, sectionH
+        );
+        setSnapGuides(guides);
+        dispatch({ type: 'UPDATE_ELEMENT_LIVE', payload: { element: { ...element, x: Math.round(nx), y: Math.round(ny) } } });
+      }
     };
     const onUp = () => {
       if (moved) dispatch({ type: 'COMMIT_HISTORY' });
+      setSnapGuides([]);
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', onUp);
     };
@@ -183,6 +206,7 @@ export default function ElementWrapper({ element, children, className, style, is
       </>)}
 
       {hasContentStyles ? <div style={contentStyles as React.CSSProperties}>{children}</div> : children}
+      {snapGuides.length > 0 && <SnapGuides guides={snapGuides} elX={element.x ?? 0} elY={element.y ?? 0} sectionW={wrapperRef.current?.parentElement?.offsetWidth ?? 800} sectionH={wrapperRef.current?.parentElement?.offsetHeight ?? 400} />}
     </div>
     </ContextMenuTrigger>
     {!isBody && (
