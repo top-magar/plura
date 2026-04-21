@@ -226,18 +226,53 @@ export function FillMenu({ get, set }: StyleProps) {
 
         {/* Image */}
         {mode === "image" && (
-          <div className="space-y-1">
-            {bgImage && !bgImage.includes("gradient") && bgImage.startsWith("url(") && (
-              <div className="h-16 rounded border border-sidebar-border bg-muted overflow-hidden">
-                <img src={bgImage.replace(/^url\(["']?|["']?\)$/g, '')} alt="" className="w-full h-full object-cover" />
+          <div className="space-y-1.5">
+            {/* Preview / Drop zone */}
+            {bgImage && bgImage.startsWith("url(") ? (
+              <div className="relative group/img rounded-md border border-sidebar-border overflow-hidden">
+                <img src={bgImage.replace(/^url\(["']?|["']?\)$/g, '')} alt="" className="w-full h-20 object-cover" />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <button onClick={() => set("backgroundImage", "")} className="size-6 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30">
+                    <MIcon name="delete" size={12} />
+                  </button>
+                </div>
               </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center h-20 rounded-md border border-dashed border-sidebar-border/60 bg-sidebar hover:border-primary/40 hover:bg-primary/5 transition-colors cursor-pointer">
+                <MIcon name="add_photo_alternate" size={20} className="text-muted-foreground/25" />
+                <span className="text-[9px] text-muted-foreground/30 mt-1">Paste image URL below</span>
+              </label>
             )}
-            <Input value={bgImage} onChange={(e) => set("backgroundImage", e.target.value)} className="h-6 text-[10px]" placeholder="url(https://...)" />
-            <div className="grid grid-cols-2 gap-1">
-              <SelectField label="" value={get("backgroundSize")} options={selectOptions.backgroundSize} onChange={(v) => set("backgroundSize", v)} />
-              <SelectField label="" value={get("backgroundPosition") || "center"} options={["center","top","bottom","left","right"]} onChange={(v) => set("backgroundPosition", v)} />
+
+            {/* URL input */}
+            <div className="relative">
+              <MIcon name="link" size={10} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground/30" />
+              <Input value={bgImage?.startsWith("url(") ? bgImage.replace(/^url\(["']?|["']?\)$/g, '') : bgImage} onChange={(e) => { const v = e.target.value; set("backgroundImage", v && !v.startsWith("url(") ? `url(${v})` : v); }} className="h-6 text-[10px] pl-6" placeholder="https://..." />
             </div>
-            <SelectField label="" value={get("backgroundRepeat") || "no-repeat"} options={["no-repeat","repeat","repeat-x","repeat-y"]} onChange={(v) => set("backgroundRepeat", v)} />
+
+            {/* Size + Position row */}
+            <div className="grid grid-cols-2 gap-1">
+              <div>
+                <span className="text-[9px] text-muted-foreground/30 mb-0.5 block">Size</span>
+                <SelectField label="" value={get("backgroundSize") || "cover"} options={selectOptions.backgroundSize} onChange={(v) => set("backgroundSize", v)} />
+              </div>
+              <div>
+                <span className="text-[9px] text-muted-foreground/30 mb-0.5 block">Position</span>
+                <SelectField label="" value={get("backgroundPosition") || "center"} options={["center","top","bottom","left","right"]} onChange={(v) => set("backgroundPosition", v)} />
+              </div>
+            </div>
+
+            {/* Repeat */}
+            <div>
+              <span className="text-[9px] text-muted-foreground/30 mb-0.5 block">Repeat</span>
+              <div className="flex gap-0.5 rounded-md border border-sidebar-border p-0.5">
+                {(["no-repeat","repeat","repeat-x","repeat-y"] as const).map((r) => (
+                  <button key={r} onClick={() => set("backgroundRepeat", r)} className={cn("flex-1 h-5 rounded text-[8px] font-medium transition-colors", (get("backgroundRepeat") || "no-repeat") === r ? "bg-primary text-primary-foreground" : "text-muted-foreground/40 hover:text-foreground")}>
+                    {r === "no-repeat" ? "None" : r === "repeat" ? "Both" : r === "repeat-x" ? "X" : "Y"}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
