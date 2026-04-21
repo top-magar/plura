@@ -71,6 +71,9 @@ export default function ElementWrapper({ element, children, className, style, is
     delete wrapperStyles.marginRight;
     delete wrapperStyles.marginBottom;
     delete wrapperStyles.marginLeft;
+    delete wrapperStyles.maxWidth;
+    delete wrapperStyles.minHeight;
+    delete wrapperStyles.minWidth;
   }
 
   if (element.hidden && !preview) return <div className="relative opacity-20 pointer-events-none" style={resolved}>{children}</div>;
