@@ -120,12 +120,9 @@ export default function ElementWrapper({ element, children, className, style, is
         4. Alt+hover on non-selected → padding zones visible
       */}
 
-      {/* Hover state: just name + dims */}
+      {/* Hover state: just dims */}
       {isHov && !isBody && (
-        <>
-          <span className="absolute -top-4 left-1 text-[8px] leading-none px-1 py-0.5 rounded-sm bg-muted/80 text-muted-foreground/70 z-10 pointer-events-none origin-bottom-left" style={{ transform: 'scale(calc(1 / var(--zoom, 1)))' }}>{element.name}</span>
-          <DimensionsBadge wrapperRef={wrapperRef} isSelected={false} />
-        </>
+        <DimensionsBadge wrapperRef={wrapperRef} isSelected={false} />
       )}
 
       {/* Padding zones: show on hover only if padding exists (visual feedback, not interactive) */}
