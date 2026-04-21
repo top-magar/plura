@@ -86,13 +86,16 @@ export function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
     const sv = parseInt(String((element.styles as Record<string, unknown>)[prop] ?? element.styles.borderRadius ?? '0')) || 0;
     setState(s => ({ ...s, active: id }));
 
-    // Direction sign: TL drags inward (positive = toward center), BR same, TR/BL inverted
-    const isInward = id === 'r-TL' || id === 'r-BR';
+    // Each corner: dragging toward center = increase radius
+    // TL: center is down-right (+dx, +dy). TR: center is down-left (-dx, +dy)
+    // BL: center is up-right (+dx, -dy). BR: center is up-left (-dx, -dy)
+    const sxSign = id === 'r-TL' || id === 'r-BL' ? 1 : -1;
+    const sySign = id === 'r-TL' || id === 'r-TR' ? 1 : -1;
 
     const onMove = (ev: PointerEvent) => {
       if (!elRef.current) return;
       const dx = ev.clientX - sx, dy = ev.clientY - sy;
-      const raw = isInward ? (dx + dy) : (-dx + dy);
+      const raw = (dx * sxSign + dy * sySign) / 2;
       const snap = ev.shiftKey ? 10 : 2;
       const val = Math.max(0, Math.round((sv + raw) / snap) * snap);
       const cur = { ...elRef.current.styles } as Record<string, unknown>;
