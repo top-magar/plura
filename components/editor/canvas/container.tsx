@@ -105,13 +105,13 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={cn(
-          "min-h-[40px] flex-1",
+          "min-h-[40px]",
           isActive && !isEmpty && "bg-primary/[0.02]"
         )}
         style={layout}
       >
         {children.map((child, i) => (
-          <div key={child.id} data-el-id={child.id} className="min-w-0 break-words relative">
+          <div key={child.id} data-el-id={child.id} className={cn("min-w-0", !isBody && "relative break-words")}>
             {isActive && dropIdx === i && indicator}
             <Recursive element={child} />
           </div>
