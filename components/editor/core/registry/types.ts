@@ -10,3 +10,7 @@ export type ElementDef = {
   isContainer: boolean;
   factory: () => El;
 };
+
+export const registry = new Map<string, ElementDef>();
+
+export function register(def: ElementDef) { registry.set(def.type, def); }

@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
 import { Globe, Phone, Quote, CreditCard, Columns3, Heading1 } from 'lucide-react';
-import { register } from '../index';
+import { register } from '../types';
 import type { El } from '../../types';
 
 register({ type: 'hero', name: 'Hero', icon: Globe, color: '#6366f1', group: 'Blocks', isContainer: true,

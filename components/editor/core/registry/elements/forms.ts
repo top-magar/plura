@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
 import { Contact, CreditCard } from 'lucide-react';
-import { register } from '../index';
+import { register } from '../types';
 import type { El } from '../../types';
 
 const field = (label: string, placeholder: string): El => ({ id: v4(), type: 'container', name: label, styles: { display: 'flex', flexDirection: 'column', gap: '6px' }, content: [

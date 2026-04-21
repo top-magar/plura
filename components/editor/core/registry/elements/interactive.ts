@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
 import { ChevronDown, Rows3, Timer } from 'lucide-react';
-import { register } from '../index';
+import { register } from '../types';
 
 register({ type: 'accordion', name: 'Accordion', icon: ChevronDown, color: '#f97316', group: 'Interactive', isContainer: false,
   factory: () => ({ id: v4(), type: 'accordion', name: 'Accordion', styles: {}, content: { items: JSON.stringify([

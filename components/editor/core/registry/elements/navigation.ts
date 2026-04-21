@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
 import { Navigation, PanelBottom } from 'lucide-react';
-import { register } from '../index';
+import { register } from '../types';
 import type { El } from '../../types';
 
 register({ type: 'navbar', name: 'Navbar', icon: Navigation, color: '#4f46e5', group: 'Navigation', isContainer: true,

@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
 import { Heading1, Heading2, Type, List, Quote, Star, Code } from 'lucide-react';
-import { register } from '../index';
+import { register } from '../types';
 
 register({ type: 'heading', name: 'Heading', icon: Heading1, color: '#3b82f6', group: 'Typography', isContainer: false,
   factory: () => ({ id: v4(), type: 'text', name: 'Heading', styles: { fontSize: '36px', fontWeight: '700', lineHeight: '1.2', width: '100%' }, content: { innerText: 'Heading' } }) });

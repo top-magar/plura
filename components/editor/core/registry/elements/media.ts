@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
 import { Image, Video, ImageIcon, Link2, CheckSquare, MapPin, CodeXml, Share2 } from 'lucide-react';
-import { register } from '../index';
+import { register } from '../types';
 
 register({ type: 'image', name: 'Image', icon: Image, color: '#22c55e', group: 'Media & Links', isContainer: false,
   factory: () => ({ id: v4(), type: 'image', name: 'Image', styles: { width: '100%', objectFit: 'cover' }, content: { src: '', alt: 'Image' } }) });

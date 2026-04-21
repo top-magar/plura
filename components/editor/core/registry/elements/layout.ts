@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
 import { Layout, Square, Columns2, LayoutGrid, PanelTop, RectangleHorizontal, Minus, SeparatorHorizontal } from 'lucide-react';
-import { register } from '../index';
+import { register } from '../types';
 import type { El } from '../../types';
 
 const col = (): El => ({ id: v4(), type: 'column', name: 'Column', styles: { display: 'flex', flexDirection: 'column', gap: '16px', flex: '1', padding: '16px' }, content: [] });
