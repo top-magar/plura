@@ -105,7 +105,7 @@ export default function Rulers({ zoom, scrollLeft, scrollTop, width, height, sel
     const onScroll = () => { update(); };
     scrollContainer.addEventListener('scroll', onScroll, { passive: true });
     return () => { ro.disconnect(); scrollContainer.removeEventListener('scroll', onScroll); };
-  }, [selectedId]);
+  }, [selectedId, zoom, scrollLeft, scrollTop]);
 
   // ─── RAF Draw Loop ──────────────────────────────────────
 
