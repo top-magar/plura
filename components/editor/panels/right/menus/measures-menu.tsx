@@ -6,12 +6,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Section, IconToggle, type StyleProps } from "../shared";
 import { cn } from "@/lib/utils";
 
-function N({ icon, value, onChange, placeholder = "auto", tip, disabled }: { icon: string; value: string; onChange: (v: string) => void; placeholder?: string; tip: string; disabled?: boolean }) {
+function N({ icon, value, onChange, placeholder = "auto", tip, disabled, slider }: { icon: string; value: string; onChange: (v: string) => void; placeholder?: string; tip: string; disabled?: boolean; slider?: { min: number; max: number } }) {
   return (
     <Tooltip><TooltipTrigger asChild>
-      <div className={cn("relative", disabled && "opacity-40 pointer-events-none")}>
-        <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[9px] font-medium text-muted-foreground/40 select-none">{icon}</span>
-        <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-6 text-[10px] pl-5 tabular-nums" placeholder={placeholder} />
+      <div className={cn("flex items-center gap-1", disabled && "opacity-40 pointer-events-none")}>
+        {slider && (
+          <input type="range" min={slider.min} max={slider.max} value={+value || 0} onChange={(e) => onChange(e.target.value)} className="flex-1 h-1 accent-primary cursor-pointer min-w-0" />
+        )}
+        <div className={cn("relative", slider ? "w-12 shrink-0" : "w-full")}>
+          <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[9px] font-medium text-muted-foreground/40 select-none">{icon}</span>
+          <Input value={value} onChange={(e) => onChange(e.target.value)} className="h-5 text-[10px] pl-5 tabular-nums" placeholder={placeholder} />
+        </div>
       </div>
     </TooltipTrigger><TooltipContent className="text-[10px]">{tip}</TooltipContent></Tooltip>
   );
@@ -38,8 +43,8 @@ export function MeasuresMenu({ get, set }: StyleProps) {
           <N icon="H" value={get("height")} onChange={(v) => set("height", v)} tip="Height" />
         </div>
         <div className="grid grid-cols-2 gap-1">
-          <N icon="Mn" value={get("minHeight")} onChange={(v) => set("minHeight", v)} placeholder="—" tip="Min Height" />
-          <N icon="Mx" value={get("maxWidth")} onChange={(v) => set("maxWidth", v)} placeholder="—" tip="Max Width" />
+          <N icon="↕" value={get("minHeight")} onChange={(v) => set("minHeight", v)} placeholder="—" tip="Min Height" />
+          <N icon="↔" value={get("maxWidth")} onChange={(v) => set("maxWidth", v)} placeholder="—" tip="Max Width" />
         </div>
       </div>
     </Section>

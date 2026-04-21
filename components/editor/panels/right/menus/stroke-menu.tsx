@@ -143,7 +143,7 @@ export function StrokeMenu({ get, set }: StyleProps) {
                   <N icon="W" value={strip(get("outlineWidth"))} onChange={(v) => px("outlineWidth", v)} placeholder="2" tip="Width" />
                 </div>
               </div>
-              <N icon="Of" value={strip(get("outlineOffset"))} onChange={(v) => px("outlineOffset", v)} placeholder="0" tip="Offset" />
+              <N icon="↔" value={strip(get("outlineOffset"))} onChange={(v) => px("outlineOffset", v)} placeholder="0" tip="Offset" />
             </div>
           )}
         </>)}

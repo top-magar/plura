@@ -58,8 +58,8 @@ export function LayoutMenu({ get, set, selected, onUpdate }: StyleProps & { sele
 
             {/* Gap */}
             <div className="grid grid-cols-2 gap-1">
-              <N icon="Rg" value={get("rowGap") || get("gap")} onChange={(v) => set("rowGap", v)} placeholder="0" tip="Row gap" />
-              <N icon="Cg" value={get("columnGap") || get("gap")} onChange={(v) => set("columnGap", v)} placeholder="0" tip="Column gap" />
+              <N icon="↕" value={get("rowGap") || get("gap")} onChange={(v) => set("rowGap", v)} placeholder="0" tip="Row gap" />
+              <N icon="↔" value={get("columnGap") || get("gap")} onChange={(v) => set("columnGap", v)} placeholder="0" tip="Column gap" />
             </div>
 
             {/* Quick column count */}
@@ -101,8 +101,8 @@ export function LayoutMenu({ get, set, selected, onUpdate }: StyleProps & { sele
 
             {/* Gap */}
             <div className="grid grid-cols-2 gap-1">
-              <N icon="Rg" value={get("rowGap") || get("gap")} onChange={(v) => set("rowGap", v)} placeholder="0" tip="Row gap" />
-              <N icon="Cg" value={get("columnGap") || get("gap")} onChange={(v) => set("columnGap", v)} placeholder="0" tip="Column gap" />
+              <N icon="↕" value={get("rowGap") || get("gap")} onChange={(v) => set("rowGap", v)} placeholder="0" tip="Row gap" />
+              <N icon="↔" value={get("columnGap") || get("gap")} onChange={(v) => set("columnGap", v)} placeholder="0" tip="Column gap" />
             </div>
 
             {/* Columns */}
@@ -136,15 +136,15 @@ export function LayoutMenu({ get, set, selected, onUpdate }: StyleProps & { sele
             </div>
             {padLinked ? (
               <div className="grid grid-cols-2 gap-1">
-                <N icon="Rg" value={get("paddingTop")} onChange={(v) => { set("paddingTop", v); set("paddingBottom", v); }} placeholder="0" tip="Vertical" />
-                <N icon="Cg" value={get("paddingRight")} onChange={(v) => { set("paddingRight", v); set("paddingLeft", v); }} placeholder="0" tip="Horizontal" />
+                <N icon="↕" value={get("paddingTop")} onChange={(v) => { set("paddingTop", v); set("paddingBottom", v); }} placeholder="0" tip="Vertical" />
+                <N icon="↔" value={get("paddingRight")} onChange={(v) => { set("paddingRight", v); set("paddingLeft", v); }} placeholder="0" tip="Horizontal" />
               </div>
             ) : (
               <div className="grid grid-cols-4 gap-1">
-                <N icon="T" value={get("paddingTop")} onChange={(v) => set("paddingTop", v)} placeholder="0" tip="Top" />
-                <N icon="R" value={get("paddingRight")} onChange={(v) => set("paddingRight", v)} placeholder="0" tip="Right" />
-                <N icon="B" value={get("paddingBottom")} onChange={(v) => set("paddingBottom", v)} placeholder="0" tip="Bottom" />
-                <N icon="L" value={get("paddingLeft")} onChange={(v) => set("paddingLeft", v)} placeholder="0" tip="Left" />
+                <N icon="↑" value={get("paddingTop")} onChange={(v) => set("paddingTop", v)} placeholder="0" tip="Top" />
+                <N icon="→" value={get("paddingRight")} onChange={(v) => set("paddingRight", v)} placeholder="0" tip="Right" />
+                <N icon="↓" value={get("paddingBottom")} onChange={(v) => set("paddingBottom", v)} placeholder="0" tip="Bottom" />
+                <N icon="←" value={get("paddingLeft")} onChange={(v) => set("paddingLeft", v)} placeholder="0" tip="Left" />
               </div>
             )}
           </div>
