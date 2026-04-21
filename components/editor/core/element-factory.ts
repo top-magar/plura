@@ -154,6 +154,12 @@ export function makeElInContext(type: string, parent: El): El | null {
   const el = makeEl(type);
   if (!el) return el;
 
+  // Only root-level elements (direct children of body) get freeform coords
+  // Nested elements inside containers use flow layout
+  if (parent.type !== '__body') {
+    delete el.x; delete el.y; delete el.w; delete el.h;
+  }
+
   const parentIsRow = parent.styles.flexDirection === "row" || parent.styles.flexDirection === "row-reverse";
   const parentIsFlex = parent.styles.display === "flex" || parent.styles.display === "inline-flex";
 
