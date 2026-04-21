@@ -23,7 +23,7 @@ function Toolbar({ element, dispatch, elements }: { element: El; dispatch: Retur
   const parentId = findParentId(elements, element.id);
   const { start } = useDragOverlay();
   return (
-    <div className="absolute -top-7 left-0 z-30 flex items-center gap-px rounded-md bg-primary text-primary-foreground shadow-md text-[9px] leading-none overflow-hidden" onClick={(e) => e.stopPropagation()}>
+    <div className="absolute -top-7 left-0 z-30 flex items-center gap-px rounded-md bg-primary text-primary-foreground shadow-md text-[9px] leading-none overflow-hidden origin-bottom-left" style={{ transform: 'scale(calc(1 / var(--zoom, 1)))' }} onClick={(e) => e.stopPropagation()}>
       <span className="flex items-center px-1 py-1 cursor-grab hover:bg-primary-foreground/10 active:cursor-grabbing" draggable onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); start(element.name, e); }}><MIcon name="drag_indicator" size={14} /></span>
       {element.locked && <MIcon name="lock" size={12} className="mx-0.5 text-amber-300" />}
       <span className="px-1 py-1 max-w-[80px] truncate pointer-events-none select-none">{element.name}</span>
@@ -123,7 +123,7 @@ export default function ElementWrapper({ element, children, className, style, is
       {/* Hover state: just name + dims */}
       {isHov && !isBody && (
         <>
-          <span className="absolute -top-4 left-1 text-[8px] leading-none px-1 py-0.5 rounded-sm bg-muted/80 text-muted-foreground/70 z-10 pointer-events-none">{element.name}</span>
+          <span className="absolute -top-4 left-1 text-[8px] leading-none px-1 py-0.5 rounded-sm bg-muted/80 text-muted-foreground/70 z-10 pointer-events-none origin-bottom-left" style={{ transform: 'scale(calc(1 / var(--zoom, 1)))' }}>{element.name}</span>
           <DimensionsBadge wrapperRef={wrapperRef} isSelected={false} />
         </>
       )}

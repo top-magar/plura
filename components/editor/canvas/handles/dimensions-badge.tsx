@@ -23,9 +23,9 @@ export function DimensionsBadge({ wrapperRef, isSelected }: {
 
   return (
     <span className={cn(
-      'absolute -bottom-5 right-0 z-10 rounded px-1 py-px text-[8px] font-mono whitespace-nowrap pointer-events-none shadow-sm',
+      'absolute -bottom-5 right-0 z-10 rounded px-1 py-px text-[8px] font-mono whitespace-nowrap pointer-events-none shadow-sm origin-top-right',
       isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground/70',
-    )}>
+    )} style={{ transform: 'scale(calc(1 / var(--zoom, 1)))' }}>
       {dims.w} × {dims.h}
     </span>
   );
