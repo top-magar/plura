@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, type CSSProperties, type ReactNode } from "react";
+import React, { useState, useCallback, useRef, type CSSProperties, type ReactNode } from "react";
 import { useEditor } from "../core/provider";
 import ElementWrapper from "./element-wrapper";
 import { makeElInContext } from "../core/element-factory";
@@ -110,8 +110,13 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         )}
         style={isBody ? { display: 'flex', flexDirection: 'column' as const, gap: 0, ...layout } : layout}
       >
-        {children.map((child, i) => (
-          <div key={child.id} data-el-id={child.id} className={cn("min-w-0", !isBody && "relative break-words")}>
+        {children.map((child, i) => isBody ? (
+          <React.Fragment key={child.id}>
+            {isActive && dropIdx === i && indicator}
+            <Recursive element={child} />
+          </React.Fragment>
+        ) : (
+          <div key={child.id} data-el-id={child.id} className="min-w-0 relative break-words">
             {isActive && dropIdx === i && indicator}
             <Recursive element={child} />
           </div>

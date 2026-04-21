@@ -71,7 +71,7 @@ export default function ElementWrapper({ element, children, className, style, is
       data-wrapper
       className={cn(
         'relative group/el min-w-0',
-        !isBody && 'transition-shadow duration-150',
+        !isBody && '',
         isSel && !isBody && 'ring-2 ring-inset ring-primary',
         isHov && !isBody && 'ring-1 ring-inset ring-primary/25',
         isDrop && 'ring-2 ring-primary/50 bg-primary/[0.03]',
