@@ -28,14 +28,15 @@ export function FontSizeHandle({ element, dispatch }: {
 
     const onMove = (ev: PointerEvent) => {
       const snap = ev.shiftKey ? 4 : 1;
-      const delta = startY - ev.clientY; // up = increase
+      const delta = startY - ev.clientY;
       const val = Math.max(8, Math.round((startSize + delta) / snap) * snap);
       const next = { ...elRef.current, styles: { ...elRef.current.styles, fontSize: `${val}px` } as CSSProperties };
       elRef.current = next;
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: next } });
+      dispatch({ type: 'UPDATE_ELEMENT_LIVE', payload: { element: next } });
     };
     const onUp = () => {
       setDragging(false);
+      dispatch({ type: 'COMMIT_HISTORY' });
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', onUp);
       cleanupRef.current = null;
@@ -56,7 +57,7 @@ export function FontSizeHandle({ element, dispatch }: {
       onPointerLeave={() => setHovered(false)}
     >
       <div className={cn('rounded-full transition-transform', dragging ? 'bg-violet-500 size-2.5 scale-110' : 'bg-violet-400 size-2')} />
-      {show && <span className="mt-0.5 rounded bg-violet-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none shadow-sm">{size}px</span>}
+      {show && <span className="mt-0.5 rounded bg-violet-500 px-1 py-px text-[8px] font-mono text-white whitespace-nowrap pointer-events-none shadow-sm" style={{ transform: 'scale(calc(1 / var(--zoom, 1)))' }}>{size}px</span>}
     </div>
   );
 }
