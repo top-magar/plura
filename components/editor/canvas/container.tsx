@@ -108,7 +108,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
           "min-h-[40px]",
           isActive && !isEmpty && "bg-primary/[0.02]"
         )}
-        style={layout}
+        style={isBody ? { display: 'flex', flexDirection: 'column' as const, gap: 0, ...layout } : layout}
       >
         {children.map((child, i) => (
           <div key={child.id} data-el-id={child.id} className={cn("min-w-0", !isBody && "relative break-words")}>
