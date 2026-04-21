@@ -112,35 +112,25 @@ function AngleDial({ angle, onChange }: { angle: number; onChange: (a: number) =
   );
 }
 
-// ─── Presets ─────────────────────────────────────────────────
-
-const presets = [
-  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-  "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-  "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-  "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-  "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-  "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
-  "linear-gradient(180deg, #0c0c0c 0%, #1a1a2e 100%)",
-  "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
-];
-
 // ─── Fill Menu ──────────────────────────────────────────────
 
 export function FillMenu({ get, set }: StyleProps) {
   const bgColor = get("backgroundColor");
   const bgImage = get("backgroundImage");
   const gradient = parseGradient(bgImage);
-  const mode = gradient ? gradient.type : bgImage && !bgImage.includes("gradient") && bgImage ? "image" : "solid";
+  const detectedMode = gradient ? gradient.type : bgImage && !bgImage.includes("gradient") && bgImage ? "image" : "solid";
+  const [modeOverride, setModeOverride] = useState<string | null>(null);
+  const mode = modeOverride ?? detectedMode;
   const [enabled, setEnabled] = useState(!!bgColor || !!bgImage);
   const [activeStop, setActiveStop] = useState(0);
 
   const setMode = (m: 'solid' | 'linear' | 'radial' | 'image') => {
     setEnabled(true);
+    setModeOverride(m);
     if (m === 'solid') set("backgroundImage", "");
     else if (m === 'linear') set("backgroundImage", build('linear', 180, [{ color: bgColor || "#6366f1", pos: 0 }, { color: "#000000", pos: 100 }]));
     else if (m === 'radial') set("backgroundImage", build('radial', 0, [{ color: bgColor || "#6366f1", pos: 0 }, { color: "#000000", pos: 100 }]));
-    else set("backgroundImage", "");
+    else if (m === 'image') set("backgroundImage", "");
   };
 
   const toggleFill = () => {
@@ -230,18 +220,6 @@ export function FillMenu({ get, set }: StyleProps) {
               <button onClick={swapStops} className="flex items-center gap-0.5 text-[9px] text-muted-foreground/40 hover:text-foreground transition-colors" title="Reverse gradient">
                 <MIcon name="swap_horiz" size={12} />
               </button>
-            </div>
-
-            {/* Presets */}
-            <div>
-              <span className="text-[9px] text-muted-foreground/30 mb-1 block">Presets</span>
-              <div className="grid grid-cols-8 gap-1">
-                {presets.map((p, i) => (
-                  <button key={i} onClick={() => set("backgroundImage", p)}
-                    className="h-4 rounded-sm border border-sidebar-border hover:scale-110 transition-transform"
-                    style={{ background: p }} />
-                ))}
-              </div>
             </div>
           </div>
         )}
