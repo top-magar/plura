@@ -55,6 +55,16 @@ export default function ElementWrapper({ element, children, className, style, is
   }
   const hasContentStyles = Object.keys(contentStyles).length > 0;
 
+  // Freeform positioning: apply x/y/w/h as absolute position
+  const isFreeform = !isBody && element.x !== undefined && element.y !== undefined;
+  if (isFreeform) {
+    wrapperStyles.position = 'absolute';
+    wrapperStyles.left = element.x;
+    wrapperStyles.top = element.y;
+    if (element.w) wrapperStyles.width = element.w;
+    if (element.h) wrapperStyles.height = element.h;
+  }
+
   if (element.hidden && !preview) return <div className="relative opacity-20 pointer-events-none" style={resolved}>{children}</div>;
   if (preview) return <div style={resolved} className={className}>{children}</div>;
 

@@ -106,13 +106,14 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
         onDragLeave={handleDragLeave}
         className={cn(
           "min-h-[40px] flex-1",
+          isBody && "relative",
           isActive && !isEmpty && "bg-primary/[0.02]"
         )}
-        style={layout}
+        style={isBody ? { minHeight: '100vh', position: 'relative' } : layout}
       >
         {children.map((child, i) => (
-          <div key={child.id} data-el-id={child.id} className="min-w-0 break-words relative">
-            {isActive && dropIdx === i && indicator}
+          <div key={child.id} data-el-id={child.id} className={cn("min-w-0 break-words", !isBody && "relative")}>
+            {isActive && dropIdx === i && !isBody && indicator}
             <Recursive element={child} />
           </div>
         ))}
