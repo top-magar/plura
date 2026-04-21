@@ -18,6 +18,8 @@ import {
 type EditorAction =
   | { type: 'ADD_ELEMENT'; payload: { containerId: string; element: El; index?: number } }
   | { type: 'UPDATE_ELEMENT'; payload: { element: El } }
+  | { type: 'UPDATE_ELEMENT_LIVE'; payload: { element: El } }
+  | { type: 'COMMIT_HISTORY' }
   | { type: 'DELETE_ELEMENT'; payload: { id: string } }
   | { type: 'MOVE_ELEMENT'; payload: { elId: string; targetContainerId: string; index?: number } }
   | { type: 'REORDER_ELEMENT'; payload: { elId: string; direction: 'up' | 'down' } }
@@ -29,8 +31,6 @@ type EditorAction =
   | { type: 'SET_DROP_TARGET'; payload: { id: string | null } }
   | { type: 'LOAD_DATA'; payload: { elements: El[] } }
   | { type: 'SET_ELEMENTS'; payload: { elements: El[] } }
-  | { type: 'UNDO' }
-  | { type: 'REDO' }
   | { type: 'UNDO' }
   | { type: 'REDO' };
 
@@ -107,6 +107,14 @@ function editorReducer(store: EditorStore, action: EditorAction): EditorStore {
       const selected = store.editor.selected?.id === element.id ? element : store.editor.selected;
       return pushHistory(store, { ...store.editor, elements, selected, dirty: true });
     }
+    case 'UPDATE_ELEMENT_LIVE': {
+      const { element } = action.payload;
+      const elements = updateEl(store.editor.elements, element);
+      const selected = store.editor.selected?.id === element.id ? element : store.editor.selected;
+      return { ...store, editor: { ...store.editor, elements, selected, dirty: true } };
+    }
+    case 'COMMIT_HISTORY':
+      return pushHistory(store, store.editor);
     case 'DELETE_ELEMENT': {
       const elements = deleteEl(store.editor.elements, action.payload.id);
       const selected = store.editor.selected?.id === action.payload.id ? null : store.editor.selected;

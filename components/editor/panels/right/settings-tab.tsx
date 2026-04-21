@@ -22,10 +22,10 @@ export default function SettingsTab() {
   const get = (p: string) => String(s[p] ?? "");
   const set = (p: string, v: string) => {
     if (device === "Desktop") {
-      dispatch({ type: "UPDATE_ELEMENT", payload: { element: { ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties } } });
+      dispatch({ type: "UPDATE_ELEMENT_LIVE", payload: { element: { ...selected, styles: { ...selected.styles, [p]: v } as CSSProperties } } });
     } else {
       const prev = selected.responsiveStyles ?? {};
-      dispatch({ type: "UPDATE_ELEMENT", payload: { element: { ...selected, responsiveStyles: { ...prev, [device]: { ...prev[device], [p]: v } } } } });
+      dispatch({ type: "UPDATE_ELEMENT_LIVE", payload: { element: { ...selected, responsiveStyles: { ...prev, [device]: { ...prev[device], [p]: v } } } } });
     }
   };
   const onUpdate = (el: El) => dispatch({ type: "UPDATE_ELEMENT", payload: { element: el } });
