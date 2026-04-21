@@ -3,39 +3,18 @@
 import { useRef, type CSSProperties, type ReactNode } from 'react';
 import { MIcon } from '../ui/m-icon';
 import { useEditor } from '../core/provider';
-import { findParentId } from '../core/tree-helpers';
-import { useDragOverlay } from './drag-overlay';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, ContextMenuShortcut } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import type { El } from '../core/types';
 import { resolveStyles } from '../core/types';
+import { findParentId } from '../core/tree-helpers';
 import { parseBox, useHandles, BoxZone, BoxHandle, RadiusCorners } from './handles/index';
 import { ResizeHandles } from './handles/resize-handles';
-import { DimensionsBadge } from './handles/dimensions-badge';
 import { FontSizeHandle } from './handles/font-size-handle';
 
 const CONTAINER_TYPES = new Set(['__body', 'container', 'section', '2Col', '3Col', '4Col', 'row', 'column', 'grid', 'hero', 'footer', 'header', 'card', 'sidebar', 'modal', 'form']);
 const TEXT_TYPES = new Set(['text', 'heading', 'subheading', 'quote', 'code', 'badge', 'list']);
 
-// ─── Toolbar ────────────────────────────────────────────
-
-function Toolbar({ element, dispatch, elements }: { element: El; dispatch: ReturnType<typeof useEditor>['dispatch']; elements: El[] }) {
-  const parentId = findParentId(elements, element.id);
-  const { start } = useDragOverlay();
-  return (
-    <div className="absolute -top-7 left-0 z-30 flex items-center gap-px rounded-md bg-primary text-primary-foreground shadow-md text-[9px] leading-none overflow-hidden origin-bottom-left" style={{ transform: 'scale(calc(1 / var(--zoom, 1)))' }} onClick={(e) => e.stopPropagation()}>
-      <span className="flex items-center px-1 py-1 cursor-grab hover:bg-primary-foreground/10 active:cursor-grabbing" draggable onDragStart={(e) => { e.stopPropagation(); e.dataTransfer.setData('moveElementId', element.id); start(element.name, e); }}><MIcon name="drag_indicator" size={14} /></span>
-      {element.locked && <MIcon name="lock" size={12} className="mx-0.5 text-amber-300" />}
-      <span className="px-1 py-1 max-w-[80px] truncate pointer-events-none select-none">{element.name}</span>
-      <span className="w-px h-3 bg-primary-foreground/20" />
-      <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'up' } })}><MIcon name="expand_less" size={14} /></button>
-      <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'REORDER_ELEMENT', payload: { elId: element.id, direction: 'down' } })}><MIcon name="expand_more" size={14} /></button>
-      <span className="w-px h-3 bg-primary-foreground/20" />
-      {parentId && <button className="flex items-center px-1 py-1 hover:bg-primary-foreground/10" onClick={() => dispatch({ type: 'DUPLICATE_ELEMENT', payload: { elId: element.id, containerId: parentId } })}><MIcon name="content_copy" size={12} /></button>}
-      <button className="flex items-center px-1 py-1 hover:bg-destructive/80 hover:text-destructive-foreground" onClick={() => dispatch({ type: 'DELETE_ELEMENT', payload: { id: element.id } })}><MIcon name="delete" size={12} /></button>
-    </div>
-  );
-}
 
 // ─── Main Wrapper ───────────────────────────────────────
 
@@ -51,6 +30,7 @@ export default function ElementWrapper({ element, children, className, style, is
   const isSel = selected?.id === element.id;
   const isHov = hovered === element.id && !isSel;
   const isDrop = dropTarget === element.id && isContainer;
+  const parentId = findParentId(elements, element.id);
   const resolved = style ?? resolveStyles(element, device);
   const h = useHandles(dispatch);
 
@@ -81,7 +61,6 @@ export default function ElementWrapper({ element, children, className, style, is
   const s = element.styles;
   const [pt, pr, pb, pl] = parseBox(s, 'padding');
   const [mt, mr, mb, ml] = parseBox(s, 'margin');
-  const parentId = findParentId(elements, element.id);
 
   return (
     <ContextMenu>
@@ -104,28 +83,7 @@ export default function ElementWrapper({ element, children, className, style, is
       onMouseEnter={() => dispatch({ type: 'SET_HOVERED', payload: { id: element.id } })}
       onMouseLeave={() => { if (hovered === element.id) dispatch({ type: 'SET_HOVERED', payload: { id: null } }); }}
     >
-      {isSel && !isBody && <Toolbar element={element} dispatch={dispatch} elements={elements} />}
-      {/* ── Smart Handles (context-aware, priority-based) ──
-        
-        Priority chain (only show what's relevant):
-        1. Locked → nothing
-        2. Hover → name label + dimensions badge only (minimal)
-        3. Selected → toolbar + selection ring + contextual handles:
-           - Padding handles: only if element HAS padding (>0 on any side)
-           - Margin handles: only if element HAS margin (>0 on any side)
-           - Radius corners: always (can drag from 0)
-           - Resize handles: leaf elements only (not containers)
-           - Font size handle: text elements only
-           - Dimensions badge: always
-        4. Alt+hover on non-selected → padding zones visible
-      */}
-
-      {/* Hover state: just dims */}
-      {isHov && !isBody && (
-        <DimensionsBadge wrapperRef={wrapperRef} isSelected={false} />
-      )}
-
-      {/* Padding zones: show on hover only if padding exists (visual feedback, not interactive) */}
+      {/* Hover: ring only (className above). Padding peek on hover if exists */}
       {!isBody && !element.locked && isHov && (pt > 0 || pr > 0 || pb > 0 || pl > 0) && (
         <>
           {pt > 0 && <BoxZone id="p-T" val={pt} color="emerald" style={{ top: 0, left: 0, right: 0, height: pt }} h={h} />}
@@ -169,7 +127,6 @@ export default function ElementWrapper({ element, children, className, style, is
           {TEXT_TYPES.has(element.type) && <FontSizeHandle element={element} dispatch={dispatch} />}
 
           {/* Dimensions — always on selected */}
-          <DimensionsBadge wrapperRef={wrapperRef} isSelected={true} />
         </>
       )}
 
