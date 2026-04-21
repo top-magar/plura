@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { El } from "../core/types";
-import { CONTAINER_TYPES } from "../core/types";
+import { isContainer } from "../core/registry";
 import ContainerElement from "./container";
 import TextElement from "./elements/text";
 import LinkElement from "./elements/link";
@@ -25,7 +25,7 @@ import MapElement from "./elements/map-el";
 import GalleryElement from "./elements/gallery";
 
 export default function Recursive({ element }: { element: El }): ReactNode {
-  if (CONTAINER_TYPES.has(element.type)) return <ContainerElement element={element} />;
+  if (isContainer(element.type)) return <ContainerElement element={element} />;
 
   switch (element.type) {
     case "text": return <TextElement element={element} />;

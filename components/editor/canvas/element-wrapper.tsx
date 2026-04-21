@@ -6,8 +6,9 @@ import { useEditor } from '../core/provider';
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger, ContextMenuShortcut } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import type { El } from '../core/types';
-import { CONTAINER_TYPES, resolveStyles } from '../core/types';
+import { resolveStyles } from '../core/types';
 import { findParentId } from '../core/tree-helpers';
+import { isContainer } from '../core/registry';
 import { parseBox, useHandles, BoxZone, BoxHandle, RadiusCorners } from './handles/index';
 import { ResizeHandles } from './handles/resize-handles';
 import { FontSizeHandle } from './handles/font-size-handle';
@@ -17,9 +18,9 @@ const TEXT_TYPES = new Set(['text', 'heading', 'subheading', 'quote', 'code', 'b
 
 // ─── Main Wrapper ───────────────────────────────────────
 
-type Props = { element: El; children: ReactNode; className?: string; style?: CSSProperties; isContainer?: boolean };
+type Props = { element: El; children: ReactNode; className?: string; style?: CSSProperties; containerEl?: boolean };
 
-export default function ElementWrapper({ element, children, className, style, isContainer }: Props) {
+export default function ElementWrapper({ element, children, className, style, containerEl }: Props) {
   const { state, dispatch } = useEditor();
   const { selected, preview, hovered, dropTarget, device } = state.editor;
   const elements = state.editor.elements;
@@ -28,7 +29,7 @@ export default function ElementWrapper({ element, children, className, style, is
   const isBody = element.type === '__body';
   const isSel = selected?.id === element.id;
   const isHov = hovered === element.id && !isSel;
-  const isDrop = dropTarget === element.id && isContainer;
+  const isDrop = dropTarget === element.id && containerEl;
   const parentId = findParentId(elements, element.id);
   const resolved = style ?? resolveStyles(element, device);
   const h = useHandles(dispatch);
@@ -120,7 +121,7 @@ export default function ElementWrapper({ element, children, className, style, is
           <RadiusCorners element={element} h={h} />
 
           {/* Resize — leaf elements only */}
-          {!CONTAINER_TYPES.has(element.type) && <ResizeHandles element={element} wrapperRef={wrapperRef} dispatch={dispatch} />}
+          {!isContainer(element.type) && <ResizeHandles element={element} wrapperRef={wrapperRef} dispatch={dispatch} />}
 
           {/* Font size — text elements only */}
           {TEXT_TYPES.has(element.type) && <FontSizeHandle element={element} dispatch={dispatch} />}

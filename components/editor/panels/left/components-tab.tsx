@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MIcon } from "../../ui/m-icon";
-import { componentGroups } from "../../core/element-factory";
+import { componentGroups } from "../../core/registry";
 import { useDragOverlay } from "../../canvas/drag-overlay";
 import { cn } from "@/lib/utils";
 
@@ -55,7 +55,7 @@ export default function ComponentsTab() {
   const q = query.toLowerCase().trim();
 
   // Flat list for search
-  const allItems = componentGroups.flatMap(g => g.items);
+  const allItems = componentGroups().flatMap(g => g.items);
   const recentItems = recent.map(t => allItems.find(i => i.type === t)).filter(Boolean) as typeof allItems;
 
   const onDragStart = (type: string, label: string, e: React.DragEvent) => {
@@ -99,7 +99,7 @@ export default function ComponentsTab() {
         )}
 
         {/* Groups */}
-        {componentGroups.map((group) => {
+        {componentGroups().map((group) => {
           const items = q ? group.items.filter(i => i.label.toLowerCase().includes(q) || i.type.toLowerCase().includes(q)) : group.items;
           if (items.length === 0) return null;
           const isCollapsed = !q && collapsed[group.label];

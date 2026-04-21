@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useRef, type CSSProperties, type ReactNode } from "react";
 import { useEditor } from "../core/provider";
 import ElementWrapper from "./element-wrapper";
-import { makeElInContext } from "../core/element-factory";
+import { makeElInContext } from "../core/registry";
 import { cn } from "@/lib/utils";
 import type { El } from "../core/types";
 import { resolveStyles } from "../core/types";
@@ -98,7 +98,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
   );
 
   return (
-    <ElementWrapper element={element} style={visual} isContainer>
+    <ElementWrapper element={element} style={visual} containerEl>
       <div
         ref={wrapRef}
         onDrop={handleDrop}
