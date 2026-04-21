@@ -96,7 +96,7 @@ export function SelectField({ label, value, options, onChange }: { label: string
     <div>
       {label && <label className="mb-0.5 block text-[10px] text-sidebar-foreground/50">{label}</label>}
       <Select value={value || undefined} onValueChange={onChange}>
-        <SelectTrigger className="h-6 text-[10px] px-2"><SelectValue placeholder="—" /></SelectTrigger>
+        <SelectTrigger className="h-5 text-[10px] px-2"><SelectValue placeholder="—" /></SelectTrigger>
         <SelectContent>{options.map((o) => <SelectItem key={o} value={o} className="text-xs">{o}</SelectItem>)}</SelectContent>
       </Select>
     </div>
