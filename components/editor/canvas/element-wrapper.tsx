@@ -74,7 +74,7 @@ export default function ElementWrapper({ element, children, className, style, is
   }
 
   if (element.hidden && !preview) return <div className="relative opacity-20 pointer-events-none" style={resolved}>{children}</div>;
-  if (preview) return <div style={resolved} className={className}>{children}</div>;
+  if (preview) return <div style={wrapperStyles as CSSProperties} className={className}>{hasContentStyles ? <div style={contentStyles as CSSProperties}>{children}</div> : children}</div>;
 
   const s = element.styles;
   const [pt, pr, pb, pl] = parseBox(s, 'padding');

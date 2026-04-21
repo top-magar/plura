@@ -118,7 +118,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
           isBody && "relative",
           isActive && !isEmpty && "bg-primary/[0.02]"
         )}
-        style={isBody ? { minHeight: '100vh', position: 'relative' } : layout}
+        style={isBody ? { minHeight: Math.max(window.innerHeight, ...children.map(c => (c.y ?? 0) + (c.h ?? 100) + 40)), position: 'relative' } : layout}
       >
         {children.map((child, i) => (
           <div key={child.id} data-el-id={child.id} className={cn("min-w-0 break-words", !isBody && "relative")}>
