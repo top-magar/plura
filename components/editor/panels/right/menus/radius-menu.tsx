@@ -49,10 +49,10 @@ export function RadiusMenu({ get, set }: StyleProps) {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-1 flex-1">
-            <N icon="┌" value={num(tl)} onChange={(v) => setCorner("borderTopLeftRadius", v)} placeholder="0" tip="Top Left" />
-            <N icon="┐" value={num(tr)} onChange={(v) => setCorner("borderTopRightRadius", v)} placeholder="0" tip="Top Right" />
-            <N icon="└" value={num(bl)} onChange={(v) => setCorner("borderBottomLeftRadius", v)} placeholder="0" tip="Bottom Left" />
-            <N icon="┘" value={num(brr)} onChange={(v) => setCorner("borderBottomRightRadius", v)} placeholder="0" tip="Bottom Right" />
+            <N icon="TL" value={num(tl)} onChange={(v) => setCorner("borderTopLeftRadius", v)} placeholder="0" tip="Top Left" />
+            <N icon="TR" value={num(tr)} onChange={(v) => setCorner("borderTopRightRadius", v)} placeholder="0" tip="Top Right" />
+            <N icon="BL" value={num(bl)} onChange={(v) => setCorner("borderBottomLeftRadius", v)} placeholder="0" tip="Bottom Left" />
+            <N icon="BR" value={num(brr)} onChange={(v) => setCorner("borderBottomRightRadius", v)} placeholder="0" tip="Bottom Right" />
           </div>
         )}
         <button onClick={() => {

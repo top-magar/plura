@@ -40,23 +40,23 @@ export function BlurMenu({ get, set }: StyleProps) {
         {/* Blur + Backdrop blur */}
         <div className="grid grid-cols-2 gap-1">
           <N icon="B" value={parseFilter(get("filter"), "blur")} onChange={(v) => setFilter(get, set, "blur", v, "px")} placeholder="0" tip="Blur" />
-          <N icon="⬚" value={get("backdropFilter")?.replace("blur(", "").replace("px)", "").replace(")", "") || ""} onChange={(v) => set("backdropFilter", v && v !== "0" ? `blur(${v}px)` : "")} placeholder="0" tip="Backdrop blur" />
+          <N icon="Bd" value={get("backdropFilter")?.replace("blur(", "").replace("px)", "").replace(")", "") || ""} onChange={(v) => set("backdropFilter", v && v !== "0" ? `blur(${v}px)` : "")} placeholder="0" tip="Backdrop blur" />
         </div>
 
         {/* Brightness + Contrast */}
         <div className="grid grid-cols-2 gap-1">
-          <N icon="☀" value={parseFilter(get("filter"), "brightness") || ""} onChange={(v) => setFilter(get, set, "brightness", v, "%")} placeholder="100" tip="Brightness %" />
-          <N icon="◐" value={parseFilter(get("filter"), "contrast") || ""} onChange={(v) => setFilter(get, set, "contrast", v, "%")} placeholder="100" tip="Contrast %" />
+          <N icon="Br" value={parseFilter(get("filter"), "brightness") || ""} onChange={(v) => setFilter(get, set, "brightness", v, "%")} placeholder="100" tip="Brightness %" />
+          <N icon="Ct" value={parseFilter(get("filter"), "contrast") || ""} onChange={(v) => setFilter(get, set, "contrast", v, "%")} placeholder="100" tip="Contrast %" />
         </div>
 
         {/* Saturate + Grayscale */}
         <div className="grid grid-cols-2 gap-1">
-          <N icon="🎨" value={parseFilter(get("filter"), "saturate") || ""} onChange={(v) => setFilter(get, set, "saturate", v, "%")} placeholder="100" tip="Saturate %" />
-          <N icon="◑" value={parseFilter(get("filter"), "grayscale") || ""} onChange={(v) => setFilter(get, set, "grayscale", v, "%")} placeholder="0" tip="Grayscale %" />
+          <N icon="Sa" value={parseFilter(get("filter"), "saturate") || ""} onChange={(v) => setFilter(get, set, "saturate", v, "%")} placeholder="100" tip="Saturate %" />
+          <N icon="Gs" value={parseFilter(get("filter"), "grayscale") || ""} onChange={(v) => setFilter(get, set, "grayscale", v, "%")} placeholder="0" tip="Grayscale %" />
         </div>
 
         {/* Hue rotate */}
-        <N icon="🔄" value={parseFilter(get("filter"), "hue-rotate") || ""} onChange={(v) => setFilter(get, set, "hue-rotate", v, "deg")} placeholder="0" tip="Hue rotate °" />
+        <N icon="Hu" value={parseFilter(get("filter"), "hue-rotate") || ""} onChange={(v) => setFilter(get, set, "hue-rotate", v, "deg")} placeholder="0" tip="Hue rotate deg" />
       </div>
     </Section>
     </TooltipProvider>

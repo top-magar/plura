@@ -38,8 +38,8 @@ export function MeasuresMenu({ get, set }: StyleProps) {
           <N icon="H" value={get("height")} onChange={(v) => set("height", v)} tip="Height" />
         </div>
         <div className="grid grid-cols-2 gap-1">
-          <N icon="↕" value={get("minHeight")} onChange={(v) => set("minHeight", v)} placeholder="—" tip="Min Height" />
-          <N icon="↔" value={get("maxWidth")} onChange={(v) => set("maxWidth", v)} placeholder="—" tip="Max Width" />
+          <N icon="Mn" value={get("minHeight")} onChange={(v) => set("minHeight", v)} placeholder="—" tip="Min Height" />
+          <N icon="Mx" value={get("maxWidth")} onChange={(v) => set("maxWidth", v)} placeholder="—" tip="Max Width" />
         </div>
       </div>
     </Section>
