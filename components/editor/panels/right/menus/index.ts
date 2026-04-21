@@ -1,4 +1,3 @@
-export { LayerMenu } from './layer-menu';
 export { MeasuresMenu } from './measures-menu';
 export { RadiusMenu } from './radius-menu';
 export { FillMenu } from './fill-menu';

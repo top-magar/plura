@@ -2,7 +2,7 @@
 
 import type { El } from "../../core/types";
 import type { StyleProps } from "./shared";
-import { LayerMenu, MeasuresMenu, RadiusMenu, FillMenu, StrokeMenu, ShadowMenu, BlurMenu, TypographyMenu, LayoutMenu } from "./menus";
+import { MeasuresMenu, RadiusMenu, FillMenu, StrokeMenu, ShadowMenu, BlurMenu, TypographyMenu, LayoutMenu } from "./menus";
 
 // ─── Shape type sets ─
 
@@ -24,9 +24,6 @@ export default function DesignTab({ get, set, selected, onUpdate }: StyleProps &
 
   return (
     <div className="flex-1 overflow-y-auto">
-      {/* Layer (opacity + blend) — all except simple */}
-      {!isSimple && <LayerMenu get={get} set={set} />}
-
       {/* Measures (W, H, sizing mode) — all except simple */}
       {!isSimple && <MeasuresMenu get={get} set={set} />}
 
