@@ -159,7 +159,7 @@ export function makeEl(type: string): El | null {
       { title: "Tab 2", body: "Content for the second tab." },
       { title: "Tab 3", body: "Content for the third tab." },
     ])} }),
-    navbar: () => ({ id, type: "navbar", name: "Navbar", styles: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 32px", width: "100%", backgroundColor: "#ffffff", borderBottom: "1px solid #f0f0f0" }, content: [
+    navbar: () => ({ id, type: "navbar", name: "Navbar", styles: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 32px", width: "100%", backgroundColor: "#ffffff" }, content: [
       { id: v4(), type: "text", name: "Brand", styles: { fontSize: "20px", fontWeight: "700", letterSpacing: "-0.02em" }, content: { innerText: "Brand" } },
       { id: v4(), type: "container", name: "Nav Links", styles: { display: "flex", gap: "32px", alignItems: "center" }, content: [
         { id: v4(), type: "link", name: "Home", styles: { fontSize: "14px", fontWeight: "500", color: "inherit", textDecoration: "none" }, content: { innerText: "Home", href: "#" } },
@@ -169,7 +169,7 @@ export function makeEl(type: string): El | null {
       ] as El[] },
       { id: v4(), type: "button", name: "Nav CTA", styles: { padding: "8px 20px", backgroundColor: "#6366f1", color: "#ffffff", fontSize: "13px", fontWeight: "600", borderRadius: "6px", width: "fit-content" }, content: { innerText: "Sign Up", href: "#" } },
     ] as El[] }),
-    footer: () => ({ id, type: "footer", name: "Footer", styles: { display: "flex", flexDirection: "column", gap: "40px", padding: "64px 32px 32px", width: "100%", borderTop: "1px solid #e5e7eb" }, content: [
+    footer: () => ({ id, type: "footer", name: "Footer", styles: { display: "flex", flexDirection: "column", gap: "40px", padding: "64px 32px 32px", width: "100%" }, content: [
       { id: v4(), type: "container", name: "Footer Cols", styles: { display: "flex", gap: "48px", width: "100%" }, content: [
         { id: v4(), type: "container", name: "Brand Col", styles: { display: "flex", flexDirection: "column", gap: "12px", flex: "1.5" }, content: [
           { id: v4(), type: "text", name: "Brand", styles: { fontSize: "20px", fontWeight: "700" }, content: { innerText: "Brand" } },

@@ -108,7 +108,7 @@ export default function ContainerElement({ element }: { element: El }): ReactNod
           "min-h-[40px]",
           isActive && !isEmpty && "bg-primary/[0.02]"
         )}
-        style={isBody ? { display: 'flex', flexDirection: 'column' as const, gap: 0, ...layout } : layout}
+        style={isBody ? { ...layout, display: 'flex', flexDirection: 'column' as const, gap: layout.gap ?? 0 } : layout}
       >
         {children.map((child, i) => isBody ? (
           <React.Fragment key={child.id}>
