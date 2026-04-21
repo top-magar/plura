@@ -64,9 +64,10 @@ export function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
       if (ev.altKey && ev.shiftKey) { for (const p of allProps) updates[p] = `${val}px`; }
       const next = { ...elRef.current, styles: { ...expanded, ...updates } as CSSProperties };
       elRef.current = next;
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: next } });
+      dispatch({ type: 'UPDATE_ELEMENT_LIVE', payload: { element: next } });
     };
     const onUp = () => {
+      dispatch({ type: 'COMMIT_HISTORY' });
       elRef.current = null;
       setState(s => ({ ...s, active: null }));
       document.removeEventListener('pointermove', onMove);
@@ -111,9 +112,10 @@ export function useHandles(dispatch: ReturnType<typeof useEditor>['dispatch']) {
       }
       const next = { ...elRef.current, styles: { ...cur, ...updates } as CSSProperties };
       elRef.current = next;
-      dispatch({ type: 'UPDATE_ELEMENT', payload: { element: next } });
+      dispatch({ type: 'UPDATE_ELEMENT_LIVE', payload: { element: next } });
     };
     const onUp = () => {
+      dispatch({ type: 'COMMIT_HISTORY' });
       elRef.current = null;
       setState(s => ({ ...s, active: null }));
       document.removeEventListener('pointermove', onMove);
