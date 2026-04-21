@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import type { El } from '../types';
 
 export type ElementDef = {
@@ -9,6 +9,8 @@ export type ElementDef = {
   group: string;
   isContainer: boolean;
   factory: () => El;
+  render?: ComponentType<{ element: El }>;
+  exportHTML?: (el: El) => string;
 };
 
 export const registry = new Map<string, ElementDef>();
